@@ -613,3 +613,39 @@ ORDER BY amount_vnd DESC, o.seller_id;
 INSERT INTO order_promotion_payouts (seller_id, week_start, amount_vnd, paid_by)
 VALUES (@seller_id, @week_start, @amount_vnd, @paid_by)
 ON CONFLICT DO NOTHING;
+
+-- name: GetOrderSettings :one
+SELECT open_per_phone_per_seller, missed_limit, missed_days, updated_at, updated_by
+FROM order_settings WHERE id = 1;
+
+-- name: LockOrderSettings :one
+-- The settings, locked until the transaction saving them ends.
+SELECT open_per_phone_per_seller, missed_limit, missed_days, updated_at, updated_by
+FROM order_settings WHERE id = 1 FOR UPDATE;
+
+-- name: PutOrderSettings :exec
+UPDATE order_settings
+SET open_per_phone_per_seller = @open_per_phone_per_seller, missed_limit = @missed_limit, missed_days = @missed_days,
+    updated_at = now(), updated_by = @updated_by
+WHERE id = 1;
+
+-- name: LockPlacing :exec
+-- Serializes the orders placed for one phone number until the transaction
+-- ends, so two placed at once cannot both pass a limit (SEC-158).
+SELECT pg_advisory_xact_lock(hashtextextended('order.placing:' || @phone::text, 0));
+
+-- name: MissedOfPhone :one
+-- How many orders a phone number missed in the last days: no hand-over by the
+-- end of a window that ended then, or refused then as no answer, no show or
+-- late (SEC-158).
+SELECT count(*) FROM order_orders
+WHERE customer_phone = @phone
+  AND ((state IN ('expired', 'confirmed', 'ready') AND window_end <= now()
+        AND window_end > now() - make_interval(days => @days::int))
+       OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late')
+           AND refused_at > now() - make_interval(days => @days::int)));
+
+-- name: OpenOfPhoneAtSeller :one
+-- The orders a phone number holds at a seller, still to collect.
+SELECT count(*) FROM order_orders
+WHERE seller_id = @seller_id AND customer_phone = @phone AND state IN ('confirmed', 'ready') AND window_end > now();

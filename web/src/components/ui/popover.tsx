@@ -46,8 +46,8 @@ function PopoverContent({
   Pick<PopoverPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset"> & {
     // Second Bite: "sheet" makes the popover a sheet from the bottom, over a scrim, below 640px (Figma Q5g, mobile).
     sheet?: boolean;
-    /** Compact anchored editors in the posting drawer (Figma P3g–P3j). */
-    variant?: "default" | "choices" | "editor";
+    /** Compact anchored editors in the posting drawer (Figma P3g–P3j); "tip" a hint drawn as a tooltip (Figma L1). */
+    variant?: "default" | "choices" | "editor" | "tip";
   }) {
   return (
     <PopoverPrimitive.Portal>
@@ -71,6 +71,8 @@ function PopoverContent({
               "max-sm:w-full max-sm:rounded-t-3xl max-sm:rounded-b-none max-sm:p-4 max-sm:pb-8",
             variant === "choices" && "w-60 p-3",
             variant === "editor" && "p-4",
+            variant === "tip" &&
+              "w-fit max-w-xs gap-0 rounded-md bg-foreground px-3 py-1.5 text-label text-background shadow-none ring-0",
             className,
           )}
           {...props}

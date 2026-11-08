@@ -26,8 +26,11 @@ type Settings struct {
 	WindowMax          time.Duration
 	// StartsWithin bounds how far ahead a collection window may start.
 	StartsWithin time.Duration
-	UpdatedAt    time.Time
-	UpdatedBy    *uuid.UUID
+	// DefaultMaxPerOrder is how many units of a post one order may take when
+	// the seller set no cap of its own (SEC-158).
+	DefaultMaxPerOrder int
+	UpdatedAt          time.Time
+	UpdatedBy          *uuid.UUID
 }
 
 // Settings returns the offer settings, to admins.
@@ -73,6 +76,7 @@ func (s *Service) SaveSettings(ctx context.Context, in Settings, version time.Ti
 			WindowMinMinutes:   int32(in.WindowMin.Minutes()),
 			WindowMaxMinutes:   int32(in.WindowMax.Minutes()),
 			StartsWithinHours:  int32(in.StartsWithin.Hours()),
+			DefaultMaxPerOrder: int32(in.DefaultMaxPerOrder), //nolint:gosec // bounded by valid
 			UpdatedBy:          uuid.NullUUID{UUID: caller.AccountID, Valid: true},
 		}
 
@@ -117,6 +121,7 @@ func changedSettings(current db.LockSettingsRow, next db.PutSettingsParams) []au
 		{"windowMinMinutes", current.WindowMinMinutes, next.WindowMinMinutes},
 		{"windowMaxMinutes", current.WindowMaxMinutes, next.WindowMaxMinutes},
 		{"startsWithinHours", current.StartsWithinHours, next.StartsWithinHours},
+		{"defaultMaxPerOrder", current.DefaultMaxPerOrder, next.DefaultMaxPerOrder},
 	} {
 		if f.was != f.now {
 			changed = append(changed, audit.ChangedFromTo(f.name, strconv.Itoa(int(f.was)), strconv.Itoa(int(f.now))))
@@ -131,7 +136,13 @@ func changedSettings(current db.LockSettingsRow, next db.PutSettingsParams) []au
 func (in Settings) valid() bool {
 	return in.MinDiscountPercent >= 0 && in.MinDiscountPercent <= 90 &&
 		in.DefaultRadiusKm >= 1 && in.MaxRadiusKm >= in.DefaultRadiusKm && in.MaxRadiusKm <= 100 &&
-		in.WindowMin >= 15*time.Minute && in.WindowMax >= in.WindowMin && in.WindowMax <= 24*time.Hour &&
+		in.windowsValid() && in.DefaultMaxPerOrder >= 1 && in.DefaultMaxPerOrder <= 999
+}
+
+// windowsValid holds the window's length to 15 minutes up to a day, in whole
+// minutes, starting within 1 to 72 whole hours.
+func (in Settings) windowsValid() bool {
+	return in.WindowMin >= 15*time.Minute && in.WindowMax >= in.WindowMin && in.WindowMax <= 24*time.Hour &&
 		in.WindowMin%time.Minute == 0 && in.WindowMax%time.Minute == 0 &&
 		in.StartsWithin >= time.Hour && in.StartsWithin <= 72*time.Hour && in.StartsWithin%time.Hour == 0
 }
@@ -149,6 +160,7 @@ func (s *Service) settings(ctx context.Context) (Settings, error) {
 		WindowMin:          time.Duration(row.WindowMinMinutes) * time.Minute,
 		WindowMax:          time.Duration(row.WindowMaxMinutes) * time.Minute,
 		StartsWithin:       time.Duration(row.StartsWithinHours) * time.Hour,
+		DefaultMaxPerOrder: int(row.DefaultMaxPerOrder),
 		UpdatedAt:          row.UpdatedAt,
 	}
 

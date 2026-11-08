@@ -59,6 +59,9 @@ type Details struct {
 	MorePhotoIDs []uuid.UUID
 	WindowStart  time.Time
 	WindowEnd    time.Time
+	// MaxPerOrder is how many units of it one order may take, as the seller
+	// sets it; none takes the settings' default (SEC-158).
+	MaxPerOrder *int
 }
 
 // morePhotosValid holds the photos after the cover to two, each real, none repeated and none the cover.
@@ -109,11 +112,12 @@ func (d Details) textValid() bool {
 		(d.Kind != KindMixedBox || d.Description != "")
 }
 
-// amountsValid checks the units, the prices and the weight.
+// amountsValid checks the units, the prices, the weight and the cap per order.
 func (d Details) amountsValid() bool {
 	return between(d.Units, 1, 999) &&
 		d.PriceVND >= 1000 && d.OriginalPriceVND > d.PriceVND &&
-		(d.WeightGrams == nil || between(*d.WeightGrams, 1, 100_000))
+		(d.WeightGrams == nil || between(*d.WeightGrams, 1, 100_000)) &&
+		(d.MaxPerOrder == nil || between(*d.MaxPerOrder, 1, 999))
 }
 
 // checkDiscount holds the price at least the minimum discount below the

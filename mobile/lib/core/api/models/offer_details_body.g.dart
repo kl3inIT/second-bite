@@ -18,6 +18,7 @@ _OfferDetailsBody _$OfferDetailsBodyFromJson(Map<String, dynamic> json) =>
       windowStart: DateTime.parse(json['windowStart'] as String),
       description: json['description'] as String?,
       kindLabel: json['kindLabel'] as String?,
+      maxPerOrder: (json['maxPerOrder'] as num?)?.toInt(),
       morePhotoIds: (json['morePhotoIds'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -37,6 +38,7 @@ Map<String, dynamic> _$OfferDetailsBodyToJson(_OfferDetailsBody instance) =>
       'windowStart': instance.windowStart.toIso8601String(),
       'description': instance.description,
       'kindLabel': instance.kindLabel,
+      'maxPerOrder': instance.maxPerOrder,
       'morePhotoIds': instance.morePhotoIds,
       'unit': instance.unit,
       'weightGrams': instance.weightGrams,

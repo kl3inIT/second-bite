@@ -229,7 +229,7 @@ export type AuditDetailsBody = {
 };
 
 export type AuditEventBody = {
-    action: 'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout';
+    action: 'offer_settings.change' | 'order_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout';
     actorId?: string;
     actorLabel?: string;
     details: AuditDetailsBody;
@@ -240,7 +240,7 @@ export type AuditEventBody = {
      * The store's name, the account's address or the order's number at the time; absent once that account is deleted
      */
     resourceLabel?: string;
-    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'email_settings' | 'promotion';
+    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'order_settings' | 'email_settings' | 'promotion';
 };
 
 export type AuditEventsOutputBody = {
@@ -491,8 +491,16 @@ export type FoundBody = {
      * What the seller calls a dish of the kind other; empty for any other kind
      */
     kindLabel: string;
+    /**
+     * The seller's own cap per order; none when the settings' default applies
+     */
+    maxPerOrder?: number;
     name: string;
     originalPriceVnd: number;
+    /**
+     * How many units one order may take: the seller's cap, else the settings' default
+     */
+    perOrderMax: number;
     /**
      * The cover, which lists and orders show
      */
@@ -679,8 +687,16 @@ export type OfferBody = {
      * What the seller calls a dish of the kind other; empty for any other kind
      */
     kindLabel: string;
+    /**
+     * The seller's own cap per order; none when the settings' default applies
+     */
+    maxPerOrder?: number;
     name: string;
     originalPriceVnd: number;
+    /**
+     * How many units one order may take: the seller's cap, else the settings' default
+     */
+    perOrderMax: number;
     /**
      * The cover, which lists and orders show
      */
@@ -713,6 +729,10 @@ export type OfferChangeBody = {
      */
     kindLabel?: string;
     /**
+     * How many units one order may take; 0 takes the cap away, so the settings' default applies
+     */
+    maxPerOrder?: number;
+    /**
      * Replaces the photos after the cover; at most two
      */
     morePhotoIds?: Array<string>;
@@ -744,6 +764,10 @@ export type OfferDetailsBody = {
      * What the seller calls a dish of the kind other; empty for any other kind
      */
     kindLabel?: string;
+    /**
+     * How many units one order may take; the settings' default when absent
+     */
+    maxPerOrder?: number;
     /**
      * Up to two more photos after the cover
      */
@@ -794,6 +818,10 @@ export type OfferSellerBody = {
 };
 
 export type OfferSettingsBody = {
+    /**
+     * How many units of a post one order may take when the seller set no cap
+     */
+    defaultMaxPerOrder: number;
     /**
      * The search radius when a customer names none
      */
@@ -953,6 +981,23 @@ export type OrderSellerBody = {
     latitude: number;
     longitude: number;
     name: string;
+};
+
+export type OrderSettingsBody = {
+    /**
+     * The days missed orders are counted over; the block lifts as they pass
+     */
+    missedDays: number;
+    /**
+     * Orders missed within missedDays that stop a phone number ordering
+     */
+    missedLimit: number;
+    /**
+     * Orders still to collect one phone number may hold at a store
+     */
+    openPerPhonePerSeller: number;
+    readonly updatedAt?: string;
+    readonly updatedBy?: string;
 };
 
 export type OrderWantedBody = {
@@ -1641,6 +1686,10 @@ export type Violation = {
 
 export type OfferSettingsBodyWritable = {
     /**
+     * How many units of a post one order may take when the seller set no cap
+     */
+    defaultMaxPerOrder: number;
+    /**
      * The search radius when a customer names none
      */
     defaultRadiusKm: number;
@@ -1661,6 +1710,21 @@ export type OfferSettingsBodyWritable = {
      * The shortest collection window
      */
     windowMinMinutes: number;
+};
+
+export type OrderSettingsBodyWritable = {
+    /**
+     * The days missed orders are counted over; the block lifts as they pass
+     */
+    missedDays: number;
+    /**
+     * Orders missed within missedDays that stop a phone number ordering
+     */
+    missedLimit: number;
+    /**
+     * Orders still to collect one phone number may hold at a store
+     */
+    openPerPhonePerSeller: number;
 };
 
 export type GetMyAccountData = {
@@ -1966,7 +2030,7 @@ export type ListAuditEventsData = {
         /**
          * Keep these actions; every action when absent
          */
-        action?: Array<'offer_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout'> | null;
+        action?: Array<'offer_settings.change' | 'order_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout'> | null;
         /**
          * Keep one admin's actions
          */
@@ -2225,6 +2289,62 @@ export type ListOffersForAdminsResponses = {
 };
 
 export type ListOffersForAdminsResponse = ListOffersForAdminsResponses[keyof ListOffersForAdminsResponses];
+
+export type GetOrderSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/order-settings';
+};
+
+export type GetOrderSettingsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetOrderSettingsError = GetOrderSettingsErrors[keyof GetOrderSettingsErrors];
+
+export type GetOrderSettingsResponses = {
+    /**
+     * OK
+     */
+    200: OrderSettingsBody;
+};
+
+export type GetOrderSettingsResponse = GetOrderSettingsResponses[keyof GetOrderSettingsResponses];
+
+export type SaveOrderSettingsData = {
+    body: OrderSettingsBodyWritable;
+    headers: {
+        /**
+         * The ETag of the settings read
+         */
+        'If-Match': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/order-settings';
+};
+
+export type SaveOrderSettingsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SaveOrderSettingsError = SaveOrderSettingsErrors[keyof SaveOrderSettingsErrors];
+
+export type SaveOrderSettingsResponses = {
+    /**
+     * OK
+     */
+    200: OrderSettingsBody;
+};
+
+export type SaveOrderSettingsResponse = SaveOrderSettingsResponses[keyof SaveOrderSettingsResponses];
 
 export type ListOrdersForAdminsData = {
     body?: never;

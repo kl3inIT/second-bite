@@ -32,6 +32,22 @@ var (
 		VI: "Có món không còn bán; chưa có gì được đặt.",
 		EN: "An offer is no longer on sale; nothing was ordered.",
 	})
+	ErrOverDishLimit = platform.NewFailure("ORDER_OVER_DISH_LIMIT", platform.CategoryConflict, platform.Words{
+		VI: "Món này chỉ được đặt tối đa một số suất mỗi đơn. Giảm số suất rồi đặt lại.",
+		EN: "This dish can only be ordered up to a number of units per order. Lower the units and order again.",
+	})
+	ErrPhoneHoldsOrders = platform.NewFailure("ORDER_PHONE_HOLDS_ORDERS", platform.CategoryConflict, platform.Words{
+		VI: "Số điện thoại này đang có đơn chưa lấy ở quán. Lấy hoặc huỷ đơn đó rồi đặt tiếp.",
+		EN: "This phone number already holds orders at this store still to collect. Collect or cancel one, then order again.",
+	})
+	ErrPhoneMissedOrders = platform.NewFailure("ORDER_PHONE_MISSED_ORDERS", platform.CategoryNotPermitted, platform.Words{
+		VI: "Số điện thoại này đã bỏ không lấy nhiều đơn gần đây nên tạm chưa đặt được. Thử lại sau.",
+		EN: "This phone number missed several orders lately, so it cannot order for now. Try again later.",
+	})
+	ErrSettingsInvalid = platform.NewFailure("ORDER_SETTINGS_INVALID", platform.CategoryValidation, platform.Words{
+		VI: "Giới hạn đặt món nằm ngoài khoảng cho phép.",
+		EN: "The order settings are out of range.",
+	})
 	ErrNotFound = platform.NewFailure("ORDER_NOT_FOUND", platform.CategoryNotFound, platform.Words{
 		VI: "Không tìm thấy đơn này.",
 		EN: "The order does not exist.",

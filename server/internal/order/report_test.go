@@ -30,7 +30,7 @@ func testReportCounts(t *testing.T, f fixture) {
 	place := func(units int) order.Order {
 		t.Helper()
 
-		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{bread.ID, units}})
+		o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{bread.ID, units}})
 		if err != nil {
 			t.Fatal(err)
 		}

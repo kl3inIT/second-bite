@@ -51,7 +51,7 @@ func (f fixture) chatScene(t *testing.T) chatScene {
 func (f fixture) placeOne(customer context.Context, t *testing.T, o offer.Offer) order.Order {
 	t.Helper()
 
-	placed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{o.ID, 1}})
+	placed, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{o.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func testChatWhoTakesPart(t *testing.T, f fixture) {
 
 	guestOffer := f.post(sc.owner, t, sc.shop, "Eclair", 5, 25_000, time.Now())
 
-	guest, err := f.orders.Place(t.Context(), key(), uuid.Nil, someone, []order.Wanted{{guestOffer.ID, 1}})
+	guest, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{guestOffer.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -444,7 +444,7 @@ func testLiveTickets(t *testing.T, f fixture) { //nolint:gocyclo // a check read
 		}
 	}
 
-	guest, err := f.orders.Place(t.Context(), key(), uuid.Nil, someone, []order.Wanted{{sc.offer.ID, 1}})
+	guest, err := f.orders.Place(t.Context(), key(), uuid.Nil, f.someone, []order.Wanted{{sc.offer.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -666,7 +666,7 @@ func testEveryChangeNotifies(t *testing.T, f fixture) {
 	// A change that fails sends nothing: only the order placed after it is heard.
 	before := h.count(shopTopic, "confirmed")
 
-	_, err := f.orders.Place(sc.customer, key(), uuid.Nil, someone, []order.Wanted{{sc.offer.ID, 999}})
+	_, err := f.orders.Place(sc.customer, key(), uuid.Nil, f.someone, []order.Wanted{{sc.offer.ID, 999}})
 	mustFail(t, "a cart that cannot be filled", err, order.ErrOfferSoldOut)
 
 	placed := f.placeOne(sc.customer, t, sc.offer)
@@ -730,6 +730,7 @@ func TestDeletedCustomerChatsAreForgotten(t *testing.T) {
 	t.Parallel()
 
 	pool := platformtest.StartPostgres(t)
+	relaxLimits(t, pool)
 	f := newFixture(t, pool)
 	sc := f.chatScene(t)
 

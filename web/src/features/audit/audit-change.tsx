@@ -3,7 +3,8 @@ import { useFormatter, useTranslations } from "next-intl";
 import { formatPrice } from "@/features/offers/format";
 import type { AuditChangeBody, AuditEventBody } from "@/lib/api/generated";
 
-// The settings the log names, as the API does (server/internal/offer/settings.go, notification/settings.go).
+// The settings the log names, as the API does (server/internal/offer/settings.go, order/settings.go,
+// notification/settings.go).
 const fields = [
   "minDiscountPercent",
   "defaultRadiusKm",
@@ -11,6 +12,10 @@ const fields = [
   "windowMinMinutes",
   "windowMaxMinutes",
   "startsWithinHours",
+  "defaultMaxPerOrder",
+  "openPerPhonePerSeller",
+  "missedLimit",
+  "missedDays",
   "provider",
   "senderAddress",
   "senderName",

@@ -64,20 +64,17 @@ export async function StoreOrders({
   const shown = groups[tab];
   const searching = search !== "";
 
+  // Beside the title, only what the tabs do not already count: what a search found, and the day's takings (Figma
+  // L2, SEC-158, where the counts of orders being prepared and ready were dropped as the tabs carry them).
   const delivered = groups.delivered;
-  let summary: string;
+  let summary: string | undefined;
   if (searching) summary = t("searchCount", { count: found.length });
-  else if (tab === "preparing" || tab === "ready") {
-    summary = t("summaryHolding", {
-      preparing: groups.preparing.length,
-      ready: groups.ready.length,
-    });
-  } else if (tab === "delivered") {
+  else if (tab === "delivered") {
     summary = t("summaryDelivered", {
       count: delivered.length,
       amount: formatPrice(deliveredTotal(delivered)),
     });
-  } else summary = t("summaryCancelled", { count: groups.cancelled.length });
+  }
 
   const undoId = one("undo");
   const undone = undoId ? orders.find((order) => order.id === undoId) : undefined;
@@ -96,9 +93,11 @@ export async function StoreOrders({
         title={t("title")}
         baseline
         aside={
-          <p className="text-body-sm text-muted-foreground max-md:text-right max-md:text-header-foreground">
-            {summary}
-          </p>
+          summary && (
+            <p className="text-body-sm text-muted-foreground max-md:text-right max-md:text-header-foreground">
+              {summary}
+            </p>
+          )
         }
       />
 

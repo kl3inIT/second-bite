@@ -618,6 +618,32 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 	return i, err
 }
 
+const getOrderSettings = `-- name: GetOrderSettings :one
+SELECT open_per_phone_per_seller, missed_limit, missed_days, updated_at, updated_by
+FROM order_settings WHERE id = 1
+`
+
+type GetOrderSettingsRow struct {
+	OpenPerPhonePerSeller int32
+	MissedLimit           int32
+	MissedDays            int32
+	UpdatedAt             time.Time
+	UpdatedBy             uuid.NullUUID
+}
+
+func (q *Queries) GetOrderSettings(ctx context.Context) (GetOrderSettingsRow, error) {
+	row := q.db.QueryRow(ctx, getOrderSettings)
+	var i GetOrderSettingsRow
+	err := row.Scan(
+		&i.OpenPerPhonePerSeller,
+		&i.MissedLimit,
+		&i.MissedDays,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
 const getPromotion = `-- name: GetPromotion :one
 SELECT id, name, starts_at, ends_at, all_sellers, budget_vnd, per_phone_per_day, enabled, rules, created_at, updated_at
 FROM order_promotions WHERE id = $1
@@ -1151,6 +1177,33 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 	return i, err
 }
 
+const lockOrderSettings = `-- name: LockOrderSettings :one
+SELECT open_per_phone_per_seller, missed_limit, missed_days, updated_at, updated_by
+FROM order_settings WHERE id = 1 FOR UPDATE
+`
+
+type LockOrderSettingsRow struct {
+	OpenPerPhonePerSeller int32
+	MissedLimit           int32
+	MissedDays            int32
+	UpdatedAt             time.Time
+	UpdatedBy             uuid.NullUUID
+}
+
+// The settings, locked until the transaction saving them ends.
+func (q *Queries) LockOrderSettings(ctx context.Context) (LockOrderSettingsRow, error) {
+	row := q.db.QueryRow(ctx, lockOrderSettings)
+	var i LockOrderSettingsRow
+	err := row.Scan(
+		&i.OpenPerPhonePerSeller,
+		&i.MissedLimit,
+		&i.MissedDays,
+		&i.UpdatedAt,
+		&i.UpdatedBy,
+	)
+	return i, err
+}
+
 const lockOrderShared = `-- name: LockOrderShared :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
@@ -1228,6 +1281,17 @@ func (q *Queries) LockOrderShared(ctx context.Context, id uuid.UUID) (LockOrderS
 		&i.DiscountVnd,
 	)
 	return i, err
+}
+
+const lockPlacing = `-- name: LockPlacing :exec
+SELECT pg_advisory_xact_lock(hashtextextended('order.placing:' || $1::text, 0))
+`
+
+// Serializes the orders placed for one phone number until the transaction
+// ends, so two placed at once cannot both pass a limit (SEC-158).
+func (q *Queries) LockPlacing(ctx context.Context, phone string) error {
+	_, err := q.db.Exec(ctx, lockPlacing, phone)
+	return err
 }
 
 const lockPromotion = `-- name: LockPromotion :one
@@ -1478,6 +1542,30 @@ func (q *Queries) MessageOfKey(ctx context.Context, arg MessageOfKeyParams) (Mes
 	return i, err
 }
 
+const missedOfPhone = `-- name: MissedOfPhone :one
+SELECT count(*) FROM order_orders
+WHERE customer_phone = $1
+  AND ((state IN ('expired', 'confirmed', 'ready') AND window_end <= now()
+        AND window_end > now() - make_interval(days => $2::int))
+       OR (state = 'refused' AND refuse_reason IN ('no_answer', 'no_show', 'late')
+           AND refused_at > now() - make_interval(days => $2::int)))
+`
+
+type MissedOfPhoneParams struct {
+	Phone string
+	Days  int32
+}
+
+// How many orders a phone number missed in the last days: no hand-over by the
+// end of a window that ended then, or refused then as no answer, no show or
+// late (SEC-158).
+func (q *Queries) MissedOfPhone(ctx context.Context, arg MissedOfPhoneParams) (int64, error) {
+	row := q.db.QueryRow(ctx, missedOfPhone, arg.Phone, arg.Days)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const moveSellerOrders = `-- name: MoveSellerOrders :execrows
 WITH moved AS (
     UPDATE order_orders
@@ -1565,6 +1653,24 @@ func (q *Queries) NthRecentMessageTime(ctx context.Context, arg NthRecentMessage
 	var sent_at time.Time
 	err := row.Scan(&sent_at)
 	return sent_at, err
+}
+
+const openOfPhoneAtSeller = `-- name: OpenOfPhoneAtSeller :one
+SELECT count(*) FROM order_orders
+WHERE seller_id = $1 AND customer_phone = $2 AND state IN ('confirmed', 'ready') AND window_end > now()
+`
+
+type OpenOfPhoneAtSellerParams struct {
+	SellerID uuid.UUID
+	Phone    string
+}
+
+// The orders a phone number holds at a seller, still to collect.
+func (q *Queries) OpenOfPhoneAtSeller(ctx context.Context, arg OpenOfPhoneAtSellerParams) (int64, error) {
+	row := q.db.QueryRow(ctx, openOfPhoneAtSeller, arg.SellerID, arg.Phone)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const openOrdersOfOffer = `-- name: OpenOrdersOfOffer :many
@@ -2099,6 +2205,30 @@ func (q *Queries) PurgeLiveTickets(ctx context.Context, now time.Time) (int64, e
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const putOrderSettings = `-- name: PutOrderSettings :exec
+UPDATE order_settings
+SET open_per_phone_per_seller = $1, missed_limit = $2, missed_days = $3,
+    updated_at = now(), updated_by = $4
+WHERE id = 1
+`
+
+type PutOrderSettingsParams struct {
+	OpenPerPhonePerSeller int32
+	MissedLimit           int32
+	MissedDays            int32
+	UpdatedBy             uuid.NullUUID
+}
+
+func (q *Queries) PutOrderSettings(ctx context.Context, arg PutOrderSettingsParams) error {
+	_, err := q.db.Exec(ctx, putOrderSettings,
+		arg.OpenPerPhonePerSeller,
+		arg.MissedLimit,
+		arg.MissedDays,
+		arg.UpdatedBy,
+	)
+	return err
 }
 
 const raiseSeen = `-- name: RaiseSeen :one

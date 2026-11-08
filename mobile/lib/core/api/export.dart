@@ -84,6 +84,7 @@ export 'models/order_line_body.dart';
 export 'models/order_line_photo_body.dart';
 export 'models/order_promotion_body.dart';
 export 'models/order_seller_body.dart';
+export 'models/order_settings_body.dart';
 export 'models/order_wanted_body.dart';
 export 'models/orders_output_body.dart';
 export 'models/password_sign_in_input_body.dart';

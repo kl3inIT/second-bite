@@ -17,12 +17,11 @@ async function signInAsAdmin(page: Page, testInfo: TestInfo, kind = "set") {
 
 // SEC-75 › the email settings (Figma AD-E1…E4), on the stub's settings.
 test.describe("the email settings", () => {
-  test("the settings open on email, saved SMTP shown, a change saved", async ({
+  test("the email settings show the saved SMTP, and a change is saved", async ({
     page,
   }, testInfo) => {
     await signInAsAdmin(page, testInfo);
-    await page.goto("/vi/admin/settings");
-    await expect(page).toHaveURL(/\/vi\/admin\/settings\/email$/);
+    await page.goto("/vi/admin/settings/email");
 
     await expect(page.getByRole("heading", { level: 1, name: "Cài đặt" })).toBeVisible();
     await expect(

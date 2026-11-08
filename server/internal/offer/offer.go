@@ -51,6 +51,9 @@ type Offer struct {
 	Details
 	UnitsLeft       int
 	DiscountPercent int
+	// PerOrderMax is how many units one order may take: the seller's own cap,
+	// else the settings' default (SEC-158).
+	PerOrderMax int
 	// CollectionPoint is copied from the seller when the offer is posted.
 	CollectionPoint seller.CollectionPoint
 	CreatedAt       time.Time
@@ -131,6 +134,7 @@ func (s *Service) Post(ctx context.Context, sellerID uuid.UUID, d Details) (Offe
 		PhotoID: d.PhotoID, MorePhotoIds: d.MorePhotoIDs, WindowStart: d.WindowStart, WindowEnd: d.WindowEnd,
 		Latitude: publisher.Latitude, Longitude: publisher.Longitude, Address: publisher.Address,
 		SellerName: publisher.Name, SearchVector: Offer{Details: d, sellerName: publisher.Name}.searchText(),
+		MaxPerOrder: count(d.MaxPerOrder),
 	})
 	if err != nil {
 		return Offer{}, fmt.Errorf("storing the offer: %w", err)
@@ -215,6 +219,9 @@ type Change struct {
 	MorePhotoIDs     *[]uuid.UUID
 	WindowStart      *time.Time
 	WindowEnd        *time.Time
+	// MaxPerOrder sets the seller's cap per order; 0 takes it away, so the
+	// settings' default applies. Orders already placed keep their units.
+	MaxPerOrder *int
 }
 
 // Change changes an offer of a seller the caller publishes for. Before any
@@ -292,6 +299,7 @@ func (s *Service) changeIn(
 		PriceVnd: next.PriceVND, OriginalPriceVnd: next.OriginalPriceVND, WeightGrams: weight(next.WeightGrams),
 		PhotoID: next.PhotoID, MorePhotoIds: next.MorePhotoIDs, WindowStart: next.WindowStart, WindowEnd: next.WindowEnd,
 		SearchVector: Offer{Details: next, sellerName: o.sellerName}.searchText(),
+		MaxPerOrder:  count(next.MaxPerOrder),
 	}); err != nil {
 		return err
 	}
@@ -398,6 +406,13 @@ func (c Change) appliedTo(d Details) Details {
 
 	if c.MorePhotoIDs != nil {
 		d.MorePhotoIDs = *c.MorePhotoIDs
+	}
+
+	if c.MaxPerOrder != nil {
+		d.MaxPerOrder = nil
+		if *c.MaxPerOrder != 0 {
+			d.MaxPerOrder = c.MaxPerOrder
+		}
 	}
 
 	return d
@@ -569,6 +584,7 @@ func (s *Service) fromRow(r db.GetOfferRow) Offer {
 		WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		UnitsLeft:       int(r.UnitsLeft),
 		DiscountPercent: discountPercent(r.PriceVnd, r.OriginalPriceVnd),
+		PerOrderMax:     int(r.PerOrderMax),
 		CollectionPoint: seller.CollectionPoint{Latitude: r.Latitude, Longitude: r.Longitude, Address: r.Address},
 		CreatedAt:       r.CreatedAt, UpdatedAt: r.UpdatedAt, WithdrawnAt: r.WithdrawnAt,
 		sellerName: r.SellerName,
@@ -577,6 +593,11 @@ func (s *Service) fromRow(r db.GetOfferRow) Offer {
 	if r.WeightGrams.Valid {
 		g := int(r.WeightGrams.Int32)
 		o.WeightGrams = &g
+	}
+
+	if r.MaxPerOrder.Valid {
+		n := int(r.MaxPerOrder.Int32)
+		o.MaxPerOrder = &n
 	}
 
 	switch {
@@ -599,6 +620,15 @@ func weight(g *int) pgtype.Int4 {
 	}
 
 	return pgtype.Int4{Int32: int32(*g), Valid: true} //nolint:gosec // at most 100,000
+}
+
+// count is a cap per order as stored: none when the seller set none.
+func count(n *int) pgtype.Int4 {
+	if n == nil {
+		return pgtype.Int4{}
+	}
+
+	return pgtype.Int4{Int32: int32(*n), Valid: true} //nolint:gosec // at most 999
 }
 
 func replace[T any](dst, v *T) {

@@ -34,13 +34,14 @@ type Taken struct {
 // takes them, so the order and the units hold together or not at all. Only an
 // offer on sale whose window is not over gives units, and only those it has
 // left: when two orders want the last unit, one gets it and the other gets
-// ErrSoldOut. ErrUnavailable answers an offer withdrawn or closed.
+// ErrSoldOut. ErrUnavailable answers an offer withdrawn or closed, and
+// ErrOverOrderLimit more units than one order may take (SEC-158).
 func (s *Service) Take(ctx context.Context, tx pgx.Tx, offerID uuid.UUID, units int) (Taken, error) {
 	q := s.queries.WithTx(tx)
 
 	row, err := q.TakeUnits(ctx, db.TakeUnitsParams{ID: offerID, Units: int32(units)}) //nolint:gosec // an order line holds at most 999
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Taken{}, s.whyNotTaken(ctx, q, offerID)
+		return Taken{}, s.whyNotTaken(ctx, q, offerID, units)
 	}
 
 	if err != nil {
@@ -56,8 +57,9 @@ func (s *Service) Take(ctx context.Context, tx pgx.Tx, offerID uuid.UUID, units 
 }
 
 // whyNotTaken tells why an offer gave no units: it does not exist, it is
-// withdrawn or closed, or it has too few left.
-func (s *Service) whyNotTaken(ctx context.Context, q *db.Queries, offerID uuid.UUID) error {
+// withdrawn or closed, units asks more than one order may take, or it has too
+// few left.
+func (s *Service) whyNotTaken(ctx context.Context, q *db.Queries, offerID uuid.UUID, units int) error {
 	row, err := q.GetOffer(ctx, offerID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return ErrNotFound
@@ -67,10 +69,16 @@ func (s *Service) whyNotTaken(ctx context.Context, q *db.Queries, offerID uuid.U
 		return fmt.Errorf("reading the offer: %w", err)
 	}
 
-	switch s.fromRow(row).Status {
+	o := s.fromRow(row)
+
+	switch o.Status {
 	case StatusWithdrawn, StatusClosed:
 		return ErrUnavailable
 	case StatusOnSale, StatusSoldOut:
+	}
+
+	if units > o.PerOrderMax {
+		return ErrOverOrderLimit
 	}
 
 	return ErrSoldOut

@@ -40,6 +40,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 - [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
 - [SEC-204 — Ordering in the app for customers](increments/active/sec-204-app-ordering/design.md): the web's customer flow in the Flutter app, from a store's page to an order's live page and its chat; stores keep the web (decided 8 November 2026).
+- [SEC-158 — Order limits](increments/active/sec-158-order-limits/design.md) — a cap per dish in one order that the store may set, open orders per phone number at a store, and missed orders blocking a number for some days.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 
 ## Candidates

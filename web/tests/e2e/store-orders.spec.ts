@@ -130,7 +130,8 @@ test.describe("the order tab of a store", () => {
     await page.getByRole("link", { name: "Đơn", exact: true }).click();
 
     await expect(page.getByRole("heading", { level: 1, name: "Đơn" })).toBeVisible();
-    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toBeVisible();
+    // The tabs count the orders; the title no longer repeats them (Figma L2, SEC-158).
+    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Chuẩn bị · 3" })).toHaveAttribute(
       "aria-current",
       "page",
@@ -369,6 +370,6 @@ test.describe("the order tab of a store", () => {
     await expect(page.getByRole("grid")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
     await page.getByRole("link", { name: "Hôm nay" }).click();
-    await expect(page.getByText("Chuẩn bị 3 · sẵn sàng 1")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chuẩn bị · 3" })).toBeVisible();
   });
 });

@@ -27,7 +27,7 @@ func testProblemReportedAndAnswered(t *testing.T, f fixture) {
 
 	follow("seller:" + shop.String())
 
-	o, err := orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	o, err := orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +144,7 @@ func testProblemWithinTwoDays(t *testing.T, f fixture) {
 	bao := f.post(owner, t, shop, "Bánh bao", 5, 20_000, time.Now())
 	guest := t.Context()
 
-	missed, err := f.orders.Place(guest, key(), uuid.Nil, someone, []order.Wanted{{bao.ID, 1}})
+	missed, err := f.orders.Place(guest, key(), uuid.Nil, f.someone, []order.Wanted{{bao.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,7 +159,7 @@ func testProblemWithinTwoDays(t *testing.T, f fixture) {
 		t.Fatalf("an expired order: %v %+v, %v", expired.Status, expired.Problem, err)
 	}
 
-	late, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{bao.ID, 1}})
+	late, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{bao.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}

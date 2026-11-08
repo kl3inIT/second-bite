@@ -25,6 +25,7 @@ func TestOrdersAtOnceDoNotStarveThePool(t *testing.T) {
 	const connections, customers = 2, 6
 
 	shared := platformtest.StartPostgres(t)
+	relaxLimits(t, shared)
 
 	cfg := shared.Config().Copy()
 	cfg.MaxConns = connections
@@ -84,7 +85,7 @@ func TestOrdersAtOnceDoNotStarveThePool(t *testing.T) {
 	placed := make([]uuid.UUID, customers)
 
 	all("placing", func(ctx context.Context, i int) error {
-		o, err := f.orders.Place(ctx, key(), uuid.Nil, someone, []order.Wanted{{OfferID: croissant.ID, Units: 1}})
+		o, err := f.orders.Place(ctx, key(), uuid.Nil, f.someone, []order.Wanted{{OfferID: croissant.ID, Units: 1}})
 		placed[i] = o.ID
 
 		return err
@@ -116,6 +117,7 @@ func TestStoreMessagesAtOnceDoNotStarveThePool(t *testing.T) {
 	const connections, chats = 2, 6
 
 	shared := platformtest.StartPostgres(t)
+	relaxLimits(t, shared)
 
 	cfg := shared.Config().Copy()
 	cfg.MaxConns = connections
@@ -136,7 +138,7 @@ func TestStoreMessagesAtOnceDoNotStarveThePool(t *testing.T) {
 	placed := make([]uuid.UUID, chats)
 
 	for i := range placed {
-		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{OfferID: croissant.ID, Units: 1}})
+		o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{OfferID: croissant.ID, Units: 1}})
 		if err != nil {
 			t.Fatal(err)
 		}

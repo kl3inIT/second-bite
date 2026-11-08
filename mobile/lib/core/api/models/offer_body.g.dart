@@ -18,6 +18,7 @@ _OfferBody _$OfferBodyFromJson(Map<String, dynamic> json) => _OfferBody(
   kindLabel: json['kindLabel'] as String,
   name: json['name'] as String,
   originalPriceVnd: (json['originalPriceVnd'] as num).toInt(),
+  perOrderMax: (json['perOrderMax'] as num).toInt(),
   photo: OfferPhotoBody.fromJson(json['photo'] as Map<String, dynamic>),
   photos: (json['photos'] as List<dynamic>)
       .map((e) => OfferPhotoBody.fromJson(e as Map<String, dynamic>))
@@ -31,6 +32,7 @@ _OfferBody _$OfferBodyFromJson(Map<String, dynamic> json) => _OfferBody(
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   windowEnd: DateTime.parse(json['windowEnd'] as String),
   windowStart: DateTime.parse(json['windowStart'] as String),
+  maxPerOrder: (json['maxPerOrder'] as num?)?.toInt(),
   weightGrams: (json['weightGrams'] as num?)?.toInt(),
   withdrawnAt: json['withdrawnAt'] == null
       ? null
@@ -48,6 +50,7 @@ Map<String, dynamic> _$OfferBodyToJson(_OfferBody instance) =>
       'kindLabel': instance.kindLabel,
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,
+      'perOrderMax': instance.perOrderMax,
       'photo': instance.photo,
       'photos': instance.photos,
       'priceVnd': instance.priceVnd,
@@ -59,6 +62,7 @@ Map<String, dynamic> _$OfferBodyToJson(_OfferBody instance) =>
       'updatedAt': instance.updatedAt.toIso8601String(),
       'windowEnd': instance.windowEnd.toIso8601String(),
       'windowStart': instance.windowStart.toIso8601String(),
+      'maxPerOrder': instance.maxPerOrder,
       'weightGrams': instance.weightGrams,
       'withdrawnAt': instance.withdrawnAt?.toIso8601String(),
     };

@@ -28,6 +28,9 @@ abstract class OfferBody with _$OfferBody {
     required String name,
     required int originalPriceVnd,
 
+    /// How many units one order may take: the seller's cap, else the settings' default
+    required int perOrderMax,
+
     /// The cover, which lists and orders show
     required OfferPhotoBody photo,
 
@@ -44,6 +47,9 @@ abstract class OfferBody with _$OfferBody {
     required DateTime updatedAt,
     required DateTime windowEnd,
     required DateTime windowStart,
+
+    /// The seller's own cap per order; none when the settings' default applies
+    int? maxPerOrder,
     int? weightGrams,
     DateTime? withdrawnAt,
   }) = _OfferBody;

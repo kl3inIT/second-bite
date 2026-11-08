@@ -32,6 +32,10 @@ type fixture struct {
 	orders   *order.Service
 	trail    *audit.Service
 	prefix   string
+	// someone is who collects the orders of a check, with a phone number of
+	// its own, so the limits per phone number (SEC-158) of one check never
+	// reach another's.
+	someone order.Contact
 }
 
 // TestOrder runs the module's checks in parallel against one PostgreSQL, each
@@ -40,6 +44,7 @@ func TestOrder(t *testing.T) {
 	t.Parallel()
 
 	pool := platformtest.StartPostgres(t)
+	relaxLimits(t, pool)
 
 	for name, check := range map[string]func(*testing.T, fixture){
 		"placing takes units and confirms at once": testPlacingTakesUnits,
@@ -120,7 +125,24 @@ func newFixture(t *testing.T, pool *pgxpool.Pool) fixture {
 
 	return fixture{
 		pool: pool, accounts: accounts, files: files, sellers: sellers, offers: offers, orders: orders, trail: trail,
-		prefix: "order." + strings.ReplaceAll(uuid.NewString(), "-", ""),
+		prefix:  "order." + strings.ReplaceAll(uuid.NewString(), "-", ""),
+		someone: order.Contact{Name: "Minh Anh", Phone: phoneOf(t)},
+	}
+}
+
+// relaxLimits sets the limits on what one person holds (SEC-158) as wide as
+// they go, for checks of other rules that place many orders; TestOrderLimits
+// checks the limits in a database of its own.
+func relaxLimits(t *testing.T, pool *pgxpool.Pool) {
+	t.Helper()
+
+	for _, q := range []string{
+		`UPDATE order_settings SET open_per_phone_per_seller = 20, missed_limit = 20, missed_days = 1`,
+		`UPDATE offer_settings SET default_max_per_order = 999`,
+	} {
+		if _, err := pool.Exec(t.Context(), q); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -217,7 +239,7 @@ func mustFail(t *testing.T, what string, err, want error) {
 func (f fixture) rated(owner, customer context.Context, t *testing.T, o offer.Offer, review order.Review) order.Order {
 	t.Helper()
 
-	placed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{o.ID, 1}})
+	placed, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{o.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -235,9 +257,6 @@ func (f fixture) rated(owner, customer context.Context, t *testing.T, o offer.Of
 
 func key() string { return uuid.NewString() }
 
-// someone is who collects the orders of these checks.
-var someone = order.Contact{Name: "Minh Anh", Phone: "0900000000"}
-
 func testPlacingTakesUnits(t *testing.T, f fixture) {
 	t.Helper()
 
@@ -250,7 +269,7 @@ func testPlacingTakesUnits(t *testing.T, f fixture) {
 
 	k := key()
 
-	o, err := f.orders.Place(customer, k, uuid.Nil, someone, []order.Wanted{{OfferID: croissant.ID, Units: 2}, {OfferID: bread.ID, Units: 1}})
+	o, err := f.orders.Place(customer, k, uuid.Nil, f.someone, []order.Wanted{{OfferID: croissant.ID, Units: 2}, {OfferID: bread.ID, Units: 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +287,7 @@ func testPlacingTakesUnits(t *testing.T, f fixture) {
 		t.Errorf("croissants left: %d", got)
 	}
 
-	again, err := f.orders.Place(customer, k, uuid.Nil, someone, []order.Wanted{{OfferID: croissant.ID, Units: 2}})
+	again, err := f.orders.Place(customer, k, uuid.Nil, f.someone, []order.Wanted{{OfferID: croissant.ID, Units: 2}})
 	if err != nil || again.ID != o.ID {
 		t.Errorf("the same key again: %v, %v", again.ID, err)
 	}
@@ -286,7 +305,7 @@ func keyAndContactRequired(customer context.Context, t *testing.T, f fixture, of
 	t.Helper()
 
 	for _, k := range []string{"", "short-key-15chr"} {
-		_, err := f.orders.Place(customer, k, uuid.Nil, someone, []order.Wanted{{OfferID: offerID, Units: 1}})
+		_, err := f.orders.Place(customer, k, uuid.Nil, f.someone, []order.Wanted{{OfferID: offerID, Units: 1}})
 		mustFail(t, "the key "+k, err, order.ErrIdempotencyKeyInvalid)
 	}
 
@@ -381,7 +400,7 @@ func testRefusedCartTakesNothing(t *testing.T, f fixture) {
 		"windows that do not meet":   {[]order.Wanted{{croissant.ID, 1}, {late.ID, 1}}, order.ErrWindowsDoNotMeet},
 		"an offer that is not there": {[]order.Wanted{{uuid.New(), 1}}, order.ErrOfferUnavailable},
 	} {
-		_, err := f.orders.Place(customer, key(), uuid.Nil, someone, c.wanted)
+		_, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, c.wanted)
 		mustFail(t, name, err, c.want)
 	}
 
@@ -393,14 +412,14 @@ func testRefusedCartTakesNothing(t *testing.T, f fixture) {
 		t.Fatal(err)
 	}
 
-	_, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{bread.ID, 1}})
+	_, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{bread.ID, 1}})
 	mustFail(t, "a withdrawn offer", err, order.ErrOfferUnavailable)
 
 	if _, err := f.sellers.Block(f.as(t, "admin", platform.RoleAdmin), shop, "Bán món đã quá hạn sử dụng"); err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	_, err = f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	mustFail(t, "a blocked seller", err, order.ErrOfferUnavailable)
 }
 
@@ -416,7 +435,7 @@ func testRaceForTheLastUnit(t *testing.T, f fixture) {
 
 	for _, customer := range []context.Context{first, second} {
 		go func() {
-			_, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{last.ID, 1}})
+			_, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{last.ID, 1}})
 			errs <- err
 		}()
 	}
@@ -440,7 +459,7 @@ func testWhoReadsAnOrder(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris", "staff")
 	later := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now().Add(time.Hour))
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{later.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{later.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -480,7 +499,7 @@ func testCancelUntilReady(t *testing.T, f fixture) {
 	later := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now().Add(time.Hour))
 	now := f.post(owner, t, shop, "Bánh mì", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{later.ID, 3}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{later.ID, 3}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -500,7 +519,7 @@ func testCancelUntilReady(t *testing.T, f fixture) {
 	_, err = f.orders.Cancel(customer, o.ID, "", "")
 	mustFail(t, "cancelling twice", err, order.ErrCancelTooLate)
 
-	open, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{now.ID, 1}})
+	open, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{now.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -510,7 +529,7 @@ func testCancelUntilReady(t *testing.T, f fixture) {
 		t.Fatalf("cancelling once the window has opened, before ready: %v", err)
 	}
 
-	ready, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{now.ID, 1}})
+	ready, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{now.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -533,7 +552,7 @@ func testHandOver(t *testing.T, f fixture) {
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 	later := f.post(owner, t, shop, "Bánh mì", 5, 20_000, time.Now().Add(time.Hour))
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -552,7 +571,7 @@ func testHandOver(t *testing.T, f fixture) {
 	_, err = f.orders.Refuse(owner, o.ID, order.RefuseOther, "")
 	mustFail(t, "refusing a collected order", err, order.ErrTransitionNotAllowed)
 
-	early, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{later.ID, 1}})
+	early, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{later.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -570,7 +589,7 @@ func testStaffRefuse(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris", "staff")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 2}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -607,7 +626,7 @@ func testNoShowGivesUnitsBack(t *testing.T, f fixture) {
 		order.RefuseNoAnswer: true, order.RefuseNoShow: true, order.RefuseLate: true,
 		order.RefuseSoldOut: false, order.RefuseOther: false,
 	} {
-		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -641,7 +660,7 @@ func testReopen(t *testing.T, f fixture) {
 	// now, so that it can be handed over.
 	croissant := f.post(owner, t, shop, "Croissant", 2, 20_000, time.Now().Add(time.Hour))
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 2}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -663,12 +682,12 @@ func testReopen(t *testing.T, f fixture) {
 		t.Fatalf("a hand-over taken back: %+v, %v", again, err)
 	}
 
-	// A no-show gave its units back; someone took them; taking the refusal back fails.
+	// A no-show gave its units back; f.someone took them; taking the refusal back fails.
 	if _, err := f.orders.Refuse(owner, o.ID, order.RefuseNoShow, ""); err != nil {
 		t.Fatal(err)
 	}
 
-	other, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}})
+	other, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 2}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -698,7 +717,7 @@ func testReopenStaysShut(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 3, 20_000, time.Now().Add(time.Hour))
 
-	cancelled, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	cancelled, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -711,7 +730,7 @@ func testReopenStaysShut(t *testing.T, f fixture) {
 	_, err = f.orders.Reopen(owner, cancelled.ID)
 	mustFail(t, "reopening what its customer cancelled", err, order.ErrTransitionNotAllowed)
 
-	late, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	late, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -736,12 +755,12 @@ func testOrdersFollowTheWindow(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	open, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	open, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	handed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	handed, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -783,12 +802,12 @@ func testWithdrawRefusesOrders(t *testing.T, f fixture) {
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 	eclair := f.post(owner, t, shop, "Eclair", 5, 25_000, time.Now())
 
-	both, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 2}, {eclair.ID, 1}})
+	both, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 2}, {eclair.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	handed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	handed, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -853,7 +872,7 @@ func testEndedOrdersExpire(t *testing.T, f fixture) {
 	var placed []order.Order
 
 	for range 3 {
-		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -910,7 +929,7 @@ func testExpiryReadFromTheWindow(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -941,7 +960,7 @@ func testSellerListsADay(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -967,7 +986,7 @@ func testCustomerLists(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 
-	ended, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	ended, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -976,7 +995,7 @@ func testCustomerLists(t *testing.T, f fixture) {
 
 	cart := uuid.New()
 
-	open, err := f.orders.Place(customer, key(), cart, someone, []order.Wanted{{croissant.ID, 1}})
+	open, err := f.orders.Place(customer, key(), cart, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1009,7 +1028,7 @@ func testCustomerLists(t *testing.T, f fixture) {
 }
 
 // checkoutKept checks open was placed under the checkout given and ended
-// under a new one, and that someone else naming the same checkout never joins
+// under a new one, and that f.someone else naming the same checkout never joins
 // the customer's.
 func checkoutKept(owner, customer context.Context, t *testing.T, f fixture, offerID uuid.UUID, open, ended order.Order) {
 	t.Helper()
@@ -1019,7 +1038,7 @@ func checkoutKept(owner, customer context.Context, t *testing.T, f fixture, offe
 		t.Errorf("checkouts: given %v; a new one %v", cart, ended.CheckoutID)
 	}
 
-	if _, err := f.orders.Place(owner, key(), cart, someone, []order.Wanted{{offerID, 1}}); err != nil {
+	if _, err := f.orders.Place(owner, key(), cart, f.someone, []order.Wanted{{offerID, 1}}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1063,7 +1082,7 @@ func orderSevenWays(customer context.Context, t *testing.T, f fixture) {
 	croissant := f.post(owner, t, shop, "Croissant", 9, 20_000, time.Now())
 
 	place := func() uuid.UUID {
-		o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+		o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1098,7 +1117,7 @@ func testRateOnce(t *testing.T, f fixture) {
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 	good := order.Review{Stars: 5, Tags: []order.Tag{order.TagFastPickup, order.TagGoodQuality}, Comment: " Ngon "}
 
-	o, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1154,7 +1173,7 @@ func rateWithAccess(owner context.Context, t *testing.T, f fixture, offerID uuid
 
 	guest := t.Context()
 
-	o, err := f.orders.Place(guest, key(), uuid.Nil, someone, []order.Wanted{{offerID, 1}})
+	o, err := f.orders.Place(guest, key(), uuid.Nil, f.someone, []order.Wanted{{offerID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1184,12 +1203,12 @@ func testOrdersAndOffersFollowTheSeller(t *testing.T, f fixture) {
 	croissant := f.post(owner, t, shop, "Croissant", 5, 20_000, time.Now())
 	eclair := f.post(owner, t, shop, "Eclair", 5, 25_000, time.Now())
 
-	open, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	open, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	handed, err := f.orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	handed, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,6 +18,7 @@ function offer(id: string, rating?: unknown, unitsLeft = 3): OfferSummary {
     priceVnd: 20_000,
     originalPriceVnd: 40_000,
     discountPercent: 50,
+    perOrderMax: 5,
     photo: { id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` },
     photos: [{ id, largePath: `/photos/${id}/1600.jpg`, smallPath: `/photos/${id}/400.jpg` }],
     windowStart: "2026-10-18T21:00:00+07:00",

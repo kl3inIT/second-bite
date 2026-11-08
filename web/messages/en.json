@@ -614,7 +614,9 @@
     "sellerAnswers": "Second Bite only connects you with the shop; the shop is responsible for the quality and food safety of the dish. <terms>Terms</terms>",
     "count": "{count} {name} to add",
     "add": "Add to cart · {price}",
-    "allChosen": "All {units} chosen"
+    "allChosen": "All {units} chosen",
+    "capChosen": "Chosen the most per order: {units} portions",
+    "perOrder": "At most {units} portions per order"
   },
   "Seller": {
     "sold": "{units} sold",
@@ -705,7 +707,9 @@
       "percent": "{value}% (up to {max})",
       "perDay": "Each phone number gets it {count, plural, one {once} other {# times}} a day.",
       "after": "The order shows what was taken off once you place it; you pay less at the counter."
-    }
+    },
+    "portionsCapped": "at most {units} per order",
+    "stockCapped": "At most {units} per order"
   },
   "AccountSettings": {
     "title": "Account settings",
@@ -949,9 +953,7 @@
   "StoreOrders": {
     "title": "Orders",
     "portions": "portions",
-    "summaryHolding": "Preparing {preparing} · ready {ready}",
     "summaryDelivered": "Today {count} orders · {amount}",
-    "summaryCancelled": "Today {count} cancelled",
     "searchLabel": "Search orders",
     "searchPlaceholder": "Search by name, phone number or dish",
     "searchCount": "{count} results",
@@ -1140,7 +1142,8 @@
       "photo": "Choose a photo of the dish.",
       "name": "Enter the dish's name.",
       "description": "A mixed box needs to say what it holds.",
-      "units": "Enter a number of portions from 1 to 999."
+      "units": "Enter a number of portions from 1 to 999.",
+      "maxPerOrder": "Enter a number from 1 to 999, or leave it empty."
     },
     "priceForDiscount": "The discounted price must be at least 1,000đ. Increase the original price or choose a smaller discount.",
     "discountLabel": "Discount (%)",
@@ -1165,7 +1168,12 @@
     "clockInvalid": "Enter an hour from 00 to 23 and minutes from 00 to 59.",
     "endInvalid": "Pickup must end between 30 minutes and 6 hours after it starts.",
     "previousTime": "Decrease {part}: {value}",
-    "nextTime": "Increase {part}: {value}"
+    "nextTime": "Increase {part}: {value}",
+    "maxPerOrder": "Most per order",
+    "maxPerOrderPlaceholder": "The usual limit",
+    "maxPerOrderDefault": "Default {count}",
+    "maxPerOrderHint": "An order of more than this is refused. Leave it empty for Second Bite's usual limit.",
+    "hintFor": "About {label}"
   },
   "WithdrawDrawer": {
     "title": "Withdraw",
@@ -1297,7 +1305,8 @@
         "sellerChangeOwner": "Store owner changed",
         "promotionCreate": "Promotion set up",
         "promotionChange": "Promotion changed",
-        "sellerMarkPayout": "Payback marked paid"
+        "sellerMarkPayout": "Payback marked paid",
+        "orderSettingsChange": "Change ordering limits"
       },
       "resource": {
         "seller": "Store",
@@ -1305,7 +1314,8 @@
         "offer_settings": "Post settings",
         "email_settings": "Email settings",
         "order": "Order",
-        "promotion": "Promotion"
+        "promotion": "Promotion",
+        "order_settings": "Ordering limits"
       },
       "commandLine": "Command line",
       "deletedAccount": "Deleted account",
@@ -1351,7 +1361,11 @@
         "budgetVnd": "Budget",
         "perPhonePerDay": "Discounts per phone a day",
         "enabled": "Enabled",
-        "rules": "Rules"
+        "rules": "Rules",
+        "defaultMaxPerOrder": "Default most per order",
+        "openPerPhonePerSeller": "Open orders per number at a store",
+        "missedLimit": "Missed orders that stop a number",
+        "missedDays": "Days missed orders count"
       },
       "unit": {
         "percent": "{value}%",
@@ -1373,7 +1387,8 @@
     "settings": {
       "title": "Settings",
       "nav": "Settings pages",
-      "email": "Email"
+      "email": "Email",
+      "orderLimits": "Ordering"
     },
     "email": {
       "title": "Email",
@@ -2219,6 +2234,42 @@
         "cancel": "Cancel",
         "action": "Transferred"
       }
+    },
+    "orderLimits": {
+      "title": "Ordering",
+      "perDish": {
+        "title": "Each dish in one order",
+        "default": "Default most per order (portions)",
+        "defaultHint": "For posts whose store left Most per order empty. A store's own number wins."
+      },
+      "open": {
+        "title": "Orders still to collect",
+        "perPhone": "Per phone number at one store (orders)",
+        "perPhoneHint": "From 1 to 20."
+      },
+      "missed": {
+        "title": "Missed orders",
+        "limit": "Stop a phone number after missing (orders)",
+        "limitHint": "An order nobody collected in time, or one the store cancelled as no answer, no show or too late.",
+        "days": "Within (days)",
+        "daysHint": "From 1 to 60. Once these days pass, the number may order again."
+      },
+      "conflict": {
+        "title": "Someone has just saved these settings",
+        "body": "Reload to see the latest settings, then change them.",
+        "reload": "Reload"
+      },
+      "errors": {
+        "range": "Enter a whole number from {min} to {max}."
+      },
+      "failed": "Not saved. Try again in a few minutes.",
+      "dirty": "You have unsaved changes",
+      "updated": "Last updated at {time}, {day}",
+      "never": "Never saved",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "saved": "Ordering limits saved",
+      "savedHint": "Orders placed from now on follow the new limits."
     }
   },
   "Review": {

@@ -178,6 +178,33 @@ test.describe("a dish, its seller and the cart", () => {
     });
   }
 
+  test("stops a dish at its cap per order, and says so (SEC-158)", async ({ page }) => {
+    // Trà Sữa Phúc Long has 8 left under the first cap of 5 per order (Figma L5).
+    await page.goto("/vi/sellers/se-phuc-long");
+    const add = await hydrated(
+      page.getByRole("button", { name: "Thêm một phần Trà Sữa Phúc Long" }).first(),
+    );
+    for (let i = 0; i < 5; i += 1) await add.click();
+
+    await expect(page.getByLabel("5 phần Trà Sữa Phúc Long trong giỏ").first()).toHaveText("5");
+    await expect(add).toBeDisabled();
+    await expect(
+      page
+        .getByText(wide(page) ? "Tối đa 5 mỗi đơn" : "tối đa 5 phần mỗi đơn", { exact: true })
+        .filter({ visible: true })
+        .first(),
+    ).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("button", { name: "Trà Sữa Phúc Long", exact: true }).first().click();
+    const sheet = page.getByRole("dialog", { name: "Trà Sữa Phúc Long" });
+    await expect(sheet.getByText("Tối đa 5 phần mỗi đơn", { exact: true })).toBeVisible();
+    await expect(
+      sheet.getByRole("button", { name: "Đã chọn tối đa 5 phần mỗi đơn" }),
+    ).toBeDisabled();
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("the seller's page and the confirmation fit a 360 px phone", async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 760 });
     await page.goto("/vi/sellers/se-la-paris");

@@ -29,6 +29,9 @@ abstract class FoundBody with _$FoundBody {
     required String name,
     required int originalPriceVnd,
 
+    /// How many units one order may take: the seller's cap, else the settings' default
+    required int perOrderMax,
+
     /// The cover, which lists and orders show
     required OfferPhotoBody photo,
 
@@ -49,6 +52,9 @@ abstract class FoundBody with _$FoundBody {
 
     /// From the point searched near; absent without one
     double? distanceMeters,
+
+    /// The seller's own cap per order; none when the settings' default applies
+    int? maxPerOrder,
     int? weightGrams,
     DateTime? withdrawnAt,
   }) = _FoundBody;

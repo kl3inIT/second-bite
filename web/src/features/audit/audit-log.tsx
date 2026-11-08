@@ -71,6 +71,7 @@ const actionLook: Record<
   "admin.grant": { variant: "info", icon: ShieldPlusIcon },
   "admin.revoke": { variant: "warning", icon: ShieldMinusIcon },
   "offer_settings.change": { variant: "info", icon: SettingsIcon },
+  "order_settings.change": { variant: "info", icon: SettingsIcon },
   "email_settings.change": { variant: "info", icon: MailIcon },
   "promotion.create": { variant: "success", icon: TagIcon },
   "promotion.change": { variant: "info", icon: TagIcon },

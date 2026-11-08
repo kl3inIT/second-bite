@@ -37,6 +37,9 @@ abstract class OfferDetailsBody with _$OfferDetailsBody {
     /// What the seller calls a dish of the kind other; empty for any other kind
     String? kindLabel,
 
+    /// How many units one order may take; the settings' default when absent
+    int? maxPerOrder,
+
     /// Up to two more photos after the cover
     List<String>? morePhotoIds,
 

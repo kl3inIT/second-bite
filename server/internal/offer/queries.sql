@@ -1,12 +1,12 @@
 -- name: GetSettings :one
 SELECT min_discount_percent, default_radius_km, max_radius_km, window_min_minutes, window_max_minutes,
-       starts_within_hours, updated_at, updated_by
+       starts_within_hours, default_max_per_order, updated_at, updated_by
 FROM offer_settings WHERE id = 1;
 
 -- name: LockSettings :one
 -- The settings, locked until the transaction saving them ends.
 SELECT min_discount_percent, default_radius_km, max_radius_km, window_min_minutes, window_max_minutes,
-       starts_within_hours, updated_at, updated_by
+       starts_within_hours, default_max_per_order, updated_at, updated_by
 FROM offer_settings WHERE id = 1 FOR UPDATE;
 
 -- name: PutSettings :exec
@@ -14,39 +14,42 @@ UPDATE offer_settings
 SET min_discount_percent = @min_discount_percent, default_radius_km = @default_radius_km,
     max_radius_km = @max_radius_km, window_min_minutes = @window_min_minutes,
     window_max_minutes = @window_max_minutes, starts_within_hours = @starts_within_hours,
-    updated_at = now(), updated_by = @updated_by
+    default_max_per_order = @default_max_per_order, updated_at = now(), updated_by = @updated_by
 WHERE id = 1;
 
 -- name: InsertOffer :one
 INSERT INTO offer_offers (
     seller_id, posted_by, name, description, kind, kind_label, unit, units, units_left, price_vnd, original_price_vnd,
-    weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector
+    weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address, seller_name, search_vector,
+    max_per_order
 ) VALUES (
     @seller_id, @posted_by, @name, @description, @kind, @kind_label, @unit, @units, @units, @price_vnd, @original_price_vnd,
     @weight_grams, @photo_id, @more_photo_ids, @window_start, @window_end, @latitude, @longitude, @address, @seller_name,
-    (sqlc.arg(search_vector)::text)::tsvector
+    (sqlc.arg(search_vector)::text)::tsvector, sqlc.narg(max_per_order)
 )
 RETURNING id;
 
 -- name: GetOffer :one
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
-FROM offer_offers WHERE id = @id;
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
+FROM offer_offers WHERE offer_offers.id = @id;
 
 -- name: LockOffer :one
 -- Serializes changes to one offer until the transaction ends.
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
-FROM offer_offers WHERE id = @id FOR UPDATE;
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
+FROM offer_offers WHERE offer_offers.id = @id FOR UPDATE;
 
 -- name: UpdateOffer :exec
 UPDATE offer_offers
 SET name = @name, description = @description, kind = @kind, kind_label = @kind_label, unit = @unit, units = @units,
     units_left = @units_left, price_vnd = @price_vnd, original_price_vnd = @original_price_vnd,
     weight_grams = @weight_grams, photo_id = @photo_id, more_photo_ids = @more_photo_ids, window_start = @window_start, window_end = @window_end,
-    search_vector = (sqlc.arg(search_vector)::text)::tsvector, updated_at = now()
+    search_vector = (sqlc.arg(search_vector)::text)::tsvector, max_per_order = sqlc.narg(max_per_order), updated_at = now()
 WHERE id = @id;
 
 -- name: CloseEnded :execrows
@@ -70,7 +73,8 @@ SELECT (EXISTS (SELECT 1 FROM offer_offers AS o
 -- name: SellerOffers :many
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
 FROM offer_offers
 WHERE seller_id = @seller_id
   AND (@status::text = ''
@@ -88,7 +92,8 @@ LIMIT @max_rows OFFSET @skip_rows;
 -- first; CountOffersForAdmins counts them all.
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max
 FROM offer_offers
 WHERE (@status::text = ''
        OR (@status = 'withdrawn' AND state = 'withdrawn')
@@ -133,7 +138,8 @@ WHERE (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
 -- query is a tsquery literal built by searchQuery, empty for none.
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,
-       created_at, updated_at, withdrawn_at, seller_name,
+       created_at, updated_at, withdrawn_at, seller_name, max_per_order,
+       COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))::int AS per_order_max,
        COALESCE(distance_m, 0)::float8 AS distance_m, rank::float4 AS rank
 FROM (
     SELECT o.*,
@@ -197,9 +203,10 @@ DELETE FROM offer_dishes WHERE id = @id;
 -- name: TakeUnits :one
 -- Takes units for an order in the order's transaction: only from an offer on
 -- sale whose window is not over and that has them, so the last unit goes to
--- one order.
+-- one order, and no more than one order may take of it (SEC-158).
 UPDATE offer_offers SET units_left = units_left - @units, updated_at = now()
-WHERE id = @id AND state = 'on_sale' AND window_end > now() AND units_left >= @units
+WHERE offer_offers.id = @id AND state = 'on_sale' AND window_end > now() AND units_left >= @units
+  AND @units <= COALESCE(max_per_order, (SELECT st.default_max_per_order FROM offer_settings AS st WHERE st.id = 1))
 RETURNING id, seller_id, name, unit, price_vnd, original_price_vnd, photo_id, window_start, window_end,
           latitude, longitude, address, seller_name;
 

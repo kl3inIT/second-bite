@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { DiscountBadge } from "./discount-label";
 import { DishSheet } from "./dish-sheet";
 import { formatPrice } from "./format";
-import { dishAnchor, kindsByCount, type OfferSummary } from "./offer";
+import { cappedPerOrder, dishAnchor, kindsByCount, mostPerOrder, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 
 // How many dishes "Bán chạy" and "Giảm sâu" hold.
@@ -282,11 +282,13 @@ function SoldLine({ offer }: { offer: OfferSummary }) {
 // "Chỉ còn 4" at the photograph's bottom left, "Đã chọn đủ 4" once the cart holds every portion left.
 function StockLabel({ offer }: { offer: OfferSummary }) {
   const t = useTranslations("Cart");
-  const full = quantityOf(useCart(), offer.id) >= offer.unitsLeft;
+  const full = quantityOf(useCart(), offer.id) >= mostPerOrder(offer);
 
   return (
     <span className="absolute bottom-1.5 left-1.5 rounded-sm bg-fresh px-2 py-0.5 text-label-strong text-fresh-foreground">
-      {t(full ? "stockChosen" : "stockLeft", { units: offer.unitsLeft })}
+      {full
+        ? t(cappedPerOrder(offer) ? "stockCapped" : "stockChosen", { units: mostPerOrder(offer) })
+        : t("stockLeft", { units: offer.unitsLeft })}
     </span>
   );
 }

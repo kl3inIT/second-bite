@@ -10,65 +10,69 @@ enum Action {
   @JsonValue('offer_settings.change')
   undefined0('offer_settings.change'),
 
+  /// Incorrect name has been replaced. Original name: `order_settings.change`.
+  @JsonValue('order_settings.change')
+  undefined1('order_settings.change'),
+
   /// Incorrect name has been replaced. Original name: `email_settings.change`.
   @JsonValue('email_settings.change')
-  undefined1('email_settings.change'),
+  undefined2('email_settings.change'),
 
   /// Incorrect name has been replaced. Original name: `admin.grant`.
   @JsonValue('admin.grant')
-  undefined2('admin.grant'),
+  undefined3('admin.grant'),
 
   /// Incorrect name has been replaced. Original name: `admin.revoke`.
   @JsonValue('admin.revoke')
-  undefined3('admin.revoke'),
+  undefined4('admin.revoke'),
 
   /// Incorrect name has been replaced. Original name: `seller.approve`.
   @JsonValue('seller.approve')
-  undefined4('seller.approve'),
+  undefined5('seller.approve'),
 
   /// Incorrect name has been replaced. Original name: `seller.reject`.
   @JsonValue('seller.reject')
-  undefined5('seller.reject'),
+  undefined6('seller.reject'),
 
   /// Incorrect name has been replaced. Original name: `seller.block`.
   @JsonValue('seller.block')
-  undefined6('seller.block'),
+  undefined7('seller.block'),
 
   /// Incorrect name has been replaced. Original name: `seller.unblock`.
   @JsonValue('seller.unblock')
-  undefined7('seller.unblock'),
+  undefined8('seller.unblock'),
 
   /// Incorrect name has been replaced. Original name: `seller.delete`.
   @JsonValue('seller.delete')
-  undefined8('seller.delete'),
+  undefined9('seller.delete'),
 
   /// Incorrect name has been replaced. Original name: `seller.restore`.
   @JsonValue('seller.restore')
-  undefined9('seller.restore'),
+  undefined10('seller.restore'),
 
   /// Incorrect name has been replaced. Original name: `seller.change_owner`.
   @JsonValue('seller.change_owner')
-  undefined10('seller.change_owner'),
+  undefined11('seller.change_owner'),
 
   /// Incorrect name has been replaced. Original name: `review.hide`.
   @JsonValue('review.hide')
-  undefined11('review.hide'),
+  undefined12('review.hide'),
 
   /// Incorrect name has been replaced. Original name: `review.show`.
   @JsonValue('review.show')
-  undefined12('review.show'),
+  undefined13('review.show'),
 
   /// Incorrect name has been replaced. Original name: `promotion.create`.
   @JsonValue('promotion.create')
-  undefined13('promotion.create'),
+  undefined14('promotion.create'),
 
   /// Incorrect name has been replaced. Original name: `promotion.change`.
   @JsonValue('promotion.change')
-  undefined14('promotion.change'),
+  undefined15('promotion.change'),
 
   /// Incorrect name has been replaced. Original name: `seller.mark_payout`.
   @JsonValue('seller.mark_payout')
-  undefined15('seller.mark_payout'),
+  undefined16('seller.mark_payout'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);

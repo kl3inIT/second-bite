@@ -32,7 +32,7 @@ func testPushesTellOfEachChange(t *testing.T, f fixture) {
 
 	follow("seller:" + shop.String())
 
-	placed, err := orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}, {eclair.ID, 1}})
+	placed, err := orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}, {eclair.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +63,7 @@ func testPushesTellOfEachChange(t *testing.T, f fixture) {
 		{"seller:" + shop.String(), "Khách nhắn về đơn " + number, "Mở đơn để đọc và trả lời."},
 	})
 
-	cancelled, err := orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	cancelled, err := orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func testPushesTellOfEachChange(t *testing.T, f fixture) {
 		{"seller:" + shop.String(), "Khách huỷ đơn " + order.Number(cancelled.Number), "Croissant"},
 	})
 
-	refused, err := orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{eclair.ID, 1}})
+	refused, err := orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{eclair.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,12 +106,12 @@ func testPushesTellOfTime(t *testing.T, f fixture) {
 	shop := f.shop(owner, t, "La Paris")
 	croissant := f.post(owner, t, shop, "Croissant", 10, 20_000, time.Now().Add(20*time.Minute))
 
-	early, err := orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	early, err := orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	late, err := orders.Place(customer, key(), uuid.Nil, someone, []order.Wanted{{croissant.ID, 1}})
+	late, err := orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{croissant.ID, 1}})
 	if err != nil {
 		t.Fatal(err)
 	}

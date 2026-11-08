@@ -28,6 +28,19 @@ export function kindText(
 
 export type OfferSummary = FoundBody;
 
+/**
+ * The most of a dish one order may hold: its units left, or fewer under the cap per order its seller set or the
+ * settings give (SEC-158).
+ */
+export function mostPerOrder(offer: Pick<OfferSummary, "unitsLeft" | "perOrderMax">): number {
+  return Math.min(offer.unitsLeft, offer.perOrderMax);
+}
+
+/** Whether the cap per order, not the units left, is what stops the next portion. */
+export function cappedPerOrder(offer: Pick<OfferSummary, "unitsLeft" | "perOrderMax">): boolean {
+  return offer.perOrderMax < offer.unitsLeft;
+}
+
 /** Whether the offer can still be ordered: on sale with units left. */
 export function isAvailable(offer: OfferSummary): boolean {
   return offer.status === "on_sale" && offer.unitsLeft > 0;

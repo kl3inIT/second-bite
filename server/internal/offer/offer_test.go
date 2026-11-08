@@ -214,6 +214,8 @@ func testPostFollowsFieldRules(t *testing.T, f fixture) {
 		"a mixed box without what it holds":    {func(d *offer.Details) { d.Kind = offer.KindMixedBox }, offer.ErrDetailsInvalid},
 		"an original price below the price":    {func(d *offer.Details) { d.OriginalPriceVND = 10_000 }, offer.ErrDetailsInvalid},
 		"a weight of nothing":                  {func(d *offer.Details) { g := 0; d.WeightGrams = &g }, offer.ErrDetailsInvalid},
+		"a cap of no unit per order":           {func(d *offer.Details) { n := 0; d.MaxPerOrder = &n }, offer.ErrDetailsInvalid},
+		"a cap of a thousand per order":        {func(d *offer.Details) { n := 1000; d.MaxPerOrder = &n }, offer.ErrDetailsInvalid},
 		"10% off":                              {func(d *offer.Details) { d.PriceVND = 22_500 }, offer.ErrDiscountTooSmall},
 		"a window of 20 minutes":               {func(d *offer.Details) { d.WindowEnd = now.Add(20 * time.Minute) }, offer.ErrWindowInvalid},
 		"a window of 7 hours":                  {func(d *offer.Details) { d.WindowEnd = now.Add(7 * time.Hour) }, offer.ErrWindowInvalid},
@@ -544,8 +546,24 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 	mustFail(t, "a customer reading the settings", err, platform.ErrAdminRequired)
 
 	set, err := f.offers.Settings(admin)
-	if err != nil || set.MinDiscountPercent != 20 || set.WindowMax != 6*time.Hour {
+	if err != nil || set.MinDiscountPercent != 20 || set.WindowMax != 6*time.Hour || set.DefaultMaxPerOrder != 5 {
 		t.Fatalf("the first settings: %+v, %v", set, err)
+	}
+
+	// A post without a cap of its own follows the default as it changes;
+	// one with its own keeps it (SEC-158).
+	uncapped, err := f.offers.Post(owner, sellerID, bread(photo))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	own := bread(photo)
+	own.MaxPerOrder = new(int)
+	*own.MaxPerOrder = 8
+
+	capped, err := f.offers.Post(owner, sellerID, own)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	t.Cleanup(func() {
@@ -564,13 +582,16 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 	stricter := set
 	stricter.MinDiscountPercent = 50
 	stricter.MaxRadiusKm = set.MaxRadiusKm + 1
+	stricter.DefaultMaxPerOrder = 3
 
 	saved, err := f.offers.SaveSettings(admin, stricter, set.UpdatedAt)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`, set.MinDiscountPercent)
+	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm", "defaultMaxPerOrder"]`, set.MinDiscountPercent)
+
+	checkCapsPerOrder(owner, t, f, map[uuid.UUID]int{uncapped.ID: 3, capped.ID: 8})
 
 	_, err = f.offers.Post(owner, sellerID, bread(photo))
 	mustFail(t, "40% off under a 50% minimum", err, offer.ErrDiscountTooSmall)
@@ -585,7 +606,7 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 		t.Errorf("saving the same settings: %v, changed at %v, want %v unchanged", err, same.UpdatedAt, saved.UpdatedAt)
 	}
 
-	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm"]`, set.MinDiscountPercent)
+	checkSettingsAudited(t, f, `["minDiscountPercent", "maxRadiusKm", "defaultMaxPerOrder"]`, set.MinDiscountPercent)
 
 	broken := set
 	broken.MaxRadiusKm = set.DefaultRadiusKm - 1
@@ -594,6 +615,17 @@ func testSettingsBoundEveryPost(t *testing.T, f fixture) {
 
 	_, err = f.offers.SaveSettings(owner, set, saved.UpdatedAt)
 	mustFail(t, "a customer saving the settings", err, platform.ErrAdminRequired)
+}
+
+// checkCapsPerOrder checks the cap per order each offer answers.
+func checkCapsPerOrder(ctx context.Context, t *testing.T, f fixture, want map[uuid.UUID]int) {
+	t.Helper()
+
+	for id, n := range want {
+		if o, err := f.offers.Get(ctx, id); err != nil || o.PerOrderMax != n {
+			t.Errorf("a post's cap per order: %d, %v, want %d", o.PerOrderMax, err, n)
+		}
+	}
 }
 
 // checkSettingsAudited checks that one change of the offer settings is

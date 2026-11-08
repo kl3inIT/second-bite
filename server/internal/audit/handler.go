@@ -12,7 +12,7 @@ import (
 // listInput is what the trail is read by. The action enum is the catalog's
 // names; a test keeps the two the same.
 type listInput struct {
-	Action  []string  `query:"action"  doc:"Keep these actions; every action when absent" enum:"offer_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show,promotion.create,promotion.change,seller.mark_payout"`
+	Action  []string  `query:"action"  doc:"Keep these actions; every action when absent" enum:"offer_settings.change,order_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show,promotion.create,promotion.change,seller.mark_payout"`
 	ActorID uuid.UUID `query:"actorId" doc:"Keep one admin's actions"`
 	Since   time.Time `query:"since"   doc:"Keep what happened at or after this time"`
 	Until   time.Time `query:"until"   doc:"Keep what happened before this time"`
@@ -33,12 +33,12 @@ type auditEventsOutput struct {
 type auditEventBody struct {
 	ID         uuid.UUID `json:"id"`
 	OccurredAt time.Time `json:"occurredAt"`
-	Action     string    `json:"action"               enum:"offer_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show,promotion.create,promotion.change,seller.mark_payout"`
+	Action     string    `json:"action"               enum:"offer_settings.change,order_settings.change,email_settings.change,admin.grant,admin.revoke,seller.approve,seller.reject,seller.block,seller.unblock,seller.delete,seller.restore,seller.change_owner,review.hide,review.show,promotion.create,promotion.change,seller.mark_payout"`
 	// ActorID is absent for the command line; the label also when the
 	// admin's account was deleted.
 	ActorID       *uuid.UUID       `json:"actorId,omitempty"`
 	ActorLabel    string           `json:"actorLabel,omitempty"`
-	ResourceType  string           `json:"resourceType"         enum:"account,seller,order,offer_settings,email_settings,promotion"`
+	ResourceType  string           `json:"resourceType"         enum:"account,seller,order,offer_settings,order_settings,email_settings,promotion"`
 	ResourceID    string           `json:"resourceId"`
 	ResourceLabel string           `json:"resourceLabel,omitempty" doc:"The store's name, the account's address or the order's number at the time; absent once that account is deleted"`
 	Details       auditDetailsBody `json:"details"`

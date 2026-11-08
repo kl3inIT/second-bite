@@ -49,7 +49,7 @@ func checkSellerReviewsListed(owner context.Context, t *testing.T, f fixture, se
 		t.Fatalf("the shown reviews, the latest first, without the hidden: %+v, %v", all, err)
 	}
 
-	if first := all.Reviews[0]; first.CustomerName != someone.Name || first.Dishes != "Croissant" {
+	if first := all.Reviews[0]; first.CustomerName != f.someone.Name || first.Dishes != "Croissant" {
 		t.Errorf("who collected and what: %+v", first)
 	}
 

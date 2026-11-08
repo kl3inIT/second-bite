@@ -18,6 +18,7 @@ _FoundBody _$FoundBodyFromJson(Map<String, dynamic> json) => _FoundBody(
   kindLabel: json['kindLabel'] as String,
   name: json['name'] as String,
   originalPriceVnd: (json['originalPriceVnd'] as num).toInt(),
+  perOrderMax: (json['perOrderMax'] as num).toInt(),
   photo: OfferPhotoBody.fromJson(json['photo'] as Map<String, dynamic>),
   photos: (json['photos'] as List<dynamic>)
       .map((e) => OfferPhotoBody.fromJson(e as Map<String, dynamic>))
@@ -33,6 +34,7 @@ _FoundBody _$FoundBodyFromJson(Map<String, dynamic> json) => _FoundBody(
   windowEnd: DateTime.parse(json['windowEnd'] as String),
   windowStart: DateTime.parse(json['windowStart'] as String),
   distanceMeters: (json['distanceMeters'] as num?)?.toDouble(),
+  maxPerOrder: (json['maxPerOrder'] as num?)?.toInt(),
   weightGrams: (json['weightGrams'] as num?)?.toInt(),
   withdrawnAt: json['withdrawnAt'] == null
       ? null
@@ -50,6 +52,7 @@ Map<String, dynamic> _$FoundBodyToJson(_FoundBody instance) =>
       'kindLabel': instance.kindLabel,
       'name': instance.name,
       'originalPriceVnd': instance.originalPriceVnd,
+      'perOrderMax': instance.perOrderMax,
       'photo': instance.photo,
       'photos': instance.photos,
       'priceVnd': instance.priceVnd,
@@ -63,6 +66,7 @@ Map<String, dynamic> _$FoundBodyToJson(_FoundBody instance) =>
       'windowEnd': instance.windowEnd.toIso8601String(),
       'windowStart': instance.windowStart.toIso8601String(),
       'distanceMeters': instance.distanceMeters,
+      'maxPerOrder': instance.maxPerOrder,
       'weightGrams': instance.weightGrams,
       'withdrawnAt': instance.withdrawnAt?.toIso8601String(),
     };

@@ -7,6 +7,9 @@ import (
 	"testing"
 )
 
+// forwardedFor is the header the edge proxy names the caller's address in.
+const forwardedFor = "X-Forwarded-For"
+
 // checkLimitsPerAddress: one address asking for more sign-in codes, or placing
 // more orders, than a mall's Wi-Fi would in ten minutes is refused with 429 and
 // a wait, whatever the email addresses or the orders; another address is not
@@ -14,7 +17,7 @@ import (
 func checkLimitsPerAddress(t *testing.T, svc service) {
 	t.Helper()
 
-	from := func(address string) http.Header { return http.Header{"X-Forwarded-For": {address}} }
+	from := func(address string) http.Header { return http.Header{forwardedFor: {address}} }
 
 	var c challenge
 
