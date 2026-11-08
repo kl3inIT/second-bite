@@ -1,5 +1,6 @@
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/features/order/data/kept_cart.dart';
@@ -72,7 +73,7 @@ class CartPortions extends ConsumerWidget {
 /// {@template cart_bar}
 /// The cart's bar at the foot of a page, as the web's `CartBar`: hidden
 /// while nothing in the cart can be ordered; a dish whose window has closed
-/// is not counted. Its button to the cart arrives with the cart's page.
+/// is not counted. "Xem giỏ hàng" opens the cart's page.
 /// {@endtemplate}
 class CartBar extends ConsumerWidget {
   /// {@macro cart_bar}
@@ -95,6 +96,10 @@ class CartBar extends ConsumerWidget {
       summary: l10n.cartSummary(
         units,
         formatPrice(originalPriceVnd - priceVnd),
+      ),
+      action: AppButton(
+        onPressed: () => const CartRoute().push<void>(context),
+        child: Text(l10n.cartOpen),
       ),
     );
   }

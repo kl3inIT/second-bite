@@ -11,6 +11,7 @@ List<RouteBase> get $appRoutes => [
   $deleteAccountRoute,
   $sellerRoute,
   $offerRoute,
+  $cartRoute,
   $termsRoute,
   $privacyRoute,
   $signInRoute,
@@ -208,6 +209,32 @@ mixin $OfferRoute on GoRouteData {
   @override
   String get location =>
       GoRouteData.$location('/offers/${Uri.encodeComponent(_self.id)}');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $cartRoute => GoRouteData.$route(
+  path: '/cart',
+  hasOverriddenOnExit: false,
+  factory: $CartRoute._fromState,
+);
+
+mixin $CartRoute on GoRouteData {
+  static CartRoute _fromState(GoRouterState state) => const CartRoute();
+
+  @override
+  String get location => GoRouteData.$location('/cart');
 
   @override
   void go(BuildContext context) => context.go(location);

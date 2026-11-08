@@ -13,6 +13,7 @@ import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/home_screen.dart';
 import 'package:second_bite/features/offer/ui/offer_link_screen.dart';
 import 'package:second_bite/features/offer/ui/seller_screen.dart';
+import 'package:second_bite/features/order/ui/cart_screen.dart';
 
 part 'routes.g.dart';
 
@@ -163,6 +164,17 @@ class OfferRoute extends GoRouteData with $OfferRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       OfferLinkScreen(offerId: id);
+}
+
+/// The cart's confirmation at `/cart`, as on the web (SEC-204): over the
+/// tabs, from the cart's bar.
+@TypedGoRoute<CartRoute>(path: '/cart')
+class CartRoute extends GoRouteData with $CartRoute {
+  /// The route to the cart.
+  const new();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const CartScreen();
 }
 
 /// The terms of use at `/terms`, as on the web: over the tabs, read inside

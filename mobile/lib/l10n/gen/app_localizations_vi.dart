@@ -742,4 +742,224 @@ class AppLocalizationsVi extends AppLocalizations {
   String dishPerOrder(int units) {
     return 'Tối đa $units phần mỗi đơn';
   }
+
+  @override
+  String get cartTitle => 'Xác nhận đơn';
+
+  @override
+  String get cartClose => 'Đóng';
+
+  @override
+  String get cartOpen => 'Xem giỏ hàng';
+
+  @override
+  String get cartEmpty => 'Giỏ hàng đang trống';
+
+  @override
+  String get cartBrowse => 'Xem món tối nay';
+
+  @override
+  String get cartDirections => 'Chỉ đường';
+
+  @override
+  String cartSellerWindow(String place, String from, String until) {
+    return '$place · Nhận $from – $until';
+  }
+
+  @override
+  String get cartOver => 'Hết giờ nhận';
+
+  @override
+  String cartDropLabel(String name) {
+    return 'Bỏ $name khỏi giỏ';
+  }
+
+  @override
+  String get cartPay => 'Thanh toán';
+
+  @override
+  String get cartCounter => 'Thanh toán tại quầy';
+
+  @override
+  String get cartTransfer => 'Chuyển khoản';
+
+  @override
+  String get cartSoon => '(sắp có)';
+
+  @override
+  String cartSummaryTitle(int orders) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: 'Tổng cộng · $orders đơn',
+      one: 'Tổng cộng',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cartDishes(int units) {
+    return 'Tiền món ($units phần)';
+  }
+
+  @override
+  String get cartTotal => 'Tổng tiền';
+
+  @override
+  String get cartCancelTitle => 'Chính sách huỷ';
+
+  @override
+  String get cartCancelBody => 'Huỷ được cho tới khi quán báo món sẵn sàng.';
+
+  @override
+  String cartTotalSummary(int orders, int units, String saved) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: '$orders đơn · $units phần',
+      one: 'Tổng $units phần',
+    );
+    return '$_temp0 · tiết kiệm $saved';
+  }
+
+  @override
+  String cartOrder(int orders) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: 'Đặt $orders đơn',
+      one: 'Đặt món',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cartContactTitle => 'Người đến nhận';
+
+  @override
+  String get cartContactHint =>
+      'Quán gọi tên này khi bạn đến và gọi số này nếu cần.';
+
+  @override
+  String get cartNameLabel => 'Tên';
+
+  @override
+  String get cartPhoneLabel => 'Số điện thoại';
+
+  @override
+  String get cartNameInvalid => 'Nhập tên từ 1 đến 50 ký tự.';
+
+  @override
+  String get cartPhoneInvalid => 'Nhập số điện thoại 10 số, bắt đầu bằng 0.';
+
+  @override
+  String get cartContactSubmit => 'Tiếp tục';
+
+  @override
+  String get cartConfirmTitle => 'Xác nhận đặt đơn với số điện thoại';
+
+  @override
+  String get cartConfirmYes => 'Đúng, đặt món';
+
+  @override
+  String get cartConfirmEdit => 'Sửa';
+
+  @override
+  String cartGoneOne(String name) {
+    return '$name vừa hết';
+  }
+
+  @override
+  String cartGoneMany(int count) {
+    return '$count món vừa hết';
+  }
+
+  @override
+  String get cartGoneBody =>
+      'Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền.';
+
+  @override
+  String cartFewerOne(String name, int left) {
+    return '$name chỉ còn $left phần';
+  }
+
+  @override
+  String cartFewerMany(int count) {
+    return '$count món còn ít phần hơn bạn chọn';
+  }
+
+  @override
+  String get cartFewerBody =>
+      'Người khác vừa đặt trước bạn. Bạn chưa bị tính tiền.';
+
+  @override
+  String cartOrderRest(String what, String price) {
+    return 'Đặt $what · $price';
+  }
+
+  @override
+  String cartLine(int quantity, String name) {
+    return '$quantity× $name';
+  }
+
+  @override
+  String cartRestUnits(int units) {
+    return '$units phần còn lại';
+  }
+
+  @override
+  String get cartOtherDishes => 'Xem món khác của quán';
+
+  @override
+  String get cartOrderFailedPlain =>
+      'Chưa đặt được món. Kiểm tra mạng rồi thử lại.';
+
+  @override
+  String cartPromotionRule(String rule, String amount) {
+    return '$rule: giảm $amount';
+  }
+
+  @override
+  String cartPromotionRuleFrom(String rule, String amount, String from) {
+    return '$rule: giảm $amount cho đơn từ $from';
+  }
+
+  @override
+  String cartPromotionPercent(int value, String max) {
+    return '$value% (tối đa $max)';
+  }
+
+  @override
+  String cartPromotionPerDay(int count) {
+    return 'Mỗi số điện thoại được giảm $count lần mỗi ngày.';
+  }
+
+  @override
+  String get cartPromotionAfter =>
+      'Số tiền giảm hiện trên đơn ngay sau khi đặt; bạn trả ít hơn tại quầy.';
+
+  @override
+  String cartPlacedTitle(int orders) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: 'Đã đặt $orders đơn',
+      one: 'Đã đặt món',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cartPlacedLine(String number, String seller) {
+    return '$number · $seller';
+  }
+
+  @override
+  String cartPlacedWindow(String from, String until, String total) {
+    return 'Nhận $from – $until · $total';
+  }
+
+  @override
+  String get cartPlacedHint =>
+      'Đọc mã đơn, tên và số điện thoại ở quầy để nhận món. Thanh toán tại quầy.';
 }

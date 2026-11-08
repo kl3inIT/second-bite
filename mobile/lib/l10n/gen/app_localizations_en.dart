@@ -744,4 +744,232 @@ class AppLocalizationsEn extends AppLocalizations {
   String dishPerOrder(int units) {
     return 'At most $units portions per order';
   }
+
+  @override
+  String get cartTitle => 'Confirm order';
+
+  @override
+  String get cartClose => 'Close';
+
+  @override
+  String get cartOpen => 'View cart';
+
+  @override
+  String get cartEmpty => 'Your cart is empty';
+
+  @override
+  String get cartBrowse => 'See tonight\'s dishes';
+
+  @override
+  String get cartDirections => 'Directions';
+
+  @override
+  String cartSellerWindow(String place, String from, String until) {
+    return '$place · Collect $from – $until';
+  }
+
+  @override
+  String get cartOver => 'Pickup time is over';
+
+  @override
+  String cartDropLabel(String name) {
+    return 'Remove $name from the cart';
+  }
+
+  @override
+  String get cartPay => 'Payment';
+
+  @override
+  String get cartCounter => 'Pay at the counter';
+
+  @override
+  String get cartTransfer => 'Bank transfer';
+
+  @override
+  String get cartSoon => '(coming soon)';
+
+  @override
+  String cartSummaryTitle(int orders) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: 'Total · $orders orders',
+      one: 'Total',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cartDishes(int units) {
+    return 'Dishes ($units portions)';
+  }
+
+  @override
+  String get cartTotal => 'Total';
+
+  @override
+  String get cartCancelTitle => 'Cancellation policy';
+
+  @override
+  String get cartCancelBody =>
+      'You can cancel until the seller marks the food ready.';
+
+  @override
+  String cartTotalSummary(int orders, int units, String saved) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: '$orders orders · $units portions',
+      one: '$units portions in all',
+    );
+    return '$_temp0 · save $saved';
+  }
+
+  @override
+  String cartOrder(int orders) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: 'Place $orders orders',
+      one: 'Place order',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cartContactTitle => 'Who collects';
+
+  @override
+  String get cartContactHint =>
+      'The seller calls this name when you arrive and rings this number if needed.';
+
+  @override
+  String get cartNameLabel => 'Name';
+
+  @override
+  String get cartPhoneLabel => 'Phone number';
+
+  @override
+  String get cartNameInvalid => 'Give a name of 1 to 50 characters.';
+
+  @override
+  String get cartPhoneInvalid =>
+      'Give a 10-digit phone number starting with 0.';
+
+  @override
+  String get cartContactSubmit => 'Continue';
+
+  @override
+  String get cartConfirmTitle => 'Place the order with the phone number';
+
+  @override
+  String get cartConfirmYes => 'Yes, order';
+
+  @override
+  String get cartConfirmEdit => 'Edit';
+
+  @override
+  String cartGoneOne(String name) {
+    return '$name just sold out';
+  }
+
+  @override
+  String cartGoneMany(int count) {
+    return '$count dishes just sold out';
+  }
+
+  @override
+  String get cartGoneBody =>
+      'Someone else just ordered the last portions. You have not been charged.';
+
+  @override
+  String cartFewerOne(String name, int left) {
+    return 'Only $left of $name left';
+  }
+
+  @override
+  String cartFewerMany(int count) {
+    return '$count dishes have fewer portions left';
+  }
+
+  @override
+  String get cartFewerBody =>
+      'Someone else just ordered first. You have not been charged.';
+
+  @override
+  String cartOrderRest(String what, String price) {
+    return 'Order $what · $price';
+  }
+
+  @override
+  String cartLine(int quantity, String name) {
+    return '$quantity× $name';
+  }
+
+  @override
+  String cartRestUnits(int units) {
+    return 'the $units portions left';
+  }
+
+  @override
+  String get cartOtherDishes => 'See the seller\'s other dishes';
+
+  @override
+  String get cartOrderFailedPlain =>
+      'The order did not go through. Check your connection and try again.';
+
+  @override
+  String cartPromotionRule(String rule, String amount) {
+    return '$rule: $amount off';
+  }
+
+  @override
+  String cartPromotionRuleFrom(String rule, String amount, String from) {
+    return '$rule: $amount off orders from $from';
+  }
+
+  @override
+  String cartPromotionPercent(int value, String max) {
+    return '$value% (up to $max)';
+  }
+
+  @override
+  String cartPromotionPerDay(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Each phone number gets it $count times a day.',
+      one: 'Each phone number gets it once a day.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get cartPromotionAfter =>
+      'The order shows what was taken off once you place it; you pay less at the counter.';
+
+  @override
+  String cartPlacedTitle(int orders) {
+    String _temp0 = intl.Intl.pluralLogic(
+      orders,
+      locale: localeName,
+      other: '$orders orders placed',
+      one: 'Order placed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String cartPlacedLine(String number, String seller) {
+    return '$number · $seller';
+  }
+
+  @override
+  String cartPlacedWindow(String from, String until, String total) {
+    return 'Collect $from – $until · $total';
+  }
+
+  @override
+  String get cartPlacedHint =>
+      'Give the order number, your name and phone number at the counter to collect. Pay at the counter.';
 }
