@@ -10,19 +10,22 @@ part of 'home_offers.dart';
 // ignore_for_file: type=lint, type=warning
 /// The home's view model: the offers a [HomeQuery] asks for, loading,
 /// loaded or failed. The deal card asks for the unfiltered list and the
-/// grid for the filtered one; the same query is fetched once.
+/// grid for the filtered one; the same query is fetched once. They are
+/// around the place the customer chose, or at every shop.
 
 @ProviderFor(HomeOffers)
 final homeOffersProvider = HomeOffersFamily._();
 
 /// The home's view model: the offers a [HomeQuery] asks for, loading,
 /// loaded or failed. The deal card asks for the unfiltered list and the
-/// grid for the filtered one; the same query is fetched once.
+/// grid for the filtered one; the same query is fetched once. They are
+/// around the place the customer chose, or at every shop.
 final class HomeOffersProvider
     extends $AsyncNotifierProvider<HomeOffers, List<OfferSummary>> {
   /// The home's view model: the offers a [HomeQuery] asks for, loading,
   /// loaded or failed. The deal card asks for the unfiltered list and the
-  /// grid for the filtered one; the same query is fetched once.
+  /// grid for the filtered one; the same query is fetched once. They are
+  /// around the place the customer chose, or at every shop.
   HomeOffersProvider._({
     required HomeOffersFamily super.from,
     required HomeQuery super.argument,
@@ -59,11 +62,12 @@ final class HomeOffersProvider
   }
 }
 
-String _$homeOffersHash() => r'99ffcf5bde743e11f90bff4fe9dc45be7fdb0b71';
+String _$homeOffersHash() => r'89577078ceaa2f5ac5ccfbed6e4f0c727d5b5b4d';
 
 /// The home's view model: the offers a [HomeQuery] asks for, loading,
 /// loaded or failed. The deal card asks for the unfiltered list and the
-/// grid for the filtered one; the same query is fetched once.
+/// grid for the filtered one; the same query is fetched once. They are
+/// around the place the customer chose, or at every shop.
 
 final class HomeOffersFamily extends $Family
     with
@@ -85,7 +89,8 @@ final class HomeOffersFamily extends $Family
 
   /// The home's view model: the offers a [HomeQuery] asks for, loading,
   /// loaded or failed. The deal card asks for the unfiltered list and the
-  /// grid for the filtered one; the same query is fetched once.
+  /// grid for the filtered one; the same query is fetched once. They are
+  /// around the place the customer chose, or at every shop.
 
   HomeOffersProvider call(HomeQuery query) =>
       HomeOffersProvider._(argument: query, from: this);
@@ -96,7 +101,8 @@ final class HomeOffersFamily extends $Family
 
 /// The home's view model: the offers a [HomeQuery] asks for, loading,
 /// loaded or failed. The deal card asks for the unfiltered list and the
-/// grid for the filtered one; the same query is fetched once.
+/// grid for the filtered one; the same query is fetched once. They are
+/// around the place the customer chose, or at every shop.
 
 abstract class _$HomeOffers extends $AsyncNotifier<List<OfferSummary>> {
   late final _$args = ref.$arg as HomeQuery;

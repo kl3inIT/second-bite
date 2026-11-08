@@ -66,4 +66,34 @@ void main() {
       expect(openBags([sampleOffer(unitsLeft: 0)]), isNull);
     });
   });
+
+  group('groupBySeller', () {
+    test('keeps each store once, in the order its first dish comes', () {
+      final groups = groupBySeller([
+        sampleOffer(id: 'a', sellerId: 'se-1'),
+        sampleOffer(id: 'b', sellerId: 'se-2', sellerName: 'Gà rán'),
+        sampleOffer(id: 'c', sellerId: 'se-1'),
+      ]);
+
+      expect([for (final group in groups) group.seller.id], ['se-1', 'se-2']);
+      expect([for (final offer in groups.first.offers) offer.id], ['a', 'c']);
+    });
+  });
+
+  group('kindCounts', () {
+    test('counts what can be ordered by kind, the most first', () {
+      final cake = sampleOffer(id: 'cake')
+          .copyWith(kind: FoundBodyKind.dessert);
+
+      expect(
+        kindCounts([
+          sampleOffer(id: 'a'),
+          cake,
+          cake.copyWith(id: 'cake-2'),
+          sampleOffer(id: 'gone', unitsLeft: 0),
+        ]),
+        [(kind: Kind.dessert, count: 2), (kind: Kind.bakery, count: 1)],
+      );
+    });
+  });
 }

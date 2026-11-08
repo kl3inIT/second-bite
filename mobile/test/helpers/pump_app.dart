@@ -10,6 +10,7 @@ import 'package:second_bite/features/identity/data/auth_repository.dart';
 import 'package:second_bite/features/order/data/order_live.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
+import 'api.dart';
 import 'live.dart';
 
 /// An [AuthRepository] that answers nothing until a test says what.
@@ -40,19 +41,22 @@ extension PumpApp on WidgetTester {
   /// (Vietnamese unless given), under a [ProviderScope] with [overrides]
   /// that never retries a failed provider, so a failure shows at once. The
   /// session comes from [auth], signed out unless given; the live socket
-  /// is [live], a [TestLiveClient] that opens nothing unless given.
+  /// is [live], a [TestLiveClient] that opens nothing unless given; the
+  /// client is [api], [testApi] unless given.
   Future<void> pumpApp(
     Widget widget, {
     Locale locale = const Locale('vi'),
     List<Override> overrides = const [],
     AuthRepository? auth,
     LiveClient? live,
+    SecondBiteApi? api,
   }) {
     return pumpWidget(
       ProviderScope(
         overrides: [
           authRepositoryProvider.overrideWithValue(auth ?? signedInAs(null)),
           liveClientProvider.overrideWithValue(live ?? TestLiveClient()),
+          apiProvider.overrideWithValue(api ?? testApi()),
           ...overrides,
         ],
         retry: (_, _) => null,
@@ -74,6 +78,7 @@ extension PumpApp on WidgetTester {
     List<Override> overrides = const [],
     AuthRepository? auth,
     LiveClient? live,
+    SecondBiteApi? api,
   }) {
     addTearDown(router.dispose);
     return pumpWidget(
@@ -81,6 +86,7 @@ extension PumpApp on WidgetTester {
         overrides: [
           authRepositoryProvider.overrideWithValue(auth ?? signedInAs(null)),
           liveClientProvider.overrideWithValue(live ?? TestLiveClient()),
+          apiProvider.overrideWithValue(api ?? testApi()),
           ...overrides,
         ],
         retry: (_, _) => null,

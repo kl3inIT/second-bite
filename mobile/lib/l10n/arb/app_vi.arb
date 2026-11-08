@@ -4,23 +4,15 @@
   "@appTitle": {
     "description": "The app's name, shown by the system and read for the wordmark"
   },
-  "homeTitle": "Tối nay ở Tasco Mall",
-  "@homeTitle": {
-    "description": "The home's heading as a screen reader hears it; on screen only the place shows"
-  },
-  "homePlace": "Tasco Mall",
-  "@homePlace": {
-    "description": "The place on the home's header"
-  },
-  "homeArea": "Long Biên, Hà Nội",
+  "homeArea": "Hà Nội",
   "@homeArea": {
-    "description": "The district under the place on the header"
+    "description": "The area under the header's place while every shop is shown"
   },
   "homeSearchLabel": "Tìm món hoặc quán",
   "@homeSearchLabel": {
     "description": "What the search field is for, read by a screen reader"
   },
-  "homeSearchPlaceholder": "Tìm bánh, gỏi cuốn, rau củ…",
+  "homeSearchPlaceholder": "Tìm bánh, gà rán, pizza…",
   "@homeSearchPlaceholder": {
     "description": "Hint in the empty search field"
   },
@@ -246,10 +238,6 @@
   "navAccount": "Tài khoản",
   "@navAccount": {
     "description": "The account tab"
-  },
-  "navSoon": "(sắp có)",
-  "@navSoon": {
-    "description": "Read after a tab that has no screen yet"
   },
   "accountTitle": "Tài khoản",
   "@accountTitle": {
@@ -2332,5 +2320,395 @@
   "chatLocked": "Đơn đã kết thúc, chỉ xem lại tin nhắn.",
   "@chatLocked": {
     "description": "The foot of a chat that can only be read"
+  },
+  "homePlaceAll": "Tất cả quán",
+  "@homePlaceAll": {
+    "description": "The header's place while every shop is shown"
+  },
+  "homePlaceNearby": "Vị trí của tôi",
+  "@homePlaceNearby": {
+    "description": "The header's place when it is the phone's own, without a street"
+  },
+  "homeHeadingAll": "Tối nay: Tất cả quán",
+  "@homeHeadingAll": {
+    "description": "The home's heading as a screen reader hears it, at every shop"
+  },
+  "homeHeadingAround": "Tối nay quanh {place}",
+  "@homeHeadingAround": {
+    "description": "The home's heading as a screen reader hears it, around a place",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "homeAreaPlace": "Các quán quanh đây",
+  "@homeAreaPlace": {
+    "description": "Under a place chosen by name on the header"
+  },
+  "homeAreaNearby": "Các quán gần bạn",
+  "@homeAreaNearby": {
+    "description": "Under the phone's own place on the header"
+  },
+  "homeFilters": "Lọc món",
+  "@homeFilters": {
+    "description": "The search field's round button that opens the search with its filters"
+  },
+  "areaOpen": "Chọn nơi xem món",
+  "@areaOpen": {
+    "description": "What tapping the header's place does, read by a screen reader"
+  },
+  "areaTitle": "Xem món ở đâu?",
+  "@areaTitle": {
+    "description": "Title of the area sheet"
+  },
+  "areaClose": "Đóng",
+  "@areaClose": {
+    "description": "Closes the area sheet"
+  },
+  "areaField": "Tìm nơi xem món",
+  "@areaField": {
+    "description": "The area sheet's field, read by a screen reader"
+  },
+  "areaFieldPlaceholder": "Gõ địa chỉ, tên khu…",
+  "@areaFieldPlaceholder": {
+    "description": "Hint in the area sheet's field"
+  },
+  "areaClear": "Xoá chữ đã gõ",
+  "@areaClear": {
+    "description": "Clears the area sheet's field"
+  },
+  "areaSuggestions": "{count, plural, =0{Không có nơi nào} other{{count} nơi gợi ý}}",
+  "@areaSuggestions": {
+    "description": "How many places were suggested, for a screen reader",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "areaNoPlace": "Không tìm thấy nơi này. Thử tên phường, đường hoặc toà nhà khác, hoặc dùng vị trí của bạn.",
+  "@areaNoPlace": {
+    "description": "No place matches the words typed"
+  },
+  "areaAreas": "Khu vực",
+  "@areaAreas": {
+    "description": "Name of the area sheet's choices"
+  },
+  "areaAll": "Tất cả quán",
+  "@areaAll": {
+    "description": "Every shop, the default"
+  },
+  "areaAllHint": "Mặc định · món sắp hết giờ lên trước",
+  "@areaAllHint": {
+    "description": "Under every shop"
+  },
+  "areaMall": "Tasco Mall Long Biên",
+  "@areaMall": {
+    "description": "The mall, suggested"
+  },
+  "areaMallHint": "Gợi ý · các quán trong trung tâm",
+  "@areaMallHint": {
+    "description": "Under the mall"
+  },
+  "areaNearby": "Gần tôi",
+  "@areaNearby": {
+    "description": "Uses the phone's own place"
+  },
+  "areaNearbyHint": "Cho phép định vị để thấy quán gần bạn",
+  "@areaNearbyHint": {
+    "description": "Under near me"
+  },
+  "areaApply": "Xem món",
+  "@areaApply": {
+    "description": "Shows the dishes of the chosen area"
+  },
+  "areaLocating": "Đang tìm vị trí của bạn…",
+  "@areaLocating": {
+    "description": "While the phone's place is read"
+  },
+  "areaDenied": "Ứng dụng chưa được phép định vị. Bật lại trong Cài đặt của máy, hoặc xem món ở tất cả quán.",
+  "@areaDenied": {
+    "description": "Location is refused for the app; the web's words, for a phone"
+  },
+  "areaFailed": "Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở tất cả quán.",
+  "@areaFailed": {
+    "description": "The phone could not find its place"
+  },
+  "searchTitle": "Tìm món",
+  "@searchTitle": {
+    "description": "The search, read by a screen reader while it loads"
+  },
+  "searchLabel": "Tìm món hoặc quán",
+  "@searchLabel": {
+    "description": "The search field, read by a screen reader"
+  },
+  "searchPlaceholder": "Tìm món, quán",
+  "@searchPlaceholder": {
+    "description": "Hint in the search field"
+  },
+  "searchBack": "Về trang chủ",
+  "@searchBack": {
+    "description": "The search's back arrow"
+  },
+  "searchClear": "Xoá chữ đã gõ",
+  "@searchClear": {
+    "description": "Clears the search field"
+  },
+  "searchRecent": "Tìm gần đây",
+  "@searchRecent": {
+    "description": "Heading of the recent searches"
+  },
+  "searchClearRecent": "Xoá",
+  "@searchClearRecent": {
+    "description": "Forgets every recent search"
+  },
+  "searchForget": "Xoá “{words}” khỏi tìm gần đây",
+  "@searchForget": {
+    "description": "Forgets one recent search",
+    "placeholders": {
+      "words": {
+        "type": "String"
+      }
+    }
+  },
+  "searchFilters": "Bộ lọc",
+  "@searchFilters": {
+    "description": "Name of the row of chips"
+  },
+  "searchDistance": "Khoảng cách",
+  "@searchDistance": {
+    "description": "The distance chip"
+  },
+  "searchAnyDistance": "Mọi khoảng cách",
+  "@searchAnyDistance": {
+    "description": "No distance filter"
+  },
+  "searchWithin": "Trong {distance}",
+  "@searchWithin": {
+    "description": "A distance choice",
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "searchPrice": "Giá",
+  "@searchPrice": {
+    "description": "The price chip"
+  },
+  "searchWhen": "Giờ nhận",
+  "@searchWhen": {
+    "description": "The collection time chip"
+  },
+  "searchNow": "Nhận ngay",
+  "@searchNow": {
+    "description": "What can be collected now"
+  },
+  "searchKind": "Loại món",
+  "@searchKind": {
+    "description": "The kind chip"
+  },
+  "searchAnyKind": "Mọi loại",
+  "@searchAnyKind": {
+    "description": "No kind filter"
+  },
+  "searchSort": "{sort, select, relevance{Phù hợp nhất} distance{Gần nhất} ending_soon{Sắp hết giờ} price{Giá thấp nhất} discount{Giảm nhiều nhất} other{Phù hợp nhất}}",
+  "@searchSort": {
+    "description": "An order of the results, by the API's name for it",
+    "placeholders": {
+      "sort": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSortBy": "Sắp xếp",
+  "@searchSortBy": {
+    "description": "The order chip"
+  },
+  "searchDishesFor": "{count} món cho “{q}”",
+  "@searchDishesFor": {
+    "description": "How many dishes match the words",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "searchDishesHere": "{count} món đang bán{place, select, near{ quanh đây} other{}}",
+  "@searchDishesHere": {
+    "description": "How many dishes are on sale, near a place or at every shop",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNothing": "Không tìm thấy món nào khớp.",
+  "@searchNothing": {
+    "description": "Nothing matches the search"
+  },
+  "searchEverything": "Xem tất cả món",
+  "@searchEverything": {
+    "description": "Opens the search without filters"
+  },
+  "searchResetFilters": "Đặt lại bộ lọc",
+  "@searchResetFilters": {
+    "description": "Drops every chip, keeping the words"
+  },
+  "searchFrom": "Từ",
+  "@searchFrom": {
+    "description": "The start of a range"
+  },
+  "searchTo": "Đến",
+  "@searchTo": {
+    "description": "The end of a range"
+  },
+  "searchRange": "{from}–{to}",
+  "@searchRange": {
+    "description": "A range chosen",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "searchRangeFrom": "Từ {from}",
+  "@searchRangeFrom": {
+    "description": "A range with a start only",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "searchRangeTo": "Đến {to}",
+  "@searchRangeTo": {
+    "description": "A range with an end only",
+    "placeholders": {
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "searchPriceOrder": "Giá “từ” cần thấp hơn giá “đến”.",
+  "@searchPriceOrder": {
+    "description": "A price range out of order"
+  },
+  "searchTimeOrder": "Giờ “từ” cần sớm hơn giờ “đến”.",
+  "@searchTimeOrder": {
+    "description": "A time range out of order"
+  },
+  "searchApply": "Áp dụng",
+  "@searchApply": {
+    "description": "Applies a range"
+  },
+  "searchClearFilter": "Bỏ lọc",
+  "@searchClearFilter": {
+    "description": "Drops a range"
+  },
+  "searchQuick": "Chọn nhanh",
+  "@searchQuick": {
+    "description": "Name of a range's quick choices"
+  },
+  "searchAnyTime": "Bất kỳ",
+  "@searchAnyTime": {
+    "description": "No time at that end"
+  },
+  "searchLowest": "Thấp nhất",
+  "@searchLowest": {
+    "description": "Hint for the lowest price"
+  },
+  "searchHighest": "Cao nhất",
+  "@searchHighest": {
+    "description": "Hint for the highest price"
+  },
+  "searchPopular": "Món phổ biến",
+  "@searchPopular": {
+    "description": "Heading of the popular kinds"
+  },
+  "searchOnSale": "{count} món đang giảm",
+  "@searchOnSale": {
+    "description": "How many dishes of a kind are on sale",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchViewGrid": "Xem dạng ô",
+  "@searchViewGrid": {
+    "description": "Shows the results as a grid"
+  },
+  "searchViewList": "Xem dạng danh sách",
+  "@searchViewList": {
+    "description": "Shows the results as a list by store"
+  },
+  "searchViewSeller": "Xem quán",
+  "@searchViewSeller": {
+    "description": "Opens a store from the list"
+  },
+  "searchViewSellerNamed": "Xem quán {seller}",
+  "@searchViewSellerNamed": {
+    "description": "Opens a store from the list, read by a screen reader",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "favouritesTitle": "Yêu thích",
+  "@favouritesTitle": {
+    "description": "Title of the saved stores"
+  },
+  "favouritesIntro": "Quán bạn theo dõi",
+  "@favouritesIntro": {
+    "description": "Above the followed stores"
+  },
+  "favouritesFollow": "Yêu thích {name}",
+  "@favouritesFollow": {
+    "description": "The heart that follows a store, read by a screen reader",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "favouritesAdded": "Đã thêm vào Yêu thích",
+  "@favouritesAdded": {
+    "description": "A store was followed"
+  },
+  "favouritesRemoved": "Đã bỏ khỏi Yêu thích",
+  "@favouritesRemoved": {
+    "description": "A store was let go"
+  },
+  "favouritesFailed": "Chưa lưu được, thử lại sau.",
+  "@favouritesFailed": {
+    "description": "Following or letting go failed"
+  },
+  "favouritesNoneTonight": "Tối nay chưa có món giảm",
+  "@favouritesNoneTonight": {
+    "description": "A followed store with no dish tonight"
+  },
+  "favouritesEmptyTitle": "Chưa có quán yêu thích",
+  "@favouritesEmptyTitle": {
+    "description": "No store followed yet"
+  },
+  "favouritesEmptyBody": "Bấm ♡ ở trang quán để theo dõi.",
+  "@favouritesEmptyBody": {
+    "description": "How to follow a store"
+  },
+  "favouritesExplore": "Khám phá quán",
+  "@favouritesExplore": {
+    "description": "Opens the home from the empty saved stores"
   }
 }

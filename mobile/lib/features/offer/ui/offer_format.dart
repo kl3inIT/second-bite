@@ -15,3 +15,9 @@ String formatTime(DateTime moment) {
   String two(int value) => value.toString().padLeft(2, '0');
   return '${two(vietnam.hour)}:${two(vietnam.minute)}';
 }
+
+/// A distance as the cards write it, as the web's `useMeters`: "350 m" under
+/// a kilometre, "1,2 km" above, the decimal mark in [locale]'s way.
+String formatDistance(double meters, String locale) => meters < 1000
+    ? '${meters.round()} m'
+    : '${NumberFormat('0.#', locale).format(meters / 1000)} km';

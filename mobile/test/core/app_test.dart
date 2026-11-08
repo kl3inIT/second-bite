@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/app.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
 import 'package:second_bite/features/identity/ui/account_screen.dart';
@@ -12,6 +13,7 @@ import 'package:second_bite/features/offer/ui/home_screen.dart';
 import 'package:second_bite/features/order/data/kept_orders.dart';
 import 'package:second_bite/features/order/ui/order_parts.dart';
 import 'package:second_bite/features/order/ui/orders_screen.dart';
+import 'package:second_bite/features/seller/ui/favourites_screen.dart';
 
 import '../helpers/helpers.dart';
 
@@ -37,6 +39,7 @@ void main() {
             overrides: [
               offerRepositoryProvider.overrideWithValue(repository),
               authRepositoryProvider.overrideWithValue(signedInAs(null)),
+              apiProvider.overrideWithValue(testApi()),
             ],
             child: const App(),
           ),
@@ -54,12 +57,13 @@ void main() {
             overrides: [
               offerRepositoryProvider.overrideWithValue(repository),
               authRepositoryProvider.overrideWithValue(signedInAs(null)),
+              apiProvider.overrideWithValue(testApi()),
             ],
             child: const App(),
           ),
         );
         await tester.pump();
-        final before = find.text('Long Biên, Hà Nội').evaluate().isNotEmpty;
+        final before = find.text('Tất cả quán').evaluate().isNotEmpty;
 
         await tester.tap(
           find.byTooltip(
@@ -68,22 +72,19 @@ void main() {
         );
         await tester.pump();
 
-        expect(
-          find.text(before ? 'Long Biên, Hanoi' : 'Long Biên, Hà Nội'),
-          findsOneWidget,
-        );
+        expect(find.text(before ? 'All shops' : 'Tất cả quán'), findsOneWidget);
       });
     });
 
     group('navigates', () {
-      testWidgets('to $AccountScreen from the bottom bar, and only there', (
-        tester,
-      ) async {
+      testWidgets('to $FavouritesScreen and $AccountScreen from the bottom '
+          'bar', (tester) async {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               offerRepositoryProvider.overrideWithValue(repository),
               authRepositoryProvider.overrideWithValue(signedInAs(null)),
+              apiProvider.overrideWithValue(testApi()),
             ],
             child: const App(),
           ),
@@ -91,10 +92,9 @@ void main() {
         await tester.pump();
         final destinations = find.byType(NavigationDestination);
 
-        // Saved sellers have no screen yet.
-        await tester.tap(destinations.at(2), warnIfMissed: false);
+        await tester.tap(destinations.at(2));
         await tester.pumpAndSettle();
-        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(find.byType(FavouritesScreen), findsOneWidget);
         expect(find.byType(AccountScreen), findsNothing);
 
         await tester.tap(destinations.at(3));
@@ -133,6 +133,7 @@ void main() {
             overrides: [
               offerRepositoryProvider.overrideWithValue(repository),
               authRepositoryProvider.overrideWithValue(signedInAs(null)),
+              apiProvider.overrideWithValue(testApi()),
             ],
             child: const App(),
           ),

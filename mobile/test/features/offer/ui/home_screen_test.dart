@@ -69,7 +69,7 @@ void main() {
         await pumpHome(tester);
         await tester.pump();
 
-        expect(find.text('Tasco Mall'), findsOneWidget);
+        expect(find.text('Tất cả quán'), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
       });
 

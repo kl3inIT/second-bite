@@ -13,19 +13,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appTitle => 'Second Bite';
 
   @override
-  String get homeTitle => 'Tối nay ở Tasco Mall';
-
-  @override
-  String get homePlace => 'Tasco Mall';
-
-  @override
-  String get homeArea => 'Long Biên, Hà Nội';
+  String get homeArea => 'Hà Nội';
 
   @override
   String get homeSearchLabel => 'Tìm món hoặc quán';
 
   @override
-  String get homeSearchPlaceholder => 'Tìm bánh, gỏi cuốn, rau củ…';
+  String get homeSearchPlaceholder => 'Tìm bánh, gà rán, pizza…';
 
   @override
   String get homeKindsLabel => 'Loại món';
@@ -173,9 +167,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get navAccount => 'Tài khoản';
-
-  @override
-  String get navSoon => '(sắp có)';
 
   @override
   String get accountTitle => 'Tài khoản';
@@ -1558,4 +1549,288 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get chatLocked => 'Đơn đã kết thúc, chỉ xem lại tin nhắn.';
+
+  @override
+  String get homePlaceAll => 'Tất cả quán';
+
+  @override
+  String get homePlaceNearby => 'Vị trí của tôi';
+
+  @override
+  String get homeHeadingAll => 'Tối nay: Tất cả quán';
+
+  @override
+  String homeHeadingAround(String place) {
+    return 'Tối nay quanh $place';
+  }
+
+  @override
+  String get homeAreaPlace => 'Các quán quanh đây';
+
+  @override
+  String get homeAreaNearby => 'Các quán gần bạn';
+
+  @override
+  String get homeFilters => 'Lọc món';
+
+  @override
+  String get areaOpen => 'Chọn nơi xem món';
+
+  @override
+  String get areaTitle => 'Xem món ở đâu?';
+
+  @override
+  String get areaClose => 'Đóng';
+
+  @override
+  String get areaField => 'Tìm nơi xem món';
+
+  @override
+  String get areaFieldPlaceholder => 'Gõ địa chỉ, tên khu…';
+
+  @override
+  String get areaClear => 'Xoá chữ đã gõ';
+
+  @override
+  String areaSuggestions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nơi gợi ý',
+      zero: 'Không có nơi nào',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get areaNoPlace =>
+      'Không tìm thấy nơi này. Thử tên phường, đường hoặc toà nhà khác, hoặc dùng vị trí của bạn.';
+
+  @override
+  String get areaAreas => 'Khu vực';
+
+  @override
+  String get areaAll => 'Tất cả quán';
+
+  @override
+  String get areaAllHint => 'Mặc định · món sắp hết giờ lên trước';
+
+  @override
+  String get areaMall => 'Tasco Mall Long Biên';
+
+  @override
+  String get areaMallHint => 'Gợi ý · các quán trong trung tâm';
+
+  @override
+  String get areaNearby => 'Gần tôi';
+
+  @override
+  String get areaNearbyHint => 'Cho phép định vị để thấy quán gần bạn';
+
+  @override
+  String get areaApply => 'Xem món';
+
+  @override
+  String get areaLocating => 'Đang tìm vị trí của bạn…';
+
+  @override
+  String get areaDenied =>
+      'Ứng dụng chưa được phép định vị. Bật lại trong Cài đặt của máy, hoặc xem món ở tất cả quán.';
+
+  @override
+  String get areaFailed =>
+      'Chưa tìm được vị trí của bạn. Thử lại sau, hoặc xem món ở tất cả quán.';
+
+  @override
+  String get searchTitle => 'Tìm món';
+
+  @override
+  String get searchLabel => 'Tìm món hoặc quán';
+
+  @override
+  String get searchPlaceholder => 'Tìm món, quán';
+
+  @override
+  String get searchBack => 'Về trang chủ';
+
+  @override
+  String get searchClear => 'Xoá chữ đã gõ';
+
+  @override
+  String get searchRecent => 'Tìm gần đây';
+
+  @override
+  String get searchClearRecent => 'Xoá';
+
+  @override
+  String searchForget(String words) {
+    return 'Xoá “$words” khỏi tìm gần đây';
+  }
+
+  @override
+  String get searchFilters => 'Bộ lọc';
+
+  @override
+  String get searchDistance => 'Khoảng cách';
+
+  @override
+  String get searchAnyDistance => 'Mọi khoảng cách';
+
+  @override
+  String searchWithin(String distance) {
+    return 'Trong $distance';
+  }
+
+  @override
+  String get searchPrice => 'Giá';
+
+  @override
+  String get searchWhen => 'Giờ nhận';
+
+  @override
+  String get searchNow => 'Nhận ngay';
+
+  @override
+  String get searchKind => 'Loại món';
+
+  @override
+  String get searchAnyKind => 'Mọi loại';
+
+  @override
+  String searchSort(String sort) {
+    String _temp0 = intl.Intl.selectLogic(sort, {
+      'relevance': 'Phù hợp nhất',
+      'distance': 'Gần nhất',
+      'ending_soon': 'Sắp hết giờ',
+      'price': 'Giá thấp nhất',
+      'discount': 'Giảm nhiều nhất',
+      'other': 'Phù hợp nhất',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get searchSortBy => 'Sắp xếp';
+
+  @override
+  String searchDishesFor(int count, String q) {
+    return '$count món cho “$q”';
+  }
+
+  @override
+  String searchDishesHere(int count, String place) {
+    String _temp0 = intl.Intl.selectLogic(place, {
+      'near': ' quanh đây',
+      'other': '',
+    });
+    return '$count món đang bán$_temp0';
+  }
+
+  @override
+  String get searchNothing => 'Không tìm thấy món nào khớp.';
+
+  @override
+  String get searchEverything => 'Xem tất cả món';
+
+  @override
+  String get searchResetFilters => 'Đặt lại bộ lọc';
+
+  @override
+  String get searchFrom => 'Từ';
+
+  @override
+  String get searchTo => 'Đến';
+
+  @override
+  String searchRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
+  String searchRangeFrom(String from) {
+    return 'Từ $from';
+  }
+
+  @override
+  String searchRangeTo(String to) {
+    return 'Đến $to';
+  }
+
+  @override
+  String get searchPriceOrder => 'Giá “từ” cần thấp hơn giá “đến”.';
+
+  @override
+  String get searchTimeOrder => 'Giờ “từ” cần sớm hơn giờ “đến”.';
+
+  @override
+  String get searchApply => 'Áp dụng';
+
+  @override
+  String get searchClearFilter => 'Bỏ lọc';
+
+  @override
+  String get searchQuick => 'Chọn nhanh';
+
+  @override
+  String get searchAnyTime => 'Bất kỳ';
+
+  @override
+  String get searchLowest => 'Thấp nhất';
+
+  @override
+  String get searchHighest => 'Cao nhất';
+
+  @override
+  String get searchPopular => 'Món phổ biến';
+
+  @override
+  String searchOnSale(int count) {
+    return '$count món đang giảm';
+  }
+
+  @override
+  String get searchViewGrid => 'Xem dạng ô';
+
+  @override
+  String get searchViewList => 'Xem dạng danh sách';
+
+  @override
+  String get searchViewSeller => 'Xem quán';
+
+  @override
+  String searchViewSellerNamed(String seller) {
+    return 'Xem quán $seller';
+  }
+
+  @override
+  String get favouritesTitle => 'Yêu thích';
+
+  @override
+  String get favouritesIntro => 'Quán bạn theo dõi';
+
+  @override
+  String favouritesFollow(String name) {
+    return 'Yêu thích $name';
+  }
+
+  @override
+  String get favouritesAdded => 'Đã thêm vào Yêu thích';
+
+  @override
+  String get favouritesRemoved => 'Đã bỏ khỏi Yêu thích';
+
+  @override
+  String get favouritesFailed => 'Chưa lưu được, thử lại sau.';
+
+  @override
+  String get favouritesNoneTonight => 'Tối nay chưa có món giảm';
+
+  @override
+  String get favouritesEmptyTitle => 'Chưa có quán yêu thích';
+
+  @override
+  String get favouritesEmptyBody => 'Bấm ♡ ở trang quán để theo dõi.';
+
+  @override
+  String get favouritesExplore => 'Khám phá quán';
 }
