@@ -53,19 +53,16 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<!-- iPhone only, in portrait (SEC-201): TARGETED_DEVICE_FAMILY is 1, so the App Store asks for no iPad
+	     screenshots and an iPad runs the iPhone layout. -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
+	<!-- The app calls its API over HTTPS only, an exempt use of encryption, so App Store Connect does not
+	     ask about export compliance for each build (SEC-201). -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<!-- Google sign-in (mobile/README.md, Signing in with Google): the iOS client and the URL scheme
 	     Google's SDK returns through, from the git-ignored Flutter/GoogleSignIn.xcconfig. -->
 	<key>GIDClientID</key>

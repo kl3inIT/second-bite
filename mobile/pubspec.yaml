@@ -28,6 +28,7 @@ dependencies:
   riverpod_annotation: ^4.0.7
 dev_dependencies:
   build_runner: ^2.16.2
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
   freezed: ^4.0.3
@@ -45,3 +46,15 @@ flutter:
   # The round pictures of the kinds row, the web's web/src/features/home/kinds.
   assets:
     - assets/kinds/
+
+# The launcher icons, from assets/launcher (SEC-201): icon.png and foreground.png are drawn from
+# app-icon.svg, the web's icon. After changing them: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  ios: true
+  remove_alpha_ios: true
+  image_path: assets/launcher/icon.png
+  android: true
+  adaptive_icon_background: "#0061AF"
+  adaptive_icon_foreground: assets/launcher/foreground.png
+  adaptive_icon_foreground_inset: 0
+  adaptive_icon_monochrome: assets/launcher/foreground.png
