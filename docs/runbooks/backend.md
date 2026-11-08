@@ -7,6 +7,7 @@ How to run the backend on a developer's machine and run the checks CI runs. The 
 - Go at the version in `server/go.mod`.
 - Docker, for the local database and for the tests, which start PostgreSQL with PostGIS in containers.
 - golangci-lint v2.15.0, the version CI runs: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0`. Its maintainers advise against `go tool` for it, so it is not pinned in `go.mod`.
+- GNU make, which runs the checks: on Windows `winget install ezwinports.make`; macOS and Linux have it.
 
 ## Run locally
 
@@ -102,17 +103,15 @@ A secret is read from the file named after its variable in `SECONDBITE_SECRETS_D
 
 ## Checks
 
-From `server/`, the same as CI ([workflow](../../.github/workflows/backend.yml)):
+From `server/`, before every push, the checks CI runs. Each is a target of [`server/Makefile`](../../server/Makefile), and each CI job ([workflow](../../.github/workflows/backend.yml)) runs the same target:
 
 ```sh
-golangci-lint fmt ./...       # format
-golangci-lint run ./...       # lint, with the configuration of the golang-lint skill
-go test -race -count=1 ./...  # tests, including the boundary check and the contract check
-go tool govulncheck ./...     # known vulnerabilities that the code reaches
-go mod tidy -diff             # go.mod and go.sum are tidy
+make verify   # tidy-check, sqlc-check, lint, test-race, vuln and migration-check, in that order
+make fmt      # format the code; lint fails on unformatted code
+make help     # every target
 ```
 
-`-race` needs a C compiler; on Windows without one, run `go test -count=1 ./...` and let CI run the race detector.
+`test-race` needs a C compiler; on Windows without one, run `make verify TEST=test` and let CI run the race detector. `migration-check` compares the branch with `origin/main` as last fetched, so run `git fetch origin` first.
 
 The tests include:
 
@@ -125,11 +124,7 @@ The tests include:
 
 - **The migration names** (`migrations/migrations_test.go`): `<n>_<module>_<description>.sql` with a four-digit version used once ([persistence guideline](../guidelines/persistence.md#schema-ownership)).
 
-On a pull request, CI's `Migrations` job also fails when the pull request changes, renames or removes a migration that is already on `main`; adding one passes. The same check on this machine, which prints nothing when it passes:
-
-```sh
-git fetch origin main && git diff --name-status --no-renames --diff-filter=a origin/main... -- 'migrations/*.sql'
-```
+- **The released migrations** (`make migration-check`, CI's `Migrations` job on a pull request): a migration already on `main` is not changed, renamed or removed; adding one passes.
 
 ## Administrative commands
 
