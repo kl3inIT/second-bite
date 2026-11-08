@@ -827,5 +827,186 @@
   "accountSettingsNameFailed": "Chưa lưu được tên. Thử lại sau ít phút.",
   "@accountSettingsNameFailed": {
     "description": "When saving the name got no answer"
+  },
+  "sellerWindow": "Nhận hôm nay {from}–{until}",
+  "@sellerWindow": {
+    "description": "Tonight's window across the store's dishes",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerDirections": "Chỉ đường ›",
+  "@sellerDirections": {
+    "description": "Opens the way to the store in the phone's maps"
+  },
+  "sellerKinds": "Loại món",
+  "@sellerKinds": {
+    "description": "The tabs by kind, to a screen reader"
+  },
+  "sellerOnSale": "Đang giảm",
+  "@sellerOnSale": {
+    "description": "The tab with every kind"
+  },
+  "sellerTonight": "Đang giảm tối nay",
+  "@sellerTonight": {
+    "description": "The heading over the store's dishes"
+  },
+  "sellerNothing": "Quán chưa có món tối nay",
+  "@sellerNothing": {
+    "description": "A store with nothing on sale"
+  },
+  "sellerHome": "Xem món khác",
+  "@sellerHome": {
+    "description": "The way home from a store with nothing on sale"
+  },
+  "sellerNoMatch": "Không có món nào khớp “{q}”",
+  "@sellerNoMatch": {
+    "description": "A search of the store's dishes found none",
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "sellerShare": "Chia sẻ quán",
+  "@sellerShare": {
+    "description": "The share button on the store's cover"
+  },
+  "sellerSearch": "Tìm trong thực đơn {seller}",
+  "@sellerSearch": {
+    "description": "The store's search field",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "dishAbout": "Về món này",
+  "@dishAbout": {
+    "description": "The heading over what the store says of a dish"
+  },
+  "dishWeight": "Khoảng {grams} g.",
+  "@dishWeight": {
+    "description": "A dish's weight",
+    "placeholders": {
+      "grams": {
+        "type": "int"
+      }
+    }
+  },
+  "dishNotes": "Lưu ý",
+  "@dishNotes": {
+    "description": "The heading over what to bring and ask"
+  },
+  "dishBringBag": "Nên mang túi hoặc hộp riêng.",
+  "@dishBringBag": {
+    "description": "What to bring"
+  },
+  "dishAskSeller": "Hỏi quán về thành phần và dị ứng.",
+  "@dishAskSeller": {
+    "description": "What to ask"
+  },
+  "dishSellerAnswers": "Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng và vệ sinh an toàn thực phẩm của món.",
+  "@dishSellerAnswers": {
+    "description": "Who answers for the food, before the link to the terms"
+  },
+  "dishTerms": "Điều khoản",
+  "@dishTerms": {
+    "description": "The link to the terms on a dish's sheet"
+  },
+  "dishCount": "{count} phần {name} sẽ thêm",
+  "@dishCount": {
+    "description": "The sheet's count, to a screen reader",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dishAdd": "Thêm vào giỏ · {price}",
+  "@dishAdd": {
+    "description": "The sheet's button with what it adds costs",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "dishAllChosen": "Đã chọn đủ {units} phần",
+  "@dishAllChosen": {
+    "description": "The sheet's button once the cart holds every portion left",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "cartAdd": "Thêm một phần {name}",
+  "@cartAdd": {
+    "description": "The + of a dish",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cartRemove": "Bớt một phần {name}",
+  "@cartRemove": {
+    "description": "The − of a dish",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cartQuantity": "{quantity} phần {name} trong giỏ",
+  "@cartQuantity": {
+    "description": "The count of a dish in the cart, to a screen reader",
+    "placeholders": {
+      "quantity": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cartSummary": "{units} phần · tiết kiệm {saved}",
+  "@cartSummary": {
+    "description": "The cart bar's line",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "saved": {
+        "type": "String"
+      }
+    }
+  },
+  "cartPortionsLeft": "còn {units} phần",
+  "@cartPortionsLeft": {
+    "description": "Under a dish on its store's page",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "cartPortionsChosen": "đã chọn đủ {units} phần",
+  "@cartPortionsChosen": {
+    "description": "Under a dish once the cart holds every portion left",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -1123,6 +1123,162 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chưa lưu được tên. Thử lại sau ít phút.'**
   String get accountSettingsNameFailed;
+
+  /// Tonight's window across the store's dishes
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận hôm nay {from}–{until}'**
+  String sellerWindow(String from, String until);
+
+  /// Opens the way to the store in the phone's maps
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ đường ›'**
+  String get sellerDirections;
+
+  /// The tabs by kind, to a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Loại món'**
+  String get sellerKinds;
+
+  /// The tab with every kind
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang giảm'**
+  String get sellerOnSale;
+
+  /// The heading over the store's dishes
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang giảm tối nay'**
+  String get sellerTonight;
+
+  /// A store with nothing on sale
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán chưa có món tối nay'**
+  String get sellerNothing;
+
+  /// The way home from a store with nothing on sale
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem món khác'**
+  String get sellerHome;
+
+  /// A search of the store's dishes found none
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có món nào khớp “{q}”'**
+  String sellerNoMatch(String q);
+
+  /// The share button on the store's cover
+  ///
+  /// In vi, this message translates to:
+  /// **'Chia sẻ quán'**
+  String get sellerShare;
+
+  /// The store's search field
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm trong thực đơn {seller}'**
+  String sellerSearch(String seller);
+
+  /// The heading over what the store says of a dish
+  ///
+  /// In vi, this message translates to:
+  /// **'Về món này'**
+  String get dishAbout;
+
+  /// A dish's weight
+  ///
+  /// In vi, this message translates to:
+  /// **'Khoảng {grams} g.'**
+  String dishWeight(int grams);
+
+  /// The heading over what to bring and ask
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu ý'**
+  String get dishNotes;
+
+  /// What to bring
+  ///
+  /// In vi, this message translates to:
+  /// **'Nên mang túi hoặc hộp riêng.'**
+  String get dishBringBag;
+
+  /// What to ask
+  ///
+  /// In vi, this message translates to:
+  /// **'Hỏi quán về thành phần và dị ứng.'**
+  String get dishAskSeller;
+
+  /// Who answers for the food, before the link to the terms
+  ///
+  /// In vi, this message translates to:
+  /// **'Second Bite chỉ kết nối bạn với quán; quán chịu trách nhiệm về chất lượng và vệ sinh an toàn thực phẩm của món.'**
+  String get dishSellerAnswers;
+
+  /// The link to the terms on a dish's sheet
+  ///
+  /// In vi, this message translates to:
+  /// **'Điều khoản'**
+  String get dishTerms;
+
+  /// The sheet's count, to a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} phần {name} sẽ thêm'**
+  String dishCount(int count, String name);
+
+  /// The sheet's button with what it adds costs
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm vào giỏ · {price}'**
+  String dishAdd(String price);
+
+  /// The sheet's button once the cart holds every portion left
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chọn đủ {units} phần'**
+  String dishAllChosen(int units);
+
+  /// The + of a dish
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm một phần {name}'**
+  String cartAdd(String name);
+
+  /// The − of a dish
+  ///
+  /// In vi, this message translates to:
+  /// **'Bớt một phần {name}'**
+  String cartRemove(String name);
+
+  /// The count of a dish in the cart, to a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'{quantity} phần {name} trong giỏ'**
+  String cartQuantity(int quantity, String name);
+
+  /// The cart bar's line
+  ///
+  /// In vi, this message translates to:
+  /// **'{units} phần · tiết kiệm {saved}'**
+  String cartSummary(int units, String saved);
+
+  /// Under a dish on its store's page
+  ///
+  /// In vi, this message translates to:
+  /// **'còn {units} phần'**
+  String cartPortionsLeft(int units);
+
+  /// Under a dish once the cart holds every portion left
+  ///
+  /// In vi, this message translates to:
+  /// **'đã chọn đủ {units} phần'**
+  String cartPortionsChosen(int units);
 }
 
 class _AppLocalizationsDelegate

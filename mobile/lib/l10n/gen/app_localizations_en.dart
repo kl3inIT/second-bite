@@ -624,4 +624,109 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get accountSettingsNameFailed =>
       'The name was not saved. Try again in a few minutes.';
+
+  @override
+  String sellerWindow(String from, String until) {
+    return 'Collect today $from–$until';
+  }
+
+  @override
+  String get sellerDirections => 'Directions ›';
+
+  @override
+  String get sellerKinds => 'Kinds of dish';
+
+  @override
+  String get sellerOnSale => 'On sale';
+
+  @override
+  String get sellerTonight => 'On sale tonight';
+
+  @override
+  String get sellerNothing => 'This shop has nothing on sale tonight';
+
+  @override
+  String get sellerHome => 'See other dishes';
+
+  @override
+  String sellerNoMatch(String q) {
+    return 'No dish matches “$q”';
+  }
+
+  @override
+  String get sellerShare => 'Share this shop';
+
+  @override
+  String sellerSearch(String seller) {
+    return 'Search the $seller menu';
+  }
+
+  @override
+  String get dishAbout => 'About this dish';
+
+  @override
+  String dishWeight(int grams) {
+    return 'About $grams g.';
+  }
+
+  @override
+  String get dishNotes => 'Good to know';
+
+  @override
+  String get dishBringBag => 'Bring your own bag or box.';
+
+  @override
+  String get dishAskSeller => 'Ask the shop about ingredients and allergies.';
+
+  @override
+  String get dishSellerAnswers =>
+      'Second Bite only connects you with the shop; the shop is responsible for the quality and food safety of the dish.';
+
+  @override
+  String get dishTerms => 'Terms';
+
+  @override
+  String dishCount(int count, String name) {
+    return '$count $name to add';
+  }
+
+  @override
+  String dishAdd(String price) {
+    return 'Add to cart · $price';
+  }
+
+  @override
+  String dishAllChosen(int units) {
+    return 'All $units chosen';
+  }
+
+  @override
+  String cartAdd(String name) {
+    return 'Add one $name';
+  }
+
+  @override
+  String cartRemove(String name) {
+    return 'Remove one $name';
+  }
+
+  @override
+  String cartQuantity(int quantity, String name) {
+    return '$quantity $name in the cart';
+  }
+
+  @override
+  String cartSummary(int units, String saved) {
+    return '$units portions · save $saved';
+  }
+
+  @override
+  String cartPortionsLeft(int units) {
+    return '$units left';
+  }
+
+  @override
+  String cartPortionsChosen(int units) {
+    return 'all $units chosen';
+  }
 }
