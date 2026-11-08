@@ -7,7 +7,6 @@ How to run the backend on a developer's machine and run the checks CI runs. The 
 - Go at the version in `server/go.mod`.
 - Docker, for the local database and for the tests, which start PostgreSQL with PostGIS in containers.
 - golangci-lint v2.15.0, the version CI runs: `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0`. Its maintainers advise against `go tool` for it, so it is not pinned in `go.mod`.
-- govulncheck: `go install golang.org/x/vuln/cmd/govulncheck@latest`.
 
 ## Run locally
 
@@ -109,7 +108,7 @@ From `server/`, the same as CI ([workflow](../../.github/workflows/backend.yml))
 golangci-lint fmt ./...       # format
 golangci-lint run ./...       # lint, with the configuration of the golang-lint skill
 go test -race -count=1 ./...  # tests, including the boundary check and the contract check
-govulncheck ./...             # known vulnerabilities that the code reaches
+go tool govulncheck ./...     # known vulnerabilities that the code reaches
 go mod tidy -diff             # go.mod and go.sum are tidy
 ```
 
@@ -125,6 +124,12 @@ The tests include:
   ```
 
 - **The migration names** (`migrations/migrations_test.go`): `<n>_<module>_<description>.sql` with a four-digit version used once ([persistence guideline](../guidelines/persistence.md#schema-ownership)).
+
+On a pull request, CI's `Migrations` job also fails when the pull request changes, renames or removes a migration that is already on `main`; adding one passes. The same check on this machine, which prints nothing when it passes:
+
+```sh
+git fetch origin main && git diff --name-status --no-renames --diff-filter=a origin/main... -- 'migrations/*.sql'
+```
 
 ## Administrative commands
 
