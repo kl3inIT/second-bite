@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:second_bite/core/api.dart';
+import 'package:second_bite/core/live_client.dart';
 import 'package:second_bite/features/order/ui/order_parts.dart';
 import 'package:second_bite/features/order/ui/order_reads.dart';
 import 'package:second_bite/features/order/ui/orders_screen.dart';
@@ -14,6 +15,7 @@ void main() {
       WidgetTester tester,
       MyOrders? lists, {
       String at = '/orders',
+      LiveClient? live,
     }) {
       final router = GoRouter(
         initialLocation: at,
@@ -36,11 +38,28 @@ void main() {
       );
       return tester.pumpRouterApp(
         router,
+        live: live,
         overrides: [myOrdersProvider.overrideWith((ref) async => lists)],
       );
     }
 
     final now = DateTime.now();
+
+    group('updates', () {
+      testWidgets('follows the open orders on the live socket', (tester) async {
+        final live = TestLiveClient();
+        await pumpOrders(tester, (
+          open: [
+            sampleOrder(id: 'a'),
+            sampleOrder(id: 'b'),
+          ],
+          ended: [sampleOrder(id: 'c')],
+        ), live: live);
+        await tester.pump();
+
+        expect(live.topics, ['order:a', 'order:b']);
+      });
+    });
 
     group('renders', () {
       testWidgets('the way to sign in when no order is known', (tester) async {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:second_bite/core/api.dart';
+import 'package:second_bite/core/live_client.dart';
 import 'package:second_bite/features/order/data/order_reader.dart';
 import 'package:second_bite/features/order/ui/order_actions.dart';
 import 'package:second_bite/features/order/ui/order_parts.dart';
@@ -29,8 +30,9 @@ void main() {
 
     Future<void> pumpOrder(
       WidgetTester tester,
-      Future<OrderView?> Function() view,
-    ) async {
+      Future<OrderView?> Function() view, {
+      LiveClient? live,
+    }) async {
       tester.view.physicalSize = const Size(1170, 6000);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
@@ -54,6 +56,7 @@ void main() {
       );
       await tester.pumpRouterApp(
         router,
+        live: live,
         overrides: [
           orderViewProvider(_id).overrideWith((ref) => view()),
           orderReaderProvider.overrideWithValue(reader),
@@ -308,6 +311,70 @@ void main() {
             note: any(named: 'note'),
           ),
         ).called(1);
+      });
+    });
+
+    group('updates', () {
+      late TestLiveClient live;
+      late int reads;
+
+      setUp(() {
+        live = TestLiveClient();
+        reads = 0;
+      });
+
+      Future<OrderView?> view() async {
+        reads += 1;
+        return (
+          order: order(
+            status: reads > 1
+                ? OrderBodyStatus.ready
+                : OrderBodyStatus.confirmed,
+          ),
+          together: const <OrderBody>[],
+        );
+      }
+
+      testWidgets('follows its order on the live socket', (tester) async {
+        await pumpOrder(tester, view, live: live);
+
+        expect(live.topics, ['order:$_id']);
+      });
+
+      testWidgets('reads the order again on a notice about it', (tester) async {
+        await pumpOrder(tester, view, live: live);
+        expect(find.byType(QrImageView), findsNothing);
+
+        live.emit(const LiveOrderNotice(_id, 'ready'));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        await tester.pump();
+
+        expect(reads, 2);
+        expect(find.byType(QrImageView), findsOneWidget);
+      });
+
+      testWidgets('ignores a notice about another order', (tester) async {
+        await pumpOrder(tester, view, live: live);
+
+        live.emit(const LiveOrderNotice('other', 'ready'));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+
+        expect(reads, 1);
+      });
+
+      testWidgets('reads the order every 15 seconds while the socket is down', (
+        tester,
+      ) async {
+        await pumpOrder(tester, view, live: live);
+
+        live.polling = true;
+        await tester.pump(const Duration(seconds: 15));
+        await tester.pump();
+
+        expect(reads, 2);
+        live.polling = false;
       });
     });
   });

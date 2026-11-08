@@ -24,8 +24,8 @@ import 'package:second_bite/l10n/l10n.dart';
 /// A collected order leads with what it saved and asks for a rating; a
 /// rated one, and one that ended otherwise, shows as a receipt in the
 /// colour of what became of it, with what happened. It is read again when
-/// pulled down, when the app comes back and as its window opens and closes
-/// (SEC-204 › design 5, until the live socket).
+/// pulled down, on each of its notices on the live socket, when the app
+/// comes back and as its window opens and closes (SEC-204 › design 5).
 /// {@endtemplate}
 class OrderScreen extends ConsumerStatefulWidget {
   /// {@macro order_screen}
@@ -84,7 +84,8 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
 
     return switch (view) {
       AsyncData(value: null) => const NotFoundScreen(),
-      AsyncData(value: final OrderView found) => OrderRefresh(
+      AsyncData(value: final OrderView found) => LiveRefresh(
+        orderIds: [found.order.id],
         moments: [found.order.windowStart, found.order.windowEnd],
         onRefresh: reload,
         child: _OrderPage(view: found, onBack: _back, now: DateTime.now()),
