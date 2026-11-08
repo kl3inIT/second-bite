@@ -1008,5 +1008,374 @@
         "type": "int"
       }
     }
+  },
+  "cartPortionsCapped": "tối đa {units} phần mỗi đơn",
+  "@cartPortionsCapped": {
+    "description": "Under a dish once the cart holds the most one order may (SEC-158)",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "dishCapChosen": "Đã chọn tối đa {units} phần mỗi đơn",
+  "@dishCapChosen": {
+    "description": "The dish sheet's button once the cart holds the most one order may",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "dishPerOrder": "Tối đa {units} phần mỗi đơn",
+  "@dishPerOrder": {
+    "description": "Under the dish sheet's button when the dish has a cap below its portions left",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "cartTitle": "Xác nhận đơn",
+  "@cartTitle": {
+    "description": "The cart page's title"
+  },
+  "cartClose": "Đóng",
+  "@cartClose": {
+    "description": "Closes a sheet of the cart"
+  },
+  "cartOpen": "Xem giỏ hàng",
+  "@cartOpen": {
+    "description": "The cart bar's button"
+  },
+  "cartEmpty": "Giỏ hàng đang trống",
+  "@cartEmpty": {
+    "description": "The cart page with nothing in it"
+  },
+  "cartBrowse": "Xem món tối nay",
+  "@cartBrowse": {
+    "description": "From the empty cart to the home"
+  },
+  "cartDirections": "Chỉ đường",
+  "@cartDirections": {
+    "description": "A store's way there on the cart"
+  },
+  "cartSellerWindow": "{place} · Nhận {from} – {until}",
+  "@cartSellerWindow": {
+    "description": "Under a store's name on the cart",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "cartOver": "Hết giờ nhận",
+  "@cartOver": {
+    "description": "A dish in the cart whose window has closed"
+  },
+  "cartDropLabel": "Bỏ {name} khỏi giỏ",
+  "@cartDropLabel": {
+    "description": "The bin of a dish whose window has closed, to a screen reader",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cartPay": "Thanh toán",
+  "@cartPay": {
+    "description": "The cart's payment section"
+  },
+  "cartCounter": "Thanh toán tại quầy",
+  "@cartCounter": {
+    "description": "Paying at the counter, the only way in the pilot"
+  },
+  "cartTransfer": "Chuyển khoản",
+  "@cartTransfer": {
+    "description": "Paying by transfer, not yet possible"
+  },
+  "cartSoon": "(sắp có)",
+  "@cartSoon": {
+    "description": "Beside a way to pay that is not yet possible"
+  },
+  "cartSummaryTitle": "{orders, plural, =1{Tổng cộng} other{Tổng cộng · {orders} đơn}}",
+  "@cartSummaryTitle": {
+    "description": "The cart's summary heading",
+    "placeholders": {
+      "orders": {
+        "type": "int"
+      }
+    }
+  },
+  "cartDishes": "Tiền món ({units} phần)",
+  "@cartDishes": {
+    "description": "The dishes' cost in the summary",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "cartTotal": "Tổng tiền",
+  "@cartTotal": {
+    "description": "The cart's total"
+  },
+  "cartCancelTitle": "Chính sách huỷ",
+  "@cartCancelTitle": {
+    "description": "The cart's cancellation heading"
+  },
+  "cartCancelBody": "Huỷ được cho tới khi quán báo món sẵn sàng.",
+  "@cartCancelBody": {
+    "description": "The cart's cancellation policy"
+  },
+  "cartTotalSummary": "{orders, plural, =1{Tổng {units} phần} other{{orders} đơn · {units} phần}} · tiết kiệm {saved}",
+  "@cartTotalSummary": {
+    "description": "The cart page's bar",
+    "placeholders": {
+      "orders": {
+        "type": "int"
+      },
+      "units": {
+        "type": "int"
+      },
+      "saved": {
+        "type": "String"
+      }
+    }
+  },
+  "cartOrder": "{orders, plural, =1{Đặt món} other{Đặt {orders} đơn}}",
+  "@cartOrder": {
+    "description": "Places the cart's orders",
+    "placeholders": {
+      "orders": {
+        "type": "int"
+      }
+    }
+  },
+  "cartContactTitle": "Người đến nhận",
+  "@cartContactTitle": {
+    "description": "The contact sheet's title"
+  },
+  "cartContactHint": "Quán gọi tên này khi bạn đến và gọi số này nếu cần.",
+  "@cartContactHint": {
+    "description": "Under the contact sheet's title"
+  },
+  "cartNameLabel": "Tên",
+  "@cartNameLabel": {
+    "description": "The collector's name field"
+  },
+  "cartPhoneLabel": "Số điện thoại",
+  "@cartPhoneLabel": {
+    "description": "The collector's phone field"
+  },
+  "cartNameInvalid": "Nhập tên từ 1 đến 50 ký tự.",
+  "@cartNameInvalid": {
+    "description": "A name that cannot be sent"
+  },
+  "cartPhoneInvalid": "Nhập số điện thoại 10 số, bắt đầu bằng 0.",
+  "@cartPhoneInvalid": {
+    "description": "A phone number that cannot be sent"
+  },
+  "cartContactSubmit": "Tiếp tục",
+  "@cartContactSubmit": {
+    "description": "The contact sheet's button"
+  },
+  "cartConfirmTitle": "Xác nhận đặt đơn với số điện thoại",
+  "@cartConfirmTitle": {
+    "description": "The dialog that checks the number once"
+  },
+  "cartConfirmYes": "Đúng, đặt món",
+  "@cartConfirmYes": {
+    "description": "Confirms the number and places the orders"
+  },
+  "cartConfirmEdit": "Sửa",
+  "@cartConfirmEdit": {
+    "description": "Back to the contact sheet"
+  },
+  "cartGoneOne": "{name} vừa hết",
+  "@cartGoneOne": {
+    "description": "One dish someone else ordered first",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cartGoneMany": "{count} món vừa hết",
+  "@cartGoneMany": {
+    "description": "Several dishes someone else ordered first",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartGoneBody": "Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền.",
+  "@cartGoneBody": {
+    "description": "Under a sold-out title"
+  },
+  "cartFewerOne": "{name} chỉ còn {left} phần",
+  "@cartFewerOne": {
+    "description": "One dish with fewer portions left than chosen",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "cartFewerMany": "{count} món còn ít phần hơn bạn chọn",
+  "@cartFewerMany": {
+    "description": "Several dishes with fewer portions left",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartFewerBody": "Người khác vừa đặt trước bạn. Bạn chưa bị tính tiền.",
+  "@cartFewerBody": {
+    "description": "Under a fewer-portions title"
+  },
+  "cartOrderRest": "Đặt {what} · {price}",
+  "@cartOrderRest": {
+    "description": "Places what is left after a dish sold out",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "cartLine": "{quantity}× {name}",
+  "@cartLine": {
+    "description": "A dish and its portions",
+    "placeholders": {
+      "quantity": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cartRestUnits": "{units} phần còn lại",
+  "@cartRestUnits": {
+    "description": "What is left of a basket",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      }
+    }
+  },
+  "cartOtherDishes": "Xem món khác của quán",
+  "@cartOtherDishes": {
+    "description": "From the sold-out sheet to the store"
+  },
+  "cartOrderFailedPlain": "Chưa đặt được món. Kiểm tra mạng rồi thử lại.",
+  "@cartOrderFailedPlain": {
+    "description": "Placing failed without an answer"
+  },
+  "cartPromotionRule": "{rule}: giảm {amount}",
+  "@cartPromotionRule": {
+    "description": "A promotion's rule without a minimum",
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "cartPromotionRuleFrom": "{rule}: giảm {amount} cho đơn từ {from}",
+  "@cartPromotionRuleFrom": {
+    "description": "A promotion's rule with a minimum",
+    "placeholders": {
+      "rule": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "cartPromotionPercent": "{value}% (tối đa {max})",
+  "@cartPromotionPercent": {
+    "description": "A percentage taken off, with its most",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "cartPromotionPerDay": "Mỗi số điện thoại được giảm {count} lần mỗi ngày.",
+  "@cartPromotionPerDay": {
+    "description": "How often a phone number gets a promotion",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cartPromotionAfter": "Số tiền giảm hiện trên đơn ngay sau khi đặt; bạn trả ít hơn tại quầy.",
+  "@cartPromotionAfter": {
+    "description": "Under the running promotions"
+  },
+  "cartPlacedTitle": "{orders, plural, =1{Đã đặt món} other{Đã đặt {orders} đơn}}",
+  "@cartPlacedTitle": {
+    "description": "The cart page once its orders are placed",
+    "placeholders": {
+      "orders": {
+        "type": "int"
+      }
+    }
+  },
+  "cartPlacedLine": "{number} · {seller}",
+  "@cartPlacedLine": {
+    "description": "An order placed: its number and store",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      },
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "cartPlacedWindow": "Nhận {from} – {until} · {total}",
+  "@cartPlacedWindow": {
+    "description": "An order placed: when to collect and what to pay",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "until": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "cartPlacedHint": "Đọc mã đơn, tên và số điện thoại ở quầy để nhận món. Thanh toán tại quầy.",
+  "@cartPlacedHint": {
+    "description": "How to collect an order just placed"
   }
 }

@@ -125,6 +125,27 @@ void main() {
     );
 
     test(
+      'never holds more of a dish than one order may take under its cap',
+      () {
+        final croissant = _offer(
+          'croissant',
+          unitsLeft: 10,
+        ).copyWith(perOrderMax: 3);
+        final cart = addPortions(null, croissant, 5);
+
+        expect(quantityOf(cart, 'croissant'), 3);
+        expect(quantityOf(oneMore(cart, 'croissant'), 'croissant'), 3);
+        expect(
+          quantityOf(
+            addPortions(addPortions(null, croissant, 2), croissant, 2),
+            'croissant',
+          ),
+          3,
+        );
+      },
+    );
+
+    test(
       'adds one more of a dish already in the cart, never more than left',
       () {
         final cart = _cartOf([_offer('croissant', unitsLeft: 2)])!;

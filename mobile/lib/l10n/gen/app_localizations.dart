@@ -1279,6 +1279,324 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'đã chọn đủ {units} phần'**
   String cartPortionsChosen(int units);
+
+  /// Under a dish once the cart holds the most one order may (SEC-158)
+  ///
+  /// In vi, this message translates to:
+  /// **'tối đa {units} phần mỗi đơn'**
+  String cartPortionsCapped(int units);
+
+  /// The dish sheet's button once the cart holds the most one order may
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chọn tối đa {units} phần mỗi đơn'**
+  String dishCapChosen(int units);
+
+  /// Under the dish sheet's button when the dish has a cap below its portions left
+  ///
+  /// In vi, this message translates to:
+  /// **'Tối đa {units} phần mỗi đơn'**
+  String dishPerOrder(int units);
+
+  /// The cart page's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận đơn'**
+  String get cartTitle;
+
+  /// Closes a sheet of the cart
+  ///
+  /// In vi, this message translates to:
+  /// **'Đóng'**
+  String get cartClose;
+
+  /// The cart bar's button
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem giỏ hàng'**
+  String get cartOpen;
+
+  /// The cart page with nothing in it
+  ///
+  /// In vi, this message translates to:
+  /// **'Giỏ hàng đang trống'**
+  String get cartEmpty;
+
+  /// From the empty cart to the home
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem món tối nay'**
+  String get cartBrowse;
+
+  /// A store's way there on the cart
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ đường'**
+  String get cartDirections;
+
+  /// Under a store's name on the cart
+  ///
+  /// In vi, this message translates to:
+  /// **'{place} · Nhận {from} – {until}'**
+  String cartSellerWindow(String place, String from, String until);
+
+  /// A dish in the cart whose window has closed
+  ///
+  /// In vi, this message translates to:
+  /// **'Hết giờ nhận'**
+  String get cartOver;
+
+  /// The bin of a dish whose window has closed, to a screen reader
+  ///
+  /// In vi, this message translates to:
+  /// **'Bỏ {name} khỏi giỏ'**
+  String cartDropLabel(String name);
+
+  /// The cart's payment section
+  ///
+  /// In vi, this message translates to:
+  /// **'Thanh toán'**
+  String get cartPay;
+
+  /// Paying at the counter, the only way in the pilot
+  ///
+  /// In vi, this message translates to:
+  /// **'Thanh toán tại quầy'**
+  String get cartCounter;
+
+  /// Paying by transfer, not yet possible
+  ///
+  /// In vi, this message translates to:
+  /// **'Chuyển khoản'**
+  String get cartTransfer;
+
+  /// Beside a way to pay that is not yet possible
+  ///
+  /// In vi, this message translates to:
+  /// **'(sắp có)'**
+  String get cartSoon;
+
+  /// The cart's summary heading
+  ///
+  /// In vi, this message translates to:
+  /// **'{orders, plural, =1{Tổng cộng} other{Tổng cộng · {orders} đơn}}'**
+  String cartSummaryTitle(int orders);
+
+  /// The dishes' cost in the summary
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiền món ({units} phần)'**
+  String cartDishes(int units);
+
+  /// The cart's total
+  ///
+  /// In vi, this message translates to:
+  /// **'Tổng tiền'**
+  String get cartTotal;
+
+  /// The cart's cancellation heading
+  ///
+  /// In vi, this message translates to:
+  /// **'Chính sách huỷ'**
+  String get cartCancelTitle;
+
+  /// The cart's cancellation policy
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ được cho tới khi quán báo món sẵn sàng.'**
+  String get cartCancelBody;
+
+  /// The cart page's bar
+  ///
+  /// In vi, this message translates to:
+  /// **'{orders, plural, =1{Tổng {units} phần} other{{orders} đơn · {units} phần}} · tiết kiệm {saved}'**
+  String cartTotalSummary(int orders, int units, String saved);
+
+  /// Places the cart's orders
+  ///
+  /// In vi, this message translates to:
+  /// **'{orders, plural, =1{Đặt món} other{Đặt {orders} đơn}}'**
+  String cartOrder(int orders);
+
+  /// The contact sheet's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Người đến nhận'**
+  String get cartContactTitle;
+
+  /// Under the contact sheet's title
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán gọi tên này khi bạn đến và gọi số này nếu cần.'**
+  String get cartContactHint;
+
+  /// The collector's name field
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên'**
+  String get cartNameLabel;
+
+  /// The collector's phone field
+  ///
+  /// In vi, this message translates to:
+  /// **'Số điện thoại'**
+  String get cartPhoneLabel;
+
+  /// A name that cannot be sent
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập tên từ 1 đến 50 ký tự.'**
+  String get cartNameInvalid;
+
+  /// A phone number that cannot be sent
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập số điện thoại 10 số, bắt đầu bằng 0.'**
+  String get cartPhoneInvalid;
+
+  /// The contact sheet's button
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục'**
+  String get cartContactSubmit;
+
+  /// The dialog that checks the number once
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận đặt đơn với số điện thoại'**
+  String get cartConfirmTitle;
+
+  /// Confirms the number and places the orders
+  ///
+  /// In vi, this message translates to:
+  /// **'Đúng, đặt món'**
+  String get cartConfirmYes;
+
+  /// Back to the contact sheet
+  ///
+  /// In vi, this message translates to:
+  /// **'Sửa'**
+  String get cartConfirmEdit;
+
+  /// One dish someone else ordered first
+  ///
+  /// In vi, this message translates to:
+  /// **'{name} vừa hết'**
+  String cartGoneOne(String name);
+
+  /// Several dishes someone else ordered first
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} món vừa hết'**
+  String cartGoneMany(int count);
+
+  /// Under a sold-out title
+  ///
+  /// In vi, this message translates to:
+  /// **'Người khác vừa đặt phần cuối. Bạn chưa bị tính tiền.'**
+  String get cartGoneBody;
+
+  /// One dish with fewer portions left than chosen
+  ///
+  /// In vi, this message translates to:
+  /// **'{name} chỉ còn {left} phần'**
+  String cartFewerOne(String name, int left);
+
+  /// Several dishes with fewer portions left
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} món còn ít phần hơn bạn chọn'**
+  String cartFewerMany(int count);
+
+  /// Under a fewer-portions title
+  ///
+  /// In vi, this message translates to:
+  /// **'Người khác vừa đặt trước bạn. Bạn chưa bị tính tiền.'**
+  String get cartFewerBody;
+
+  /// Places what is left after a dish sold out
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt {what} · {price}'**
+  String cartOrderRest(String what, String price);
+
+  /// A dish and its portions
+  ///
+  /// In vi, this message translates to:
+  /// **'{quantity}× {name}'**
+  String cartLine(int quantity, String name);
+
+  /// What is left of a basket
+  ///
+  /// In vi, this message translates to:
+  /// **'{units} phần còn lại'**
+  String cartRestUnits(int units);
+
+  /// From the sold-out sheet to the store
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem món khác của quán'**
+  String get cartOtherDishes;
+
+  /// Placing failed without an answer
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa đặt được món. Kiểm tra mạng rồi thử lại.'**
+  String get cartOrderFailedPlain;
+
+  /// A promotion's rule without a minimum
+  ///
+  /// In vi, this message translates to:
+  /// **'{rule}: giảm {amount}'**
+  String cartPromotionRule(String rule, String amount);
+
+  /// A promotion's rule with a minimum
+  ///
+  /// In vi, this message translates to:
+  /// **'{rule}: giảm {amount} cho đơn từ {from}'**
+  String cartPromotionRuleFrom(String rule, String amount, String from);
+
+  /// A percentage taken off, with its most
+  ///
+  /// In vi, this message translates to:
+  /// **'{value}% (tối đa {max})'**
+  String cartPromotionPercent(int value, String max);
+
+  /// How often a phone number gets a promotion
+  ///
+  /// In vi, this message translates to:
+  /// **'Mỗi số điện thoại được giảm {count} lần mỗi ngày.'**
+  String cartPromotionPerDay(int count);
+
+  /// Under the running promotions
+  ///
+  /// In vi, this message translates to:
+  /// **'Số tiền giảm hiện trên đơn ngay sau khi đặt; bạn trả ít hơn tại quầy.'**
+  String get cartPromotionAfter;
+
+  /// The cart page once its orders are placed
+  ///
+  /// In vi, this message translates to:
+  /// **'{orders, plural, =1{Đã đặt món} other{Đã đặt {orders} đơn}}'**
+  String cartPlacedTitle(int orders);
+
+  /// An order placed: its number and store
+  ///
+  /// In vi, this message translates to:
+  /// **'{number} · {seller}'**
+  String cartPlacedLine(String number, String seller);
+
+  /// An order placed: when to collect and what to pay
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhận {from} – {until} · {total}'**
+  String cartPlacedWindow(String from, String until, String total);
+
+  /// How to collect an order just placed
+  ///
+  /// In vi, this message translates to:
+  /// **'Đọc mã đơn, tên và số điện thoại ở quầy để nhận món. Thanh toán tại quầy.'**
+  String get cartPlacedHint;
 }
 
 class _AppLocalizationsDelegate

@@ -45,7 +45,7 @@ final class KeptCartProvider
   KeptCart create() => KeptCart();
 }
 
-String _$keptCartHash() => r'8689e7e11c0edfb7aed203f009f74d79c9c530c1';
+String _$keptCartHash() => r'27223d911571bf2da1401c0ed3ef1ce5dae14b9c';
 
 /// {@template kept_cart}
 /// The cart, read from the phone when the app starts and written back on

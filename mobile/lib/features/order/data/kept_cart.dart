@@ -6,7 +6,7 @@ import 'package:second_bite/core/preferences.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/order/domain/cart.dart' as rules;
 import 'package:second_bite/features/order/domain/cart.dart'
-    show Cart, readCart;
+    show Basket, Cart, readCart;
 
 part 'kept_cart.g.dart';
 
@@ -49,6 +49,12 @@ class KeptCart extends _$KeptCart {
   /// The dish and all its portions out of the cart.
   Future<void> removeLine(String offerId) =>
       _save((cart) => cart == null ? null : rules.removeLine(cart, offerId));
+
+  /// A store's basket put in place of theirs, or taken out when null: an
+  /// order placed, or a basket cut to what is left.
+  Future<void> setBasket(String sellerId, Basket? basket) => _save(
+    (cart) => cart == null ? null : rules.withBasket(cart, sellerId, basket),
+  );
 
   Future<void> _save(Cart? Function(Cart? cart) change) async {
     final next = change(await future);
