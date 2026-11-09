@@ -15,6 +15,10 @@ flutter run -d chrome --dart-define=SECONDBITE_API_ORIGIN=http://localhost:3190
 
 The stub sends no CORS headers, so the browser preview needs it behind the same origin as the page. It signs in with the code `123456` (any other is wrong), and `limit@example.com` has asked for too many codes.
 
+## Signing in with Apple
+
+The iOS app offers "Tiếp tục với Apple" through `sign_in_with_apple` when `GET /auth/methods` names `apple` ([SEC-38](../docs/increments/active/sec-38-sign-in-with-apple/design.md)); Android and the browser preview do not. `ios/Runner/Runner.entitlements` asks for the Sign in with Apple capability, which the App ID `vn.secondbite.secondBite` must have before a signed build; the server's setup is in the [CI/CD runbook](../docs/runbooks/ci-cd.md).
+
 ## Signing in with Google
 
 The app signs in with Google on Android and iOS through `google_sign_in` ([SEC-43](../docs/increments/completed/sec-43-app-sign-in/design.md)). The ID token is issued to the server's web client, which the app reads from `GET /auth/methods` and gives Google as `serverClientId`; the server accepts it because that client is in `SECONDBITE_GOOGLE_CLIENT_IDS`. No client ID is written in Git: they are public values, but each environment keeps its own.

@@ -31,7 +31,7 @@ abstract class AccountsClient {
 
   /// Delete the signed-in account with the emailed code.
   ///
-  /// Deletes the account, its sessions, its Google link and the codes and emails sent to its address at once; its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. A seller the account owned is blocked. The session cookie is cleared.
+  /// Deletes the account, its sessions, its Google and Apple links (Apple is told to revoke its access) and the codes and emails sent to its address at once; its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. A seller the account owned is blocked. The session cookie is cleared.
   @POST('/accounts/me/deletion')
   Future<void> deleteMyAccount({@Body() required DeleteAccountInputBody body});
 

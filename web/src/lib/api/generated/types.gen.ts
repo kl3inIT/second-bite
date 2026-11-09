@@ -185,6 +185,37 @@ export type AnswerOrderProblemRequest = {
     answer: string;
 };
 
+export type AppleMethodBody = {
+    [key: string]: never;
+};
+
+export type AppleSignInInputBody = {
+    /**
+     * The authorization code Apple's sheet handed the application, exchanged once for the token that revokes the access
+     */
+    authorizationCode: string;
+    /**
+     * The family name Apple shares on the first authorization only
+     */
+    familyName?: string;
+    /**
+     * The given name Apple shares on the first authorization only
+     */
+    givenName?: string;
+    /**
+     * The identity token Apple's sheet handed the application
+     */
+    idToken: string;
+    /**
+     * The value whose SHA-256 was given to Apple as the nonce
+     */
+    nonce: string;
+    /**
+     * token: the token in the body (the mobile application); cookie: the session cookie instead
+     */
+    session?: 'token' | 'cookie';
+};
+
 export type AuditChangeBody = {
     field: string;
     /**
@@ -667,6 +698,10 @@ export type MessagesOutputBody = {
 };
 
 export type MethodsOutputBody = {
+    /**
+     * Present when signing in with Apple is available, on iOS
+     */
+    apple?: AppleMethodBody;
     /**
      * Present when signing in with Google is available
      */
@@ -3027,6 +3062,31 @@ export type RegisterWithPasswordResponses = {
 };
 
 export type RegisterWithPasswordResponse = RegisterWithPasswordResponses[keyof RegisterWithPasswordResponses];
+
+export type SignInWithAppleData = {
+    body: AppleSignInInputBody;
+    path?: never;
+    query?: never;
+    url: '/auth/apple';
+};
+
+export type SignInWithAppleErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type SignInWithAppleError = SignInWithAppleErrors[keyof SignInWithAppleErrors];
+
+export type SignInWithAppleResponses = {
+    /**
+     * Created
+     */
+    201: SessionOutputBody;
+};
+
+export type SignInWithAppleResponse = SignInWithAppleResponses[keyof SignInWithAppleResponses];
 
 export type SignInWithGoogleData = {
     body: GoogleSignInInputBody;

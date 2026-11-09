@@ -343,19 +343,33 @@ func (q *Queries) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-const deleteUntrustedLogins = `-- name: DeleteUntrustedLogins :execrows
+const deleteUntrustedLogins = `-- name: DeleteUntrustedLogins :many
 DELETE FROM identity_external_logins WHERE account_id = $1 AND NOT email_trusted
+RETURNING refresh_token_sealed
 `
 
 // An emailed code proved the address: links whose provider does not speak
 // for it may belong to someone else and are removed, as Firebase and
-// Supabase Auth do.
-func (q *Queries) DeleteUntrustedLogins(ctx context.Context, accountID uuid.UUID) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteUntrustedLogins, accountID)
+// Supabase Auth do. Each answers its sealed refresh token, Apple's, for its
+// revocation (SEC-38).
+func (q *Queries) DeleteUntrustedLogins(ctx context.Context, accountID uuid.UUID) ([][]byte, error) {
+	rows, err := q.db.Query(ctx, deleteUntrustedLogins, accountID)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return result.RowsAffected(), nil
+	defer rows.Close()
+	var items [][]byte
+	for rows.Next() {
+		var refresh_token_sealed []byte
+		if err := rows.Scan(&refresh_token_sealed); err != nil {
+			return nil, err
+		}
+		items = append(items, refresh_token_sealed)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const endLiveChallenges = `-- name: EndLiveChallenges :exec
@@ -802,6 +816,24 @@ func (q *Queries) InsertSession(ctx context.Context, arg InsertSessionParams) (I
 	return i, err
 }
 
+const keepRefreshToken = `-- name: KeepRefreshToken :exec
+UPDATE identity_external_logins SET refresh_token_sealed = $1
+WHERE provider = $2 AND subject = $3
+`
+
+type KeepRefreshTokenParams struct {
+	RefreshTokenSealed []byte
+	Provider           string
+	Subject            string
+}
+
+// The refresh token Apple answered at this sign-in replaces the one before
+// (SEC-38).
+func (q *Queries) KeepRefreshToken(ctx context.Context, arg KeepRefreshTokenParams) error {
+	_, err := q.db.Exec(ctx, keepRefreshToken, arg.RefreshTokenSealed, arg.Provider, arg.Subject)
+	return err
+}
+
 const listAdmins = `-- name: ListAdmins :many
 SELECT id, coalesce(email, '')::text AS email, coalesce(username, '')::text AS username, role, display_name, created_at, last_signed_in_at, last_sign_in_method
 FROM identity_accounts WHERE role = 'admin' ORDER BY coalesce(email, username)
@@ -912,7 +944,7 @@ func (q *Queries) RecordSignIn(ctx context.Context, arg RecordSignInParams) erro
 
 const refreshExternalLogin = `-- name: RefreshExternalLogin :execrows
 UPDATE identity_external_logins
-SET name = $1, picture_url = $2, last_used_at = now()
+SET name = coalesce(nullif($1::text, ''), name), picture_url = $2, last_used_at = now()
 WHERE provider = $3 AND subject = $4
 `
 
@@ -923,7 +955,8 @@ type RefreshExternalLoginParams struct {
 	Subject    string
 }
 
-// The name and the picture follow the provider's at each sign-in.
+// The name and the picture follow the provider's at each sign-in; a name
+// given only once, as Apple's, is kept when none comes (SEC-38).
 func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalLoginParams) (int64, error) {
 	result, err := q.db.Exec(ctx, refreshExternalLogin,
 		arg.Name,
@@ -935,6 +968,33 @@ func (q *Queries) RefreshExternalLogin(ctx context.Context, arg RefreshExternalL
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const refreshTokensOf = `-- name: RefreshTokensOf :many
+SELECT refresh_token_sealed::bytea FROM identity_external_logins
+WHERE account_id = $1 AND refresh_token_sealed IS NOT NULL
+`
+
+// The sealed refresh tokens of the account's links to Apple, to revoke when it
+// is deleted (SEC-38).
+func (q *Queries) RefreshTokensOf(ctx context.Context, accountID uuid.UUID) ([][]byte, error) {
+	rows, err := q.db.Query(ctx, refreshTokensOf, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items [][]byte
+	for rows.Next() {
+		var refresh_token_sealed []byte
+		if err := rows.Scan(&refresh_token_sealed); err != nil {
+			return nil, err
+		}
+		items = append(items, refresh_token_sealed)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setDisplayName = `-- name: SetDisplayName :one

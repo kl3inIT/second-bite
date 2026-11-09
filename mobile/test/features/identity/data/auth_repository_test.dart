@@ -52,6 +52,13 @@ void main() {
       registerFallbackValue(
         const DeleteAccountWithPasswordInputBody(password: ''),
       );
+      registerFallbackValue(
+        const AppleSignInInputBody(
+          idToken: '',
+          nonce: '',
+          authorizationCode: '',
+        ),
+      );
     });
 
     setUp(() {
@@ -105,6 +112,44 @@ void main() {
         ),
       ).called(1);
       verify(() => store.write('tok')).called(1);
+    });
+
+    test('signs in with Apple, the name only when Apple shared one, and '
+        'keeps the token', () async {
+      when(() => signIn.signInWithApple(body: any(named: 'body')))
+          .thenAnswer((_) async => session);
+
+      expect(
+        await repository.signInWithApple((
+          idToken: 'id',
+          nonce: 'n',
+          authorizationCode: 'c',
+          givenName: '',
+          familyName: '',
+        )),
+        sampleAccount,
+      );
+      verify(
+        () => signIn.signInWithApple(
+          body: const AppleSignInInputBody(
+            idToken: 'id',
+            nonce: 'n',
+            authorizationCode: 'c',
+          ),
+        ),
+      ).called(1);
+      verify(() => store.write('tok')).called(1);
+    });
+
+    test('tells whether the server offers Apple', () async {
+      when(signIn.getSignInMethods).thenAnswer(
+        (_) async => const MethodsOutputBody(apple: <String, Object?>{}),
+      );
+      expect(await repository.appleOffered(), isTrue);
+
+      when(signIn.getSignInMethods)
+          .thenAnswer((_) async => const MethodsOutputBody());
+      expect(await repository.appleOffered(), isFalse);
     });
 
     test('deletes with the password, and forgets the session', () async {

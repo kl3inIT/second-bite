@@ -52,6 +52,22 @@ var (
 		VI: "Email này đã có tài khoản. Đăng nhập bằng mã chúng tôi gửi đến email này.",
 		EN: "This address already has an account; sign in with the code we email to it.",
 	})
+	ErrAppleNotConfigured = platform.NewFailure("IDENTITY_APPLE_NOT_CONFIGURED", platform.CategoryServiceUnavailable, platform.Words{
+		VI: "Chưa đăng nhập bằng Apple được. Đăng nhập bằng cách khác.",
+		EN: "Signing in with Apple is not available; sign in another way.",
+	})
+	ErrAppleTokenInvalid = platform.NewFailure("IDENTITY_APPLE_TOKEN_INVALID", platform.CategoryUnauthenticated, platform.Words{
+		VI: "Apple chưa xác nhận được việc đăng nhập. Thử lại.",
+		EN: "Apple's sign-in could not be confirmed; try again.",
+	})
+	ErrAppleUnavailable = platform.NewFailure("IDENTITY_APPLE_UNAVAILABLE", platform.CategoryServiceUnavailable, platform.Words{
+		VI: "Chưa kết nối được với Apple. Thử lại sau ít phút hoặc đăng nhập bằng cách khác.",
+		EN: "Apple could not be reached. Try again in a few minutes or sign in another way.",
+	})
+	ErrAppleLinkRequired = platform.NewFailure("IDENTITY_APPLE_LINK_REQUIRED", platform.CategoryConflict, platform.Words{
+		VI: "Email này đã có tài khoản. Đăng nhập bằng mã chúng tôi gửi đến email này.",
+		EN: "This address already has an account; sign in with the code we email to it.",
+	})
 	ErrAddressUnproven = platform.NewFailure("IDENTITY_ADDRESS_UNPROVEN", platform.CategoryConflict, platform.Words{
 		VI: "Email này chưa được xác nhận: chủ email cần đăng nhập một lần bằng mã gửi qua email, rồi thử lại.",
 		EN: "This address is not confirmed yet: its owner signs in once with the code we email to it, then try again.",

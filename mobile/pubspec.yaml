@@ -32,6 +32,7 @@ dependencies:
   riverpod_annotation: ^4.0.7
   share_plus: ^13.3.1
   shared_preferences: ^2.5.6
+  sign_in_with_apple: ^8.2.0
   url_launcher: ^6.3.3
   uuid: ^4.6.0
   web_socket_channel: ^3.0.3

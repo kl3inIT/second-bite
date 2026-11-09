@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/session.dart';
+import 'package:second_bite/features/identity/data/apple_auth.dart';
 
 part 'auth_repository.g.dart';
 
@@ -22,6 +23,27 @@ class AuthRepository {
   /// Google's client ID when the server offers Google, else null.
   Future<String?> googleClientId() async =>
       (await _api.signIn.getSignInMethods()).google?.clientId;
+
+  /// Whether the server offers Sign in with Apple (SEC-38).
+  Future<bool> appleOffered() async =>
+      (await _api.signIn.getSignInMethods()).apple != null;
+
+  /// Signs in with what Apple handed back (SEC-38), keeps the session and
+  /// returns its account.
+  Future<AccountBody> signInWithApple(AppleCredential credential) async {
+    final session = await _api.signIn.signInWithApple(
+      body: AppleSignInInputBody(
+        idToken: credential.idToken,
+        nonce: credential.nonce,
+        authorizationCode: credential.authorizationCode,
+        givenName: credential.givenName.isEmpty ? null : credential.givenName,
+        familyName: credential.familyName.isEmpty
+            ? null
+            : credential.familyName,
+      ),
+    );
+    return await _keep(session);
+  }
 
   /// Emails a code to [email]; the challenge to confirm it against.
   Future<String> requestCode(String email) async {

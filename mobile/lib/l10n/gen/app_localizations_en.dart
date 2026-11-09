@@ -370,6 +370,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInGoogle => 'Continue with Google';
 
   @override
+  String get signInApple => 'Continue with Apple';
+
+  @override
   String get signInEmailLabel => 'Email';
 
   @override

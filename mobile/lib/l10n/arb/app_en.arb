@@ -97,6 +97,7 @@
   "signInHeading": "Sign in to order",
   "signInOr": "or",
   "signInGoogle": "Continue with Google",
+  "signInApple": "Continue with Apple",
   "signInEmailLabel": "Email",
   "signInEmailPlaceholder": "name@gmail.com",
   "signInSendCode": "Send code",

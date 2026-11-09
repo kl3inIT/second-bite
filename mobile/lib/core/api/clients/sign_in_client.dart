@@ -5,6 +5,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/apple_sign_in_input_body.dart';
 import '../models/google_sign_in_input_body.dart';
 import '../models/methods_output_body.dart';
 import '../models/password_sign_in_input_body.dart';
@@ -26,6 +27,14 @@ abstract class SignInClient {
   @POST('/auth/accounts')
   Future<SessionOutputBody> registerWithPassword({
     @Body() required RegisterInputBody body,
+  });
+
+  /// Sign in with Apple's identity token.
+  ///
+  /// The nonce is required. The authorization code is exchanged with Apple for the token that revokes the access when the account is deleted. Creates the account on a first sign-in with a verified address, or links an account with the address when Apple issued it (its private relay or iCloud); otherwise the person signs in with an emailed code.
+  @POST('/auth/apple')
+  Future<SessionOutputBody> signInWithApple({
+    @Body() required AppleSignInInputBody body,
   });
 
   /// Sign in with Google's ID token.

@@ -680,6 +680,12 @@ abstract class AppLocalizations {
   /// **'Tiếp tục với Google'**
   String get signInGoogle;
 
+  /// Apple's button on iOS, in Apple's wording (SEC-38)
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục với Apple'**
+  String get signInApple;
+
   /// The email field's label
   ///
   /// In vi, this message translates to:

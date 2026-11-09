@@ -147,10 +147,16 @@ func (s *Service) deleteAccountIn(ctx context.Context, tx pgx.Tx, account Accoun
 }
 
 // removeAccountIn deletes the account in tx with its sessions and links, forgets
-// its name in the audit trail and writes AccountDeletedEvent, at once and again
-// after deletionSweep.
+// its name in the audit trail, has Apple's access revoked and writes
+// AccountDeletedEvent, at once and again after deletionSweep.
 func (s *Service) removeAccountIn(ctx context.Context, tx pgx.Tx, account Account) error {
 	q := s.queries.WithTx(tx)
+
+	// Apple is told to forget the access of the account's links to it (SEC-38).
+	tokens, err := q.RefreshTokensOf(ctx, account.ID)
+	if err != nil {
+		return fmt.Errorf("reading the refresh tokens: %w", err)
+	}
 
 	deleted, err := q.DeleteAccount(ctx, account.ID)
 	if err != nil {
@@ -162,6 +168,10 @@ func (s *Service) removeAccountIn(ctx context.Context, tx pgx.Tx, account Accoun
 	}
 
 	if err := s.trail.ForgetAccount(ctx, tx, account.ID); err != nil {
+		return err
+	}
+
+	if err := s.revokeLater(ctx, tx, tokens); err != nil {
 		return err
 	}
 

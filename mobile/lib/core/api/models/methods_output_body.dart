@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'apple_method_body.dart';
 import 'google_method_body.dart';
 
 part 'methods_output_body.freezed.dart';
@@ -12,6 +13,9 @@ part 'methods_output_body.g.dart';
 @Freezed()
 abstract class MethodsOutputBody with _$MethodsOutputBody {
   const factory MethodsOutputBody({
+    /// Present when signing in with Apple is available, on iOS
+    AppleMethodBody? apple,
+
     /// Present when signing in with Google is available
     GoogleMethodBody? google,
   }) = _MethodsOutputBody;
