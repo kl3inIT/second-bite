@@ -235,7 +235,7 @@ location /api/ {
 }
 ```
 
-The same advanced configuration serves the map (SEC-66) on the site's own origin, so MapLibre needs no CORS. The map is read by byte ranges, so the proxy must not compress it:
+The same advanced configuration serves the map (SEC-66) on the site's own origin, so MapLibre needs no CORS. The map is read by byte ranges, so the proxy must not compress it. The map's style, `/map-style.json` (SEC-206), is the web's and needs no location of its own: the host's default forwards it to the web with `Host` and `X-Forwarded-Proto`, from which the web writes the style's URLs on the origin it was asked on.
 
 ```nginx
 location /map/ {
