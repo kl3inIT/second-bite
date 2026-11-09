@@ -6,10 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/routes.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
+import 'package:second_bite/features/identity/ui/auth_parts.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
 import 'package:second_bite/features/identity/ui/resend_code.dart';
+import 'package:second_bite/features/identity/ui/sign_in_by_email_screen.dart';
 import 'package:second_bite/features/identity/ui/sign_in_problem.dart';
-import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
 import 'package:second_bite/features/seller/data/seller_repository.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
@@ -31,8 +32,9 @@ enum _Step { confirm, code, done }
 /// {@template delete_account_screen}
 /// Deleting the account (SEC-37), as the web's `/delete-account`: what goes at
 /// once, what follows within minutes and what is kept; then, signed in, a code
-/// emailed to the account's address, the code, and the confirmation. The
-/// owner of a seller is warned first that it closes.
+/// emailed to the account's address, the code, and the confirmation. An
+/// account made with a username has no address, and its password confirms
+/// instead (SEC-196). The owner of a seller is warned first that it closes.
 /// {@endtemplate}
 class DeleteAccountScreen extends ConsumerStatefulWidget {
   /// {@macro delete_account_screen}
@@ -46,6 +48,12 @@ class DeleteAccountScreen extends ConsumerStatefulWidget {
 class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
   final _code = TextEditingController();
   final _codeFocus = FocusNode();
+  final _password = TextEditingController();
+  final _passwordFocus = FocusNode();
+
+  /// Set by the first try of the password, after which an empty one is
+  /// said at once.
+  bool _passwordTried = false;
 
   _Step _step = _Step.confirm;
   String? _challengeId;
@@ -69,6 +77,8 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
   void dispose() {
     _code.dispose();
     _codeFocus.dispose();
+    _password.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -112,6 +122,29 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
       if (!mounted) return;
       setState(() => _problem = SignInProblem.of(error));
       _code.clear();
+    } finally {
+      if (mounted) setState(() => _pending = false);
+    }
+  }
+
+  Future<void> _deleteWithPassword() async {
+    setState(() => _passwordTried = true);
+    if (_password.text.isEmpty) return;
+    setState(() {
+      _pending = true;
+      _problem = null;
+    });
+    try {
+      await ref
+          .read(currentAccountProvider.notifier)
+          .deleteAccountWithPassword(_password.text);
+      if (mounted) setState(() => _step = _Step.done);
+    } on Object catch (error) {
+      if (!mounted) return;
+      // A password that was refused is not kept.
+      setState(() => _problem = SignInProblem.of(error));
+      _password.clear();
+      _passwordFocus.requestFocus();
     } finally {
       if (mounted) setState(() => _pending = false);
     }
@@ -169,7 +202,9 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                                     ?.isNotEmpty ??
                                 false)
                               const _OwnerWarning(),
-                            if (_step == _Step.code)
+                            if (account.email.isEmpty)
+                              ..._passwordStep(context, account.username)
+                            else if (_step == _Step.code)
                               ..._codeStep(context, account.email)
                             else
                               ..._confirmStep(context, account.email),
@@ -204,6 +239,71 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
         onPressed: _pending || owned is! AsyncData ? null : _sendCode,
         child: Text(
           _pending ? l10n.deleteAccountSending : l10n.deleteAccountSendCode,
+        ),
+      ),
+      AppButton(
+        variant: AppButtonVariant.outline,
+        onPressed: () => _keep(context),
+        child: Text(l10n.deleteAccountCancel),
+      ),
+    ];
+  }
+
+  /// The password of an account made with a username confirms its deletion
+  /// (SEC-196), as the web's `DeleteAccountWithPasswordForm`; the deletion is
+  /// final, so it waits for the button.
+  List<Widget> _passwordStep(BuildContext context, String username) {
+    final l10n = context.l10n;
+    final text = context.appTextStyles;
+    final owned = ref.watch(ownedSellerNamesProvider);
+    final problem = _problem;
+    final passwordError = problem?.kind == SignInProblemKind.passwordIncorrect
+        ? problem!.text(l10n, failed: l10n.deleteAccountFailed)
+        : _passwordTried && _password.text.isEmpty && problem == null
+        ? l10n.deleteAccountPasswordRequired
+        : null;
+    // The username is set in bold where the catalog puts it.
+    const mark = '\u0000';
+    final parts = l10n.deleteAccountPasswordBody(mark).split(mark);
+
+    return [
+      Text.rich(
+        TextSpan(
+          style: text.bodySm,
+          children: [
+            TextSpan(text: parts.first),
+            TextSpan(text: username, style: text.bodySmStrong),
+            if (parts.length > 1) TextSpan(text: parts[1]),
+          ],
+        ),
+      ),
+      AutofillGroup(
+        child: AuthField(
+          label: l10n.deleteAccountPasswordLabel,
+          controller: _password,
+          focusNode: _passwordFocus,
+          hint: l10n.deleteAccountPasswordPlaceholder,
+          autofillHints: const [AutofillHints.password],
+          obscure: true,
+          textInputAction: TextInputAction.done,
+          enabled: !_pending,
+          error: passwordError,
+          onSubmitted: (_) => unawaited(_deleteWithPassword()),
+        ),
+      ),
+      Text(l10n.deleteAccountFinal, style: text.bodySmStrong),
+      if (owned is AsyncError) const _OwnedFailed(),
+      if (problem != null &&
+          problem.kind != SignInProblemKind.passwordIncorrect)
+        _ProblemText(problem: problem),
+      AppButton(
+        variant: AppButtonVariant.destructive,
+        onPressed: _pending || owned is! AsyncData
+            ? null
+            : () => unawaited(_deleteWithPassword()),
+        icon: const Icon(LucideIcons.trash2, size: 16),
+        child: Text(
+          _pending ? l10n.deleteAccountDeleting : l10n.deleteAccountConfirm,
         ),
       ),
       AppButton(
