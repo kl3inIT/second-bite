@@ -57,9 +57,31 @@ function languageOf(header) {
   return first.startsWith("en") ? "en" : "vi";
 }
 
+const vietnamDay = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
+const vietnamHour = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  hour: "numeric",
+  hourCycle: "h23",
+});
+
 /** Today at hh:mm in Vietnam time, as RFC 3339 with its offset. */
 function tonight(hour, minute) {
-  const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh" }).format(new Date());
+  return vietnamTime(vietnamDay.format(new Date()), hour, minute);
+}
+
+// The day of the customer's samples. Their windows are at fixed evening hours, between 20:45 and 23:00, and the
+// tests read those hours; a run from 20:00 in Vietnam would see them open, then over, and its orders and chats
+// closed. From 20:00 the samples are tomorrow evening's, so every run sees them before they open, as a run by day.
+const samplesDay = vietnamDay.format(
+  new Date(Date.now() + (Number(vietnamHour.format(new Date())) >= 20 ? 86_400_000 : 0)),
+);
+
+/** The samples' evening at hh:mm in Vietnam time, as RFC 3339 with its offset. */
+function evening(hour, minute) {
+  return vietnamTime(samplesDay, hour, minute);
+}
+
+function vietnamTime(day, hour, minute) {
   return `${day}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00+07:00`;
 }
 
@@ -175,8 +197,8 @@ const offers = [
     originalPrice: 50000,
     unitsLeft: 3,
     unit: "chiếc",
-    from: tonight(21, 0),
-    until: tonight(21, 45),
+    from: evening(21, 0),
+    until: evening(21, 45),
     seller: sellers.laParis,
   }),
   sample({
@@ -187,8 +209,8 @@ const offers = [
     originalPrice: 65000,
     unitsLeft: 4,
     unit: "chiếc",
-    from: tonight(21, 0),
-    until: tonight(21, 45),
+    from: evening(21, 0),
+    until: evening(21, 45),
     seller: sellers.laParis,
   }),
   sample({
@@ -201,8 +223,8 @@ const offers = [
     originalPrice: 75000,
     unitsLeft: 0,
     unit: "chiếc",
-    from: tonight(21, 0),
-    until: tonight(21, 45),
+    from: evening(21, 0),
+    until: evening(21, 45),
     seller: sellers.laParis,
   }),
   sample({
@@ -215,8 +237,8 @@ const offers = [
     originalPrice: 59000,
     unitsLeft: 6,
     unit: "phần",
-    from: tonight(21, 15),
-    until: tonight(21, 45),
+    from: evening(21, 15),
+    until: evening(21, 45),
     seller: sellers.pandaChef,
   }),
   sample({
@@ -227,8 +249,8 @@ const offers = [
     originalPrice: 49000,
     unitsLeft: 5,
     unit: "phần",
-    from: tonight(21, 15),
-    until: tonight(21, 45),
+    from: evening(21, 15),
+    until: evening(21, 45),
     seller: sellers.pandaChef,
   }),
   sample({
@@ -242,8 +264,8 @@ const offers = [
     originalPrice: 68000,
     unitsLeft: 2,
     unit: "suất",
-    from: tonight(20, 45),
-    until: tonight(21, 30),
+    from: evening(20, 45),
+    until: evening(21, 30),
     seller: sellers.netHue,
   }),
   sample({
@@ -254,8 +276,8 @@ const offers = [
     originalPrice: 55000,
     unitsLeft: 8,
     unit: "ly",
-    from: tonight(21, 30),
-    until: tonight(22, 0),
+    from: evening(21, 30),
+    until: evening(22, 0),
     seller: sellers.phucLong,
   }),
   sample({
@@ -266,8 +288,8 @@ const offers = [
     originalPrice: 29000,
     unitsLeft: 6,
     unit: "ly",
-    from: tonight(21, 30),
-    until: tonight(22, 0),
+    from: evening(21, 30),
+    until: evening(22, 0),
     seller: sellers.highlands,
   }),
   sample({
@@ -278,8 +300,8 @@ const offers = [
     originalPrice: 239000,
     unitsLeft: 2,
     unit: "phần",
-    from: tonight(21, 0),
-    until: tonight(21, 30),
+    from: evening(21, 0),
+    until: evening(21, 30),
     seller: sellers.kfc,
   }),
   sample({
@@ -290,8 +312,8 @@ const offers = [
     originalPrice: 149000,
     unitsLeft: 3,
     unit: "chiếc",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.pizzaHut,
   }),
   // Announcements, ahead of the contract (SEC-11 step 5; web/src/features/offers/proposed.ts).
@@ -303,8 +325,8 @@ const offers = [
     originalPrice: 72000,
     estimatedUnits: 6,
     unit: "suất",
-    from: tonight(22, 0),
-    until: tonight(22, 45),
+    from: evening(22, 0),
+    until: evening(22, 45),
     seller: sellers.netHue,
   }),
   announce({
@@ -315,8 +337,8 @@ const offers = [
     originalPrice: 55000,
     estimatedUnits: 8,
     unit: "phần",
-    from: tonight(22, 30),
-    until: tonight(23, 0),
+    from: evening(22, 30),
+    until: evening(23, 0),
     seller: sellers.pandaChef,
   }),
   announce({
@@ -327,8 +349,8 @@ const offers = [
     originalPrice: 99000,
     estimatedUnits: 5,
     unit: "phần",
-    from: tonight(21, 45),
-    until: tonight(22, 15),
+    from: evening(21, 45),
+    until: evening(22, 15),
     seller: sellers.kfc,
   }),
   // La Paris's longer list, for the seller's page with many dishes and three tabs (SEC-88).
@@ -342,8 +364,8 @@ const offers = [
     originalPrice: 80000,
     unitsLeft: 4,
     unit: "chiếc",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.laParis,
   }),
   sample({
@@ -356,8 +378,8 @@ const offers = [
     originalPrice: 70000,
     unitsLeft: 3,
     unit: "chiếc",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.laParis,
   }),
   sample({
@@ -370,8 +392,8 @@ const offers = [
     originalPrice: 35000,
     unitsLeft: 6,
     unit: "hộp",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.laParis,
   }),
   sample({
@@ -384,8 +406,8 @@ const offers = [
     originalPrice: 70000,
     unitsLeft: 2,
     unit: "chiếc",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.laParis,
   }),
   sample({
@@ -398,8 +420,8 @@ const offers = [
     originalPrice: 170000,
     unitsLeft: 2,
     unit: "miếng",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.laParis,
   }),
   sample({
@@ -412,8 +434,8 @@ const offers = [
     originalPrice: 115000,
     unitsLeft: 3,
     unit: "miếng",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.laParis,
   }),
   sample({
@@ -426,8 +448,8 @@ const offers = [
     originalPrice: 60000,
     unitsLeft: 5,
     unit: "chiếc",
-    from: tonight(21, 15),
-    until: tonight(22, 0),
+    from: evening(21, 15),
+    until: evening(22, 0),
     seller: sellers.laParis,
   }),
 ];
@@ -526,11 +548,17 @@ function metresBetween([lat1, lon1], [lat2, lon2]) {
   return Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h)));
 }
 
+// A range of times comes as tonight's hours, in Vietnam's offset (`tonightAt` in the web); it is read on the samples'
+// day. "Now" comes in UTC and stays the moment it is.
+function onSamplesDay(moment) {
+  return moment?.endsWith("+07:00") ? `${samplesDay}${moment.slice(10)}` : moment;
+}
+
 function search(url) {
   const q = url.searchParams.get("q");
   const kind = url.searchParams.get("kind");
-  const from = url.searchParams.get("collectFrom");
-  const to = url.searchParams.get("collectTo");
+  const from = onSamplesDay(url.searchParams.get("collectFrom"));
+  const to = onSamplesDay(url.searchParams.get("collectTo"));
   const near = url.searchParams.get("near")?.split(",").map(Number);
   const radiusKm = Number(url.searchParams.get("radiusKm") ?? DEFAULT_RADIUS_KM);
   const minPrice = url.searchParams.get("minPrice");
@@ -1835,9 +1863,7 @@ function offerById(id) {
   return [...offers, laterOffer].find((offer) => offer.id === id);
 }
 
-// An order keeps the status it was given: the stub does not expire one on the clock. The samples' windows are at
-// fixed evening hours (21:00 to 21:45 tonight), so a run after 21:45 in Vietnam would find every order placed from
-// them over and the customer's order tests failing.
+// An order keeps the status it was given: the stub does not expire one on the clock.
 function shown(order) {
   const { owner: _owner, ...rest } = order;
   return {
