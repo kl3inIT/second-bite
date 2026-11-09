@@ -190,6 +190,17 @@ sudo docker compose --project-name secondbite-staging --env-file "$root/.env.sta
 
 Later deployments read the same `.env.staging`, so the value stays. The client is of type "Web application", with `https://secondbite.vadan.app` and `https://preview.secondbite.vadan.app` among its authorised JavaScript origins and no redirect URI: the web takes Google's ID token in a popup. Production and staging use the same client. Its consent screen is published, so anyone with a Google account can sign in (confirmed by the project's owner on 31 October 2026). Its client secret is not used anywhere; keep it out of the host. An empty value leaves Google off, and `GET /api/auth/methods` then answers `{}`.
 
+**Signing in with Apple** (SEC-38), once the Apple Developer account exists:
+
+1. **The key.** In Certificates, Identifiers & Profiles, enable "Sign in with Apple" on the App ID `vn.secondbite.secondBite`, and create a key with Sign in with Apple for it. Its `.p8` file can be downloaded only once. Note its Key ID and the team ID.
+2. **Email to private relay addresses.** Under Services › "Sign in with Apple for Email Communication", register the domain the email provider sends from, so that the codes reach private relay addresses. Mail from that domain must pass SPF or DKIM.
+3. **The secrets.** On the host, write the two secrets as files owned by uid 65532, mode 0400:
+   - the `.p8` file as `secrets/apple-private-key`;
+   - the output of `openssl rand -base64 32` as `secrets/apple-token-key`. Never print it. A new key cannot read the tokens sealed under the old one.
+4. **The compose overlay.** Add the two files to the environment's compose overlay as the secrets `SECONDBITE_APPLE_PRIVATE_KEY` and `SECONDBITE_APPLE_TOKEN_KEY`. Pass `SECONDBITE_APPLE_CLIENT_IDS=vn.secondbite.secondBite`, `SECONDBITE_APPLE_TEAM_ID` and `SECONDBITE_APPLE_KEY_ID` from `.env.staging`, as Google's client IDs are. Then recreate the server as above.
+
+All five values are needed, or none: a partial set stops the server at start. Once they are set, `GET /api/auth/methods` answers `apple: {}`, and the iOS app shows its button.
+
 **The map** (SEC-66). Before the first release that has the `map` service, fill `/apps/secondbite-staging/map`; run it again to refresh the map after the build named in the script changes. It needs the go-pmtiles CLI, a single binary from its releases, kept out of the PATH of other products:
 
 ```sh

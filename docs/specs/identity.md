@@ -1,6 +1,6 @@
 # identity
 
-Owns accounts and their role, emailed sign-in codes, Google sign-in, sign-in with a username and a password, and sessions (tables `identity_*`). Decided in the [SEC-10 design](../increments/completed/sec-10-backend-foundation/design.md#identity), the [SEC-29 design](../increments/completed/sec-29-web-sign-in/design.md) and the [SEC-193 design](../increments/completed/sec-193-username-sign-in/design.md). Checks: [docs/tests/identity.md](../tests/identity.md).
+Owns accounts and their role, emailed sign-in codes, Google sign-in, Sign in with Apple, sign-in with a username and a password, and sessions (tables `identity_*`). Decided in the [SEC-10 design](../increments/completed/sec-10-backend-foundation/design.md#identity), the [SEC-29 design](../increments/completed/sec-29-web-sign-in/design.md), the [SEC-193 design](../increments/completed/sec-193-username-sign-in/design.md) and the [SEC-38 design](../increments/active/sec-38-sign-in-with-apple/design.md). Checks: [docs/tests/identity.md](../tests/identity.md).
 
 ## Operations
 
@@ -9,9 +9,10 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in, sign-in wit
 | `POST /auth/sign-in-codes` `{email}` | Anyone | `202 {challengeId, expiresAt}`, whether or not the address has an account |
 | `POST /auth/sessions` `{challengeId, code, session}` | Anyone holding a challenge | `201 {token, expiresAt, account}`; the token is shown only here. With `"session": "cookie"` (the web) the token is in the session cookie instead of the body |
 | `POST /auth/google` `{idToken, nonce, session}` | Anyone | `201 {token, expiresAt, account}`, the session handed over as for the code |
+| `POST /auth/apple` `{idToken, nonce, authorizationCode, givenName, familyName, session}` | Anyone | `201 {token, expiresAt, account}`, the session handed over as for the code (SEC-38) |
 | `POST /auth/accounts` `{username, password, session}` | Anyone | `201 {token, expiresAt, account}`: an account with that username and no email is made and signed in, the session handed over as for the code (SEC-193) |
 | `POST /auth/password-sessions` `{username, password, session}` | Anyone | `201 {token, expiresAt, account}`, the same; an unknown username and a wrong password answer alike (SEC-193) |
-| `GET /auth/methods` | Anyone | `200 {google: {clientId}}` when Google is configured, `200 {}` otherwise |
+| `GET /auth/methods` | Anyone | `200 {google: {clientId}, apple: {}}`, each when it is configured, `200 {}` when neither is |
 | `DELETE /auth/sessions/current` | A signed-in caller | `204`; the session ends and its cookie is cleared |
 | `GET /accounts/me` | A signed-in caller | `200 {id, email, username, role, displayName}`; `email` is empty for an account made with a username, `username` for one that signs in by email or Google |
 | `PUT /accounts/me` `{displayName}` | A signed-in caller | `200` the account, its name trimmed (SEC-61) |
@@ -46,6 +47,21 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 - A header with an unknown, ended or malformed token is refused at once; it does not fall back to an anonymous request.
 - Google's ID token is verified with go-oidc against Google's published keys (fetched within 5 seconds, then kept): the signature, an issuer of `https://accounts.google.com` or `accounts.google.com`, an audience among `SECONDBITE_GOOGLE_CLIENT_IDS` (comma-separated, the web's first) and the expiry. When a nonce is in the token or posted, the token's must be the hex SHA-256 of the one posted. Without client IDs Google is off.
 - A Google identity is found by Google's subject, never by address. A first sign-in needs `email_verified`; it creates the account when no account has the address, links the account that has it when Google speaks for the address (`gmail.com`, or `hd` set), and otherwise is refused so that the person signs in with the code. The account's address never follows Google's. Each link records whether Google speaks for its address; a sign-in with the emailed code removes the account's links that it does not, and when it removes any, ends the account's earlier sessions (a Google sign-in racing it either finishes first, and its session is ended, or finds its link gone and is treated as unlinked), so that a Google account linked to an outside address before its owner arrived loses its way in (account pre-hijacking). Giving something by address waits for that proof: while the address's account holds such a link, `EnsureAccount` (a seller adding staff) and `GrantRole` are refused with `IDENTITY_ADDRESS_UNPROVEN`, under the address lock a Google sign-in takes, so that a role or a membership reaches the address's owner and not whoever linked Google to it first; once the owner has signed in with the code, they succeed. They end no one's sessions (SEC-39). The sign-ins of one identity run under a lock, so two first sign-ins make one link.
+- **Sign in with Apple (SEC-38), configuration.** Apple is off until all of these are set; a partial set stops the server at start:
+  - `SECONDBITE_APPLE_CLIENT_IDS`, the bundle IDs;
+  - `SECONDBITE_APPLE_TEAM_ID` and `SECONDBITE_APPLE_KEY_ID`;
+  - the secret `SECONDBITE_APPLE_PRIVATE_KEY`, the `.p8` key in PEM;
+  - the secret `SECONDBITE_APPLE_TOKEN_KEY`, 32 bytes in base64.
+- **Sign in with Apple, the token.** Apple's identity token is verified as Google's is, against Apple's keys (`https://appleid.apple.com/auth/keys`): the issuer `https://appleid.apple.com`, an audience among the bundle IDs, and the expiry. The nonce is required: the token's must be the hex SHA-256 of the one posted. `email_verified` is read whether Apple sends a boolean or a string.
+- **Sign in with Apple, the account.** The identity is linked by the same rules as a Google one. Apple speaks for the addresses it issues: `privaterelay.appleid.com`, `icloud.com`, `me.com` and `mac.com`. The name posted on a first sign-in, family name first, fills an empty display name. When a later sign-in sends no name, the link keeps the one it has.
+- **Apple's refresh token.** Each Apple sign-in first exchanges the authorization code at Apple's `/auth/token` for a refresh token, with a client secret the server signs (ES256, valid five minutes).
+  - The token is kept on the link, sealed with AES-256-GCM under the token key; the newest replaces the one before.
+  - If Apple cannot be reached, the sign-in is refused.
+  - If the sign-in is refused after the exchange, the access just given is revoked at once.
+- **Revoking Apple's access.** A link to Apple goes when the account is deleted, or when an emailed code removes it as untrusted.
+  - The transaction that removes the link publishes its sealed token as `identity.apple_tokens_revoked`.
+  - The module's listener sends the token to Apple's `/auth/revoke`, and River retries a failure.
+  - A token that cannot be unsealed, or one left after Apple was switched off, is dropped with a warning.
 - An account's display name is empty until a Google sign-in fills it with Google's name, or its owner sets one; a name it already has is kept, so Google never replaces the one the person chose. The owner sets it from account settings: trimmed, 1 to 50 characters, no control character (SEC-61). The identity's name and picture follow Google's at each sign-in.
 - The last sign-in (SEC-75): opening a session records on the account when, and whether by the emailed code, by Google or by a password. Accounts were given the newest session they still had when this began; one whose sessions had all ended shows none. Admins find accounts by words without marks: a generated column folds the address and the name with `identity_fold` (NFC, lower case, Vietnamese marks removed, đ as d), and the query is folded by the same function.
 - A code carries its purpose: a sign-in code only signs in, a deletion code only deletes (SEC-37). Each purpose has its own limits and its own live code (SEC-126).
@@ -56,7 +72,7 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 | Table | Holds | Lifecycle |
 | --- | --- | --- |
 | `identity_accounts` | Address (unique, lower case, absent for an account made with a username), username (unique, absent for the others), password hash, role (`customer`, `admin`), display name, when and how it last signed in, its words folded for admins' search | Kept until its owner deletes it |
-| `identity_external_logins` | Provider (`google`), subject (unique with the provider), account, the address when linked and whether Google speaks for it, name and picture as last sent, when linked and last used | Deleted with the account, or by a sign-in with the emailed code when Google does not speak for its address |
+| `identity_external_logins` | Provider (`google`, `apple`), subject (unique with the provider), account, the address when linked and whether the provider speaks for it, name and picture as last sent, Apple's refresh token sealed (`apple` only), when linked and last used | Deleted with the account, or by a sign-in with the emailed code when Google does not speak for its address |
 | `identity_sign_in_challenges` | Address, code hash, purpose (`sign_in` or `delete_account`), wrong guesses, expiry | Deleted when used, ended by a newer code, a day after it was sent, or with the address's account |
 | `identity_sessions` | Account, token hash, last use, expiry | Deleted on sign-out; expired ones when the account opens a new session, and every account's each day by the schedule `identity.purge_sessions` (SEC-167) |
 
@@ -68,8 +84,10 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 | `IDENTITY_CODE_INCORRECT` | 400 | Wrong code; the guess is spent |
 | `IDENTITY_SESSION_INVALID` | 401 | Unknown, ended or malformed token; with `WWW-Authenticate: Bearer` |
 | `IDENTITY_GOOGLE_TOKEN_INVALID` | 401 | Google's token fails its signature, issuer, audience, expiry or nonce, or Google's keys cannot be fetched |
-| `IDENTITY_EMAIL_NOT_VERIFIED` | 403 | A first Google sign-in whose address Google has not verified |
+| `IDENTITY_EMAIL_NOT_VERIFIED` | 403 | A first Google or Apple sign-in whose address the provider has not verified, or that has none |
 | `IDENTITY_GOOGLE_LINK_REQUIRED` | 409 | The address has an account and Google does not speak for it |
+| `IDENTITY_APPLE_TOKEN_INVALID` | 401 | Apple's token fails its signature, issuer, audience, expiry or nonce check, has no nonce, or Apple's keys cannot be fetched |
+| `IDENTITY_APPLE_LINK_REQUIRED` | 409 | The address has an account and Apple did not issue it |
 | `IDENTITY_USERNAME_INVALID` | 400 | A username that is not 3 to 30 allowed characters (SEC-193) |
 | `IDENTITY_PASSWORD_INVALID` | 400 | A password shorter than 8 or longer than 128 characters, or the username |
 | `IDENTITY_USERNAME_TAKEN` | 409 | The username is another account's, exactly as typed |
@@ -88,11 +106,14 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 | `IDENTITY_CODE_LIMIT_EXCEEDED` | 429 | A limit per address; `Retry-After` gives the wait |
 | `IDENTITY_SESSION_UNAVAILABLE` | 503 | The session could not be checked; `Retry-After` 5 seconds |
 | `IDENTITY_GOOGLE_NOT_CONFIGURED` | 503 | No Google client ID is configured |
+| `IDENTITY_APPLE_NOT_CONFIGURED` | 503 | Sign in with Apple is not configured |
+| `IDENTITY_APPLE_UNAVAILABLE` | 503 | Apple did not exchange the authorization code |
 
 A code that could not be emailed answers `notification`'s 503 ([notification](notification.md#failures)).
 
 ## Not yet
 
 - Linking Google from a signed-in session; when someone needs it.
+- Apple's server-to-server notifications (`consent-revoked`, `account-deleted`, `email-disabled`), and Sign in with Apple on the web and Android (SEC-38).
 - Recovering a forgotten password, and adding an address to an account made with a username: both need an address, which the register form does not ask for (SEC-193).
 - The wrong-try counts live in one instance's memory, so several instances each count their own.
