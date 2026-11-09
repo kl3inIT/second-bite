@@ -72,6 +72,14 @@ type googleClaims struct {
 	Picture       string `json:"picture"`
 }
 
+// external is the identity as every provider's sign-in reads it.
+func (c googleClaims) external() externalIdentity {
+	return externalIdentity{
+		provider: providerGoogle, subject: c.Subject, email: c.Email, emailVerified: c.EmailVerified,
+		authoritative: c.authoritative(), name: c.Name, picture: c.Picture, linkRequired: ErrGoogleLinkRequired,
+	}
+}
+
 // authoritative tells whether Google speaks for the address: one at
 // gmail.com, or a Google Workspace account (hd). For any other address the
 // Google account's owner may no longer own it (design of SEC-29, decision 4).
@@ -167,7 +175,7 @@ func (s *Service) SignInWithGoogle(ctx context.Context, idToken, nonce string) (
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.queries.WithTx(tx)
 
-		account, err := s.googleAccount(ctx, q, claims)
+		account, err := s.externalAccount(ctx, q, claims.external())
 		if err != nil {
 			return err
 		}
@@ -189,91 +197,8 @@ func (s *Service) SignInWithGoogle(ctx context.Context, idToken, nonce string) (
 	return session, nil
 }
 
-// googleAccount returns the account of the Google identity, linking it on
-// its first sign-in, and fills the account's name when it has none.
-func (s *Service) googleAccount(ctx context.Context, q *db.Queries, c googleClaims) (Account, error) {
-	if err := q.LockSubject(ctx, db.LockSubjectParams{Provider: providerGoogle, Subject: c.Subject}); err != nil {
-		return Account{}, fmt.Errorf("locking the identity: %w", err)
-	}
-
-	accountID, err := q.FindExternalLogin(ctx, db.FindExternalLoginParams{Provider: providerGoogle, Subject: c.Subject})
-
-	switch {
-	case err == nil:
-		refreshed, err := q.RefreshExternalLogin(ctx, db.RefreshExternalLoginParams{
-			Name: c.Name, PictureUrl: c.Picture, Provider: providerGoogle, Subject: c.Subject,
-		})
-		if err != nil {
-			return Account{}, fmt.Errorf("refreshing the identity: %w", err)
-		}
-
-		// An emailed code removed the link while this sign-in was reading it,
-		// and ended the account's sessions: the identity is unlinked again.
-		if refreshed == 0 {
-			return s.linkGoogle(ctx, q, c)
-		}
-
-		return fillName(ctx, q, accountID, c.Name)
-	case errors.Is(err, pgx.ErrNoRows):
-		return s.linkGoogle(ctx, q, c)
-	default:
-		return Account{}, fmt.Errorf("finding the identity: %w", err)
-	}
-}
-
-func (s *Service) linkGoogle(ctx context.Context, q *db.Queries, c googleClaims) (Account, error) {
-	if !c.EmailVerified {
-		return Account{}, ErrEmailNotVerified
-	}
-
-	email, err := normalizeEmail(c.Email)
-	if err != nil {
-		return Account{}, ErrEmailNotVerified
-	}
-
-	if err := q.LockEmail(ctx, email); err != nil {
-		return Account{}, fmt.Errorf("locking the address: %w", err)
-	}
-
-	var accountID uuid.UUID
-
-	existing, err := q.FindAccountByEmail(ctx, email)
-
-	switch {
-	case err == nil:
-		if !c.authoritative() {
-			return Account{}, ErrGoogleLinkRequired
-		}
-
-		accountID = existing.ID
-	case errors.Is(err, pgx.ErrNoRows):
-		created, err := q.InsertAccount(ctx, email)
-		if err != nil {
-			return Account{}, fmt.Errorf("creating the account: %w", err)
-		}
-
-		accountID = created.ID
-	default:
-		return Account{}, fmt.Errorf("finding the account: %w", err)
-	}
-
-	if err := q.InsertExternalLogin(ctx, db.InsertExternalLoginParams{
-		AccountID: accountID, Provider: providerGoogle, Subject: c.Subject,
-		LinkedEmail: email, EmailTrusted: c.authoritative(), Name: c.Name, PictureUrl: c.Picture,
-	}); err != nil {
-		return Account{}, fmt.Errorf("linking the identity: %w", err)
-	}
-
-	s.logger.InfoContext(ctx, "Google identity linked",
-		slog.String("event", "identity.external_login.linked"),
-		slog.String("account_id", accountID.String()),
-		slog.String("provider", providerGoogle),
-	)
-
-	return fillName(ctx, q, accountID, c.Name)
-}
-
-// fillName gives the account Google's name when it has none and returns it.
+// fillName gives the account the provider's name when it has none and returns
+// it.
 func fillName(ctx context.Context, q *db.Queries, id uuid.UUID, name string) (Account, error) {
 	row, err := q.FillDisplayName(ctx, db.FillDisplayNameParams{ID: id, DisplayName: name})
 	if err != nil {

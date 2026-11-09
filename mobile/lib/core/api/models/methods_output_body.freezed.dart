@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MethodsOutputBody {
 
-/// Present when signing in with Google is available
+/// Present when signing in with Apple is available, on iOS
+ AppleMethodBody get apple;/// Present when signing in with Google is available
  GoogleMethodBody? get google;
 /// Create a copy of MethodsOutputBody
 /// with the given fields replaced by the non-null parameter values.
@@ -31,20 +32,20 @@ $MethodsOutputBodyCopyWith<MethodsOutputBody> get copyWith => _$MethodsOutputBod
 @override
 bool operator ==(Object other) {
   final _this = this as MethodsOutputBody;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MethodsOutputBody&&(identical(other.google, _this.google) || other.google == _this.google));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MethodsOutputBody&&const DeepCollectionEquality().equals(other.apple, _this.apple)&&(identical(other.google, _this.google) || other.google == _this.google));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as MethodsOutputBody;
-  return Object.hash(runtimeType,_this.google);
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.apple),_this.google);
 }
 
 @override
 String toString() {
   final _this = this as MethodsOutputBody;
-  return 'MethodsOutputBody(google: ${_this.google})';
+  return 'MethodsOutputBody(apple: ${_this.apple}, google: ${_this.google})';
 }
 
 
@@ -55,7 +56,7 @@ abstract mixin class $MethodsOutputBodyCopyWith<$Res>  {
   factory $MethodsOutputBodyCopyWith(MethodsOutputBody value, $Res Function(MethodsOutputBody) _then) = _$MethodsOutputBodyCopyWithImpl;
 @useResult
 $Res call({
- GoogleMethodBody? google
+ AppleMethodBody apple, GoogleMethodBody? google
 });
 
 
@@ -72,9 +73,10 @@ class _$MethodsOutputBodyCopyWithImpl<$Res>
 
 /// Create a copy of MethodsOutputBody
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? google = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? apple = freezed,Object? google = freezed,}) {
   return _then(MethodsOutputBody(
-google: freezed == google ? _self.google : google // ignore: cast_nullable_to_non_nullable
+apple: freezed == apple ? _self.apple : apple // ignore: cast_nullable_to_non_nullable
+as AppleMethodBody,google: freezed == google ? _self.google : google // ignore: cast_nullable_to_non_nullable
 as GoogleMethodBody?,
   ));
 }
@@ -172,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GoogleMethodBody? google)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AppleMethodBody apple,  GoogleMethodBody? google)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MethodsOutputBody() when $default != null:
-return $default(_that.google);case _:
+return $default(_that.apple,_that.google);case _:
   return orElse();
 
 }
@@ -193,10 +195,10 @@ return $default(_that.google);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GoogleMethodBody? google)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AppleMethodBody apple,  GoogleMethodBody? google)  $default,) {final _that = this;
 switch (_that) {
 case _MethodsOutputBody():
-return $default(_that.google);case _:
+return $default(_that.apple,_that.google);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +215,10 @@ return $default(_that.google);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GoogleMethodBody? google)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AppleMethodBody apple,  GoogleMethodBody? google)?  $default,) {final _that = this;
 switch (_that) {
 case _MethodsOutputBody() when $default != null:
-return $default(_that.google);case _:
+return $default(_that.apple,_that.google);case _:
   return null;
 
 }
@@ -228,9 +230,11 @@ return $default(_that.google);case _:
 @JsonSerializable()
 
 class _MethodsOutputBody implements MethodsOutputBody {
-  const _MethodsOutputBody({this.google});
+  const _MethodsOutputBody({this.apple, this.google});
   factory _MethodsOutputBody.fromJson(Map<String, dynamic> json) => _$MethodsOutputBodyFromJson(json);
 
+/// Present when signing in with Apple is available, on iOS
+@override final  AppleMethodBody apple;
 /// Present when signing in with Google is available
 @override final  GoogleMethodBody? google;
 
@@ -247,18 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MethodsOutputBody&&(identical(other.google, google) || other.google == google));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MethodsOutputBody&&const DeepCollectionEquality().equals(other.apple, apple)&&(identical(other.google, google) || other.google == google));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,google);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(apple),google);
 }
 
 @override
 String toString() {
-    return 'MethodsOutputBody(google: $google)';
+    return 'MethodsOutputBody(apple: $apple, google: $google)';
 }
 
 
@@ -269,7 +273,7 @@ abstract mixin class _$MethodsOutputBodyCopyWith<$Res> implements $MethodsOutput
   factory _$MethodsOutputBodyCopyWith(_MethodsOutputBody value, $Res Function(_MethodsOutputBody) _then) = __$MethodsOutputBodyCopyWithImpl;
 @override @useResult
 $Res call({
- GoogleMethodBody? google
+ AppleMethodBody apple, GoogleMethodBody? google
 });
 
 
@@ -286,9 +290,10 @@ class __$MethodsOutputBodyCopyWithImpl<$Res>
 
 /// Create a copy of MethodsOutputBody
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? google = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? apple = freezed,Object? google = freezed,}) {
   return _then(_MethodsOutputBody(
-google: freezed == google ? _self.google : google // ignore: cast_nullable_to_non_nullable
+apple: freezed == apple ? _self.apple : apple // ignore: cast_nullable_to_non_nullable
+as AppleMethodBody,google: freezed == google ? _self.google : google // ignore: cast_nullable_to_non_nullable
 as GoogleMethodBody?,
   ));
 }

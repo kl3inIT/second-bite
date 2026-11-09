@@ -167,8 +167,13 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 			return nil, err
 		}
 
+		appleCfg, err := appleConfig(getenv)
+		if err != nil {
+			return nil, fmt.Errorf("configuration: %w", err)
+		}
+
 		identities, err := identity.NewService(pool, notifications, events, trail, identity.Config{
-			CodeKey: k.signInCode, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")),
+			CodeKey: k.signInCode, GoogleClientIDs: listOf(getenv("SECONDBITE_GOOGLE_CLIENT_IDS")), Apple: appleCfg,
 		}, logger)
 		if err != nil {
 			return nil, err
@@ -197,6 +202,7 @@ func assemble(ctx context.Context, getenv func(string) string, stdout io.Writer)
 		offer.RegisterListeners(events, offers)
 		order.RegisterListeners(events, orders)
 		notification.RegisterListeners(events, notifications)
+		identity.RegisterListeners(events, identities)
 		identity.RegisterSchedules(events, identities)
 		offer.RegisterSchedules(events, offers)
 		order.RegisterSchedules(events, orders)

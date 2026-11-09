@@ -149,20 +149,35 @@ SELECT pg_advisory_xact_lock(hashtextextended('identity:' || @provider::text || 
 SELECT account_id FROM identity_external_logins WHERE provider = @provider AND subject = @subject;
 
 -- name: RefreshExternalLogin :execrows
--- The name and the picture follow the provider's at each sign-in.
+-- The name and the picture follow the provider's at each sign-in; a name
+-- given only once, as Apple's, is kept when none comes (SEC-38).
 UPDATE identity_external_logins
-SET name = @name, picture_url = @picture_url, last_used_at = now()
+SET name = coalesce(nullif(@name::text, ''), name), picture_url = @picture_url, last_used_at = now()
 WHERE provider = @provider AND subject = @subject;
 
 -- name: InsertExternalLogin :exec
 INSERT INTO identity_external_logins (account_id, provider, subject, linked_email, email_trusted, name, picture_url)
 VALUES (@account_id, @provider, @subject, @linked_email, @email_trusted, @name, @picture_url);
 
--- name: DeleteUntrustedLogins :execrows
+-- name: DeleteUntrustedLogins :many
 -- An emailed code proved the address: links whose provider does not speak
 -- for it may belong to someone else and are removed, as Firebase and
--- Supabase Auth do.
-DELETE FROM identity_external_logins WHERE account_id = @account_id AND NOT email_trusted;
+-- Supabase Auth do. Each answers its sealed refresh token, Apple's, for its
+-- revocation (SEC-38).
+DELETE FROM identity_external_logins WHERE account_id = @account_id AND NOT email_trusted
+RETURNING refresh_token_sealed;
+
+-- name: KeepRefreshToken :exec
+-- The refresh token Apple answered at this sign-in replaces the one before
+-- (SEC-38).
+UPDATE identity_external_logins SET refresh_token_sealed = @refresh_token_sealed
+WHERE provider = @provider AND subject = @subject;
+
+-- name: RefreshTokensOf :many
+-- The sealed refresh tokens of the account's links to Apple, to revoke when it
+-- is deleted (SEC-38).
+SELECT refresh_token_sealed::bytea FROM identity_external_logins
+WHERE account_id = @account_id AND refresh_token_sealed IS NOT NULL;
 
 -- name: HasUntrustedLogin :one
 -- Whether the account of the address holds a link its provider does not speak

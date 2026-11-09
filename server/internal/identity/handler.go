@@ -102,11 +102,25 @@ type googleSignInInput struct {
 	}
 }
 
+type appleSignInInput struct {
+	Body struct {
+		IDToken           string `json:"idToken"           minLength:"1" maxLength:"8192" doc:"The identity token Apple's sheet handed the application"`
+		Nonce             string `json:"nonce"             minLength:"1" maxLength:"256" doc:"The value whose SHA-256 was given to Apple as the nonce"`
+		AuthorizationCode string `json:"authorizationCode" minLength:"1" maxLength:"1024" doc:"The authorization code Apple's sheet handed the application, exchanged once for the token that revokes the access"`
+		GivenName         string `json:"givenName,omitempty"  maxLength:"200" doc:"The given name Apple shares on the first authorization only"`
+		FamilyName        string `json:"familyName,omitempty" maxLength:"200" doc:"The family name Apple shares on the first authorization only"`
+		Session           string `json:"session,omitempty" enum:"token,cookie" default:"token" doc:"token: the token in the body (the mobile application); cookie: the session cookie instead"`
+	}
+}
+
 type methodsOutput struct {
 	Body struct {
 		Google *googleMethodBody `json:"google,omitempty" doc:"Present when signing in with Google is available"`
+		Apple  *appleMethodBody  `json:"apple,omitempty"  doc:"Present when signing in with Apple is available, on iOS"`
 	}
 }
+
+type appleMethodBody struct{}
 
 type googleMethodBody struct {
 	ClientID string `json:"clientId" doc:"The OAuth client ID the web's Google button uses"`
@@ -204,6 +218,8 @@ func RegisterOperations(api huma.API, s *Service) {
 		return out, nil
 	})
 
+	registerAppleOperation(api, s)
+
 	huma.Register(api, huma.Operation{
 		OperationID: "getSignInMethods",
 		Method:      http.MethodGet,
@@ -214,6 +230,10 @@ func RegisterOperations(api huma.API, s *Service) {
 		out := &methodsOutput{}
 		if id := s.GoogleClientID(); id != "" {
 			out.Body.Google = &googleMethodBody{ClientID: id}
+		}
+
+		if s.AppleOn() {
+			out.Body.Apple = &appleMethodBody{}
 		}
 
 		return out, nil
@@ -286,7 +306,7 @@ func registerAccountOperations(api huma.API, s *Service, security []map[string][
 		Method:      http.MethodPost,
 		Path:        "/accounts/me/deletion",
 		Summary:     "Delete the signed-in account with the emailed code",
-		Description: "Deletes the account, its sessions, its Google link and the codes and emails sent to its address at once; " +
+		Description: "Deletes the account, its sessions, its Google and Apple links (Apple is told to revoke its access) and the codes and emails sent to its address at once; " +
 			"its memberships of sellers and the photos it uploaded that nothing uses follow within minutes. " +
 			"A seller the account owned is blocked. The session cookie is cleared.",
 		Tags:          tagAccounts,
@@ -374,6 +394,34 @@ func registerPasswordOperations(api huma.API, s *Service) {
 		DefaultStatus: http.StatusCreated,
 	}, func(ctx context.Context, in *passwordSignInInput) (*sessionOutput, error) {
 		session, err := s.SignInWithPassword(ctx, in.Body.Username, in.Body.Password)
+		if err != nil {
+			return nil, err
+		}
+
+		out := &sessionOutput{}
+		handOver(out, session, in.Body.Session)
+
+		return out, nil
+	})
+}
+
+// registerAppleOperation registers signing in with Apple (SEC-38).
+func registerAppleOperation(api huma.API, s *Service) {
+	huma.Register(api, huma.Operation{
+		OperationID: "signInWithApple",
+		Method:      http.MethodPost,
+		Path:        "/auth/apple",
+		Summary:     "Sign in with Apple's identity token",
+		Description: "The nonce is required. The authorization code is exchanged with Apple for the token that revokes the access when the " +
+			"account is deleted. Creates the account on a first sign-in with a verified address, or links an account with the address " +
+			"when Apple issued it (its private relay or iCloud); otherwise the person signs in with an emailed code.",
+		Tags:          tagSignIn,
+		DefaultStatus: http.StatusCreated,
+	}, func(ctx context.Context, in *appleSignInInput) (*sessionOutput, error) {
+		session, err := s.SignInWithApple(ctx, AppleSignIn{
+			IDToken: in.Body.IDToken, Nonce: in.Body.Nonce, AuthorizationCode: in.Body.AuthorizationCode,
+			GivenName: in.Body.GivenName, FamilyName: in.Body.FamilyName,
+		})
 		if err != nil {
 			return nil, err
 		}

@@ -48,6 +48,8 @@ type Config struct {
 	// GoogleClientIDs are the OAuth client IDs whose Google ID tokens are
 	// accepted, the web's first; without any, Google is off.
 	GoogleClientIDs []string
+	// Apple signs in with Apple (SEC-38); off when empty.
+	Apple AppleConfig
 }
 
 // Account is a person who has signed in at least once.
@@ -86,6 +88,9 @@ type Service struct {
 	crossOrigin *http.CrossOriginProtection
 	// google verifies Google's ID tokens; nil when Google is off.
 	google *google
+	// apple verifies Apple's identity tokens and keeps and revokes its refresh
+	// tokens; nil when Apple is off.
+	apple *apple
 	// codesByAddress bounds the codes one address asks for, whatever the email
 	// addresses, so a script cannot spend the provider's quota (SEC-160).
 	codesByAddress *platform.Limiter
@@ -134,6 +139,15 @@ func NewService(
 	}
 	if len(cfg.GoogleClientIDs) > 0 {
 		s.google = newGoogle(cfg.GoogleClientIDs, remoteGoogleKeys())
+	}
+
+	if cfg.Apple.on() {
+		a, err := newApple(cfg.Apple, remoteAppleKeys(), appleBaseURL)
+		if err != nil {
+			return nil, err
+		}
+
+		s.apple = a
 	}
 
 	return s, nil
