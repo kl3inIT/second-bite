@@ -2700,5 +2700,23 @@
   "favouritesExplore": "Khám phá quán",
   "@favouritesExplore": {
     "description": "Opens the home from the empty saved stores"
+  },
+  "sellerMapLabel": "Vị trí {seller} trên bản đồ",
+  "orderMapTitle": "Bản đồ chỗ nhận món của {seller}",
+  "@sellerMapLabel": {
+    "description": "The store's map on its page, for a screen reader; a tap opens the way there (SEC-206).",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "@orderMapTitle": {
+    "description": "The store's map on an order's page, for a screen reader (SEC-206).",
+    "placeholders": {
+      "seller": {
+        "type": "String"
+      }
+    }
   }
 }

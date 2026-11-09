@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/routes.dart';
+import 'package:second_bite/core/store_map.dart';
 import 'package:second_bite/features/offer/domain/offer_summary.dart';
 import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/features/offer/ui/seller_dish.dart';
@@ -200,6 +201,16 @@ class _SellerScreenState extends ConsumerState<SellerScreen> {
                                 focused: offer.id == widget.at,
                                 key: offer.id == widget.at ? _focused : null,
                               ),
+                          // Where the counter is, under the dishes, as the
+                          // web's phone page keeps it (SEC-206).
+                          StoreMap(
+                            point: (
+                              latitude: lead.collectionPoint.latitude,
+                              longitude: lead.collectionPoint.longitude,
+                            ),
+                            label: l10n.sellerMapLabel(lead.seller.name),
+                            directions: directionsUri(lead.collectionPoint),
+                          ),
                           const SizedBox(height: SpacingTokens.space4),
                         ],
                       ),

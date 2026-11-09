@@ -1828,4 +1828,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get favouritesExplore => 'Khám phá quán';
+
+  @override
+  String sellerMapLabel(String seller) {
+    return 'Vị trí $seller trên bản đồ';
+  }
+
+  @override
+  String orderMapTitle(String seller) {
+    return 'Bản đồ chỗ nhận món của $seller';
+  }
 }

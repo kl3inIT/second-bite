@@ -3059,6 +3059,18 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Khám phá quán'**
   String get favouritesExplore;
+
+  /// The store's map on its page, for a screen reader; a tap opens the way there (SEC-206).
+  ///
+  /// In vi, this message translates to:
+  /// **'Vị trí {seller} trên bản đồ'**
+  String sellerMapLabel(String seller);
+
+  /// The store's map on an order's page, for a screen reader (SEC-206).
+  ///
+  /// In vi, this message translates to:
+  /// **'Bản đồ chỗ nhận món của {seller}'**
+  String orderMapTitle(String seller);
 }
 
 class _AppLocalizationsDelegate

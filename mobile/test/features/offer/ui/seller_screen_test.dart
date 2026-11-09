@@ -65,6 +65,11 @@ void main() {
         expect(find.text(bread.name), findsOneWidget);
         expect(find.text('Bánh kem dâu'), findsOneWidget);
         expect(find.text('còn 3 phần'), findsOneWidget);
+        // The store's map under the dishes (SEC-206).
+        expect(
+          find.bySemanticsLabel('Vị trí Tiệm bánh Pháp trên bản đồ'),
+          findsOneWidget,
+        );
       });
 
       testWidgets('tabs by kind when it sells more than one', (tester) async {
