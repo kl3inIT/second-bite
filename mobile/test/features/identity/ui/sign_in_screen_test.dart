@@ -6,12 +6,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:second_bite/core/api.dart';
+import 'package:second_bite/features/identity/data/apple_auth.dart';
 import 'package:second_bite/features/identity/data/google_auth.dart';
 import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
+
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../helpers/helpers.dart';
 
 class _MockGoogleAuth extends Mock implements GoogleAuth;
+
+class _MockAppleAuth extends Mock implements AppleAuth;
 
 /// The words the server answers with, in Vietnamese (server/internal/*/errors.go).
 const _serverWords = {
@@ -50,6 +55,7 @@ void main() {
   group(SignInScreen, () {
     late MockAuthRepository auth;
     late GoogleAuth google;
+    late AppleAuth apple;
 
     setUp(() {
       auth = MockAuthRepository();
@@ -57,6 +63,9 @@ void main() {
       when(auth.googleClientId).thenAnswer((_) async => null);
       google = _MockGoogleAuth();
       when(() => google.available).thenReturn(true);
+      apple = _MockAppleAuth();
+      when(() => apple.available).thenReturn(false);
+      when(auth.appleOffered).thenAnswer((_) async => true);
     });
 
     Future<void> pumpSignIn(WidgetTester tester) async {
@@ -85,7 +94,10 @@ void main() {
           ],
         ),
         auth: auth,
-        overrides: [googleAuthProvider.overrideWithValue(google)],
+        overrides: [
+          googleAuthProvider.overrideWithValue(google),
+          appleAuthProvider.overrideWithValue(apple),
+        ],
       );
       await tester.pump();
     }
@@ -293,6 +305,85 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Email: lan@company.vn'), findsOneWidget);
+      });
+    });
+
+    group('Apple (SEC-38)', () {
+      const credential = (
+        idToken: 'header.eyJlbWFpbCI6Imxhbi5uZ3V5ZW5AeWFob28uY29tIn0.sig',
+        nonce: 'n-1',
+        authorizationCode: 'code-1',
+        givenName: 'Lan',
+        familyName: 'Nguyễn',
+      );
+
+      setUp(() {
+        when(() => apple.available).thenReturn(true);
+      });
+
+      testWidgets('is offered on iOS when the server offers it', (
+        tester,
+      ) async {
+        await pumpSignIn(tester);
+
+        expect(find.byType(SignInWithAppleButton), findsOneWidget);
+        expect(find.text('Tiếp tục với Apple'), findsOneWidget);
+      });
+
+      testWidgets('is hidden when the server does not offer it', (
+        tester,
+      ) async {
+        when(auth.appleOffered).thenAnswer((_) async => false);
+        await pumpSignIn(tester);
+
+        expect(find.byType(SignInWithAppleButton), findsNothing);
+      });
+
+      testWidgets('is hidden, and the server not asked, off iOS', (
+        tester,
+      ) async {
+        when(() => apple.available).thenReturn(false);
+        await pumpSignIn(tester);
+
+        expect(find.byType(SignInWithAppleButton), findsNothing);
+        verifyNever(auth.appleOffered);
+      });
+
+      testWidgets('signs in with what Apple handed back', (tester) async {
+        when(apple.signIn).thenAnswer((_) async => credential);
+        when(() => auth.signInWithApple(credential))
+            .thenAnswer((_) async => sampleAccount);
+        await pumpSignIn(tester);
+
+        await tester.tap(find.byType(SignInWithAppleButton));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Trang chủ'), findsOneWidget);
+      });
+
+      testWidgets('does nothing when Apple is closed', (tester) async {
+        when(apple.signIn).thenAnswer((_) async => null);
+        await pumpSignIn(tester);
+
+        await tester.tap(find.byType(SignInWithAppleButton));
+        await tester.pump();
+
+        expect(find.text('Đăng nhập để đặt món'), findsOneWidget);
+        verifyNever(() => auth.signInWithApple(credential));
+      });
+
+      testWidgets('opens the emailed code with the address when it needs it', (
+        tester,
+      ) async {
+        when(apple.signIn).thenAnswer((_) async => credential);
+        when(() => auth.signInWithApple(credential))
+            .thenThrow(_problem('IDENTITY_APPLE_LINK_REQUIRED', 409));
+        await pumpSignIn(tester);
+
+        await tester.tap(find.byType(SignInWithAppleButton));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Email: lan.nguyen@yahoo.com'), findsOneWidget);
       });
     });
 

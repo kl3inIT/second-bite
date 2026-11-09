@@ -475,6 +475,10 @@
   "@signInGoogle": {
     "description": "Google's button, in Google's own wording"
   },
+  "signInApple": "Tiếp tục với Apple",
+  "@signInApple": {
+    "description": "Apple's button on iOS, in Apple's wording (SEC-38)"
+  },
   "signInEmailLabel": "Email",
   "@signInEmailLabel": {
     "description": "The email field's label"

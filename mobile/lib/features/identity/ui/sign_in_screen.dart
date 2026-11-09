@@ -3,18 +3,20 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:second_bite/core/routes.dart';
+import 'package:second_bite/features/identity/data/apple_auth.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
 import 'package:second_bite/features/identity/data/google_auth.dart';
 import 'package:second_bite/features/identity/ui/auth_parts.dart';
 import 'package:second_bite/features/identity/ui/sign_in_problem.dart';
 import 'package:second_bite/l10n/l10n.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// {@template sign_in_screen}
 /// The sign-in screen (SEC-43, SEC-196), as the web's `/sign-in`: a username
 /// and a password, then the other ways in under the button, the emailed
-/// code on a screen of its own and Google when the server offers it, and
-/// the way to register. The session's token is kept, and the person goes
-/// back to [returnTo].
+/// code on a screen of its own, Google and, on iOS, Apple when the server
+/// offers them (SEC-38), and the way to register. The session's token is
+/// kept, and the person goes back to [returnTo].
 /// {@endtemplate}
 class SignInScreen extends ConsumerStatefulWidget {
   /// {@macro sign_in_screen}
@@ -38,6 +40,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
   bool _tried = false;
 
   String? _googleClientId;
+  bool _appleOffered = false;
   SignInProblem? _problem;
   bool _pending = false;
 
@@ -65,9 +68,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
   }
 
   Future<void> _readMethods() async {
+    final auth = ref.read(authRepositoryProvider);
     try {
-      final clientId = await ref.read(authRepositoryProvider).googleClientId();
+      final clientId = await auth.googleClientId();
       if (mounted) setState(() => _googleClientId = clientId);
+      // Apple is asked about only where it can be shown, the iOS app.
+      if (!ref.read(appleAuthProvider).available) return;
+      final apple = await auth.appleOffered();
+      if (mounted) setState(() => _appleOffered = apple);
     } on Object {
       // Without the methods the password and the emailed code still work.
     }
@@ -141,6 +149,28 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
     }
   });
 
+  Future<void> _continueWithApple() => _run(() async {
+    final credential = await ref.read(appleAuthProvider).signIn();
+    if (credential == null) return;
+    try {
+      final account = await ref
+          .read(authRepositoryProvider)
+          .signInWithApple(credential);
+      if (mounted) signedIn(account);
+    } on Object catch (error) {
+      if (problemCode(error) != 'IDENTITY_APPLE_LINK_REQUIRED') rethrow;
+      // The address already has an account Apple did not issue: the emailed
+      // code proves it, as for Google (SEC-38 › 3).
+      if (!mounted) return;
+      unawaited(
+        SignInByEmailRoute(
+          returnTo: widget.returnTo,
+          googleEmail: emailInToken(credential.idToken) ?? '',
+        ).push<void>(context),
+      );
+    }
+  });
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -204,6 +234,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen>
             AppGoogleButton(
               label: l10n.signInGoogle,
               onPressed: _pending ? null : () => _continueWithGoogle(clientId),
+            ),
+          // Apple's own button, as tall as the others (Apple's Human Interface
+          // Guidelines: no smaller than another sign-in button).
+          if (_appleOffered && ref.watch(appleAuthProvider).available)
+            IgnorePointer(
+              ignoring: _pending,
+              child: SignInWithAppleButton(
+                text: l10n.signInApple,
+                height: 52,
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(RadiusTokens.xl),
+                ),
+                onPressed: () => unawaited(_continueWithApple()),
+              ),
             ),
           AuthSwitchLine(
             question: l10n.signInNoAccount,

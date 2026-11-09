@@ -368,6 +368,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get signInGoogle => 'Tiếp tục với Google';
 
   @override
+  String get signInApple => 'Tiếp tục với Apple';
+
+  @override
   String get signInEmailLabel => 'Email';
 
   @override
