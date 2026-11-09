@@ -362,7 +362,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get signInHeading => 'Đăng nhập để đặt món';
 
   @override
-  String get signInOr => 'hoặc dùng email';
+  String get signInOr => 'hoặc';
 
   @override
   String get signInGoogle => 'Tiếp tục với Google';
@@ -432,6 +432,108 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get signInNotArrived => 'Chưa thấy email? Xem trong thư rác (Spam).';
+
+  @override
+  String get signInUsernameLabel => 'Tên đăng nhập';
+
+  @override
+  String get signInUsernamePlaceholder => 'Nhập tên đăng nhập';
+
+  @override
+  String get signInPasswordLabel => 'Mật khẩu';
+
+  @override
+  String get signInPasswordPlaceholder => 'Nhập mật khẩu';
+
+  @override
+  String get signInSubmit => 'Đăng nhập';
+
+  @override
+  String get signInSigningIn => 'Đang đăng nhập…';
+
+  @override
+  String get signInWithEmail => 'Đăng nhập bằng email';
+
+  @override
+  String get signInEmailHeading => 'Đăng nhập bằng email';
+
+  @override
+  String get signInUsePassword => 'Đăng nhập bằng tên đăng nhập';
+
+  @override
+  String get signInNoAccount => 'Chưa có tài khoản?';
+
+  @override
+  String get signInRegister => 'Đăng ký';
+
+  @override
+  String get signInUsernameRequired => 'Nhập tên đăng nhập.';
+
+  @override
+  String get signInPasswordRequired => 'Nhập mật khẩu.';
+
+  @override
+  String get registerTitle => 'Tạo tài khoản';
+
+  @override
+  String get registerUsernameLabel => 'Tên đăng nhập';
+
+  @override
+  String get registerUsernamePlaceholder => 'Nhập tên đăng nhập';
+
+  @override
+  String get registerPasswordLabel => 'Mật khẩu';
+
+  @override
+  String get registerPasswordPlaceholder => 'Nhập mật khẩu';
+
+  @override
+  String get registerConfirmLabel => 'Nhập lại mật khẩu';
+
+  @override
+  String get registerConfirmPlaceholder => 'Nhập lại mật khẩu';
+
+  @override
+  String get registerSubmit => 'Tạo tài khoản';
+
+  @override
+  String get registerSubmitting => 'Đang tạo tài khoản…';
+
+  @override
+  String get registerHaveAccount => 'Đã có tài khoản?';
+
+  @override
+  String get registerSignIn => 'Đăng nhập';
+
+  @override
+  String get registerFailed => 'Chưa tạo được tài khoản. Vui lòng thử lại.';
+
+  @override
+  String get registerUsernameInvalid =>
+      'Tên đăng nhập gồm 3 đến 30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.';
+
+  @override
+  String get registerPasswordInvalid => 'Mật khẩu gồm 8 đến 128 ký tự.';
+
+  @override
+  String get registerMismatch => 'Mật khẩu nhập lại chưa khớp.';
+
+  @override
+  String deleteAccountPasswordBody(String username) {
+    return 'Nhập mật khẩu của tài khoản $username để xác nhận bạn muốn xoá tài khoản.';
+  }
+
+  @override
+  String get deleteAccountPasswordLabel => 'Mật khẩu';
+
+  @override
+  String get deleteAccountPasswordPlaceholder => 'Nhập mật khẩu';
+
+  @override
+  String get deleteAccountPasswordRequired => 'Nhập mật khẩu của bạn.';
+
+  @override
+  String get accountSettingsUsername => 'Tên đăng nhập';
 
   @override
   String get deleteAccountTitle => 'Xoá tài khoản';

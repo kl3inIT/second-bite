@@ -6,8 +6,9 @@ import 'package:second_bite/core/session.dart';
 part 'auth_repository.g.dart';
 
 /// {@template auth_repository}
-/// Signing in and out over the generated client (SEC-29, SEC-43): the
-/// emailed code or Google's ID token buys a session token, which is kept in
+/// Signing in and out over the generated client (SEC-29, SEC-43, SEC-196): a
+/// username and its password, the emailed code or Google's ID token buys a
+/// session token, which is kept in
 /// the [SessionStore] and sent by the [SessionInterceptor] from then on. A
 /// failure is the client's `DioException`, whose problem names its `code`.
 /// {@endtemplate}
@@ -38,6 +39,30 @@ class AuthRepository {
   }) async {
     final session = await _api.signIn.signIn(
       body: SignInInputBody(challengeId: challengeId, code: code),
+    );
+    return await _keep(session);
+  }
+
+  /// Signs in with [username] and [password] (SEC-196), keeps the session
+  /// and returns its account.
+  Future<AccountBody> signInWithPassword({
+    required String username,
+    required String password,
+  }) async {
+    final session = await _api.signIn.signInWithPassword(
+      body: PasswordSignInInputBody(username: username, password: password),
+    );
+    return await _keep(session);
+  }
+
+  /// Makes an account with [username] and [password], which has no email
+  /// (SEC-196), keeps its session and returns it.
+  Future<AccountBody> register({
+    required String username,
+    required String password,
+  }) async {
+    final session = await _api.signIn.registerWithPassword(
+      body: RegisterInputBody(username: username, password: password),
     );
     return await _keep(session);
   }
@@ -101,6 +126,16 @@ class AuthRepository {
   }) async {
     await _api.accounts.deleteMyAccount(
       body: DeleteAccountInputBody(challengeId: challengeId, code: code),
+    );
+    await _store.clear();
+  }
+
+  /// Deletes the signed-in account made with a username, which has no
+  /// address for a code, with its [password] (SEC-196); the kept session is
+  /// forgotten as with the code.
+  Future<void> deleteAccountWithPassword(String password) async {
+    await _api.accounts.deleteMyAccountWithPassword(
+      body: DeleteAccountWithPasswordInputBody(password: password),
     );
     await _store.clear();
   }

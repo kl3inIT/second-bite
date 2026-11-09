@@ -28,7 +28,7 @@ In the Google Cloud project of the web client (Google Auth Platform › Clients)
   flutter run --dart-define-from-file=ios/Flutter/GoogleSignIn.xcconfig
   ```
 
-  Without the file or the define, the app builds and offers only the emailed code on iOS (Google's iOS SDK would stop the app if asked to sign in without a client).
+  Without the file or the define, the app builds and offers the username and the emailed code on iOS, without Google (Google's iOS SDK would stop the app if asked to sign in without a client).
 - **Server**: add the Android and iOS client IDs to `SECONDBITE_GOOGLE_CLIENT_IDS` after the web's, which stays first because `GET /auth/methods` names it.
 
 The browser preview offers no Google button (Google allows only its own rendered button there), and the App Store asks for Sign in with Apple beside Google before the iOS app is released (guideline 4.8, SEC-38). Signing in, the kept session and the keyboard's code suggestion are checked on a device, never only in the preview.

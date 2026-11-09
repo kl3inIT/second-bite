@@ -364,7 +364,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInHeading => 'Sign in to order';
 
   @override
-  String get signInOr => 'or use your email';
+  String get signInOr => 'or';
 
   @override
   String get signInGoogle => 'Continue with Google';
@@ -435,6 +435,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signInNotArrived => 'No email yet? Check your spam folder.';
+
+  @override
+  String get signInUsernameLabel => 'Username';
+
+  @override
+  String get signInUsernamePlaceholder => 'Enter your username';
+
+  @override
+  String get signInPasswordLabel => 'Password';
+
+  @override
+  String get signInPasswordPlaceholder => 'Enter your password';
+
+  @override
+  String get signInSubmit => 'Sign in';
+
+  @override
+  String get signInSigningIn => 'Signing in…';
+
+  @override
+  String get signInWithEmail => 'Sign in with email';
+
+  @override
+  String get signInEmailHeading => 'Sign in with email';
+
+  @override
+  String get signInUsePassword => 'Sign in with a username';
+
+  @override
+  String get signInNoAccount => 'No account yet?';
+
+  @override
+  String get signInRegister => 'Register';
+
+  @override
+  String get signInUsernameRequired => 'Enter your username.';
+
+  @override
+  String get signInPasswordRequired => 'Enter your password.';
+
+  @override
+  String get registerTitle => 'Create an account';
+
+  @override
+  String get registerUsernameLabel => 'Username';
+
+  @override
+  String get registerUsernamePlaceholder => 'Enter a username';
+
+  @override
+  String get registerPasswordLabel => 'Password';
+
+  @override
+  String get registerPasswordPlaceholder => 'Enter a password';
+
+  @override
+  String get registerConfirmLabel => 'Confirm the password';
+
+  @override
+  String get registerConfirmPlaceholder => 'Enter the password again';
+
+  @override
+  String get registerSubmit => 'Create account';
+
+  @override
+  String get registerSubmitting => 'Creating the account…';
+
+  @override
+  String get registerHaveAccount => 'Already have an account?';
+
+  @override
+  String get registerSignIn => 'Sign in';
+
+  @override
+  String get registerFailed =>
+      'Your account could not be created. Please try again.';
+
+  @override
+  String get registerUsernameInvalid =>
+      'A username has 3 to 30 characters: letters without marks, digits, dots, underscores or hyphens.';
+
+  @override
+  String get registerPasswordInvalid => 'A password has 8 to 128 characters.';
+
+  @override
+  String get registerMismatch => 'The two passwords do not match.';
+
+  @override
+  String deleteAccountPasswordBody(String username) {
+    return 'Enter the password of $username to confirm that you want to delete your account.';
+  }
+
+  @override
+  String get deleteAccountPasswordLabel => 'Password';
+
+  @override
+  String get deleteAccountPasswordPlaceholder => 'Enter your password';
+
+  @override
+  String get deleteAccountPasswordRequired => 'Enter your password.';
+
+  @override
+  String get accountSettingsUsername => 'Username';
 
   @override
   String get deleteAccountTitle => 'Delete your account';

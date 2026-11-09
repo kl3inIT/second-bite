@@ -668,10 +668,10 @@ abstract class AppLocalizations {
   /// **'Đăng nhập để đặt món'**
   String get signInHeading;
 
-  /// The divider between Google and the email field
+  /// The divider between the password's button and the other ways in
   ///
   /// In vi, this message translates to:
-  /// **'hoặc dùng email'**
+  /// **'hoặc'**
   String get signInOr;
 
   /// Google's button, in Google's own wording
@@ -793,6 +793,204 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chưa thấy email? Xem trong thư rác (Spam).'**
   String get signInNotArrived;
+
+  /// The username field's label (SEC-196)
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên đăng nhập'**
+  String get signInUsernameLabel;
+
+  /// The username field's placeholder
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập tên đăng nhập'**
+  String get signInUsernamePlaceholder;
+
+  /// The password field's label
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu'**
+  String get signInPasswordLabel;
+
+  /// The password field's placeholder
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập mật khẩu'**
+  String get signInPasswordPlaceholder;
+
+  /// The button that signs in with the username and the password
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập'**
+  String get signInSubmit;
+
+  /// The button while signing in
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang đăng nhập…'**
+  String get signInSigningIn;
+
+  /// The button to the emailed code's screen
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập bằng email'**
+  String get signInWithEmail;
+
+  /// The title and heading of the emailed code's screen
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập bằng email'**
+  String get signInEmailHeading;
+
+  /// The link from the emailed code back to the username and the password
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập bằng tên đăng nhập'**
+  String get signInUsePassword;
+
+  /// Before the link to register
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có tài khoản?'**
+  String get signInNoAccount;
+
+  /// The link to register
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng ký'**
+  String get signInRegister;
+
+  /// Under an empty username
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập tên đăng nhập.'**
+  String get signInUsernameRequired;
+
+  /// Under an empty password
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập mật khẩu.'**
+  String get signInPasswordRequired;
+
+  /// The register screen's title and heading (SEC-196)
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo tài khoản'**
+  String get registerTitle;
+
+  /// The username field's label
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên đăng nhập'**
+  String get registerUsernameLabel;
+
+  /// The username field's placeholder
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập tên đăng nhập'**
+  String get registerUsernamePlaceholder;
+
+  /// The password field's label
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu'**
+  String get registerPasswordLabel;
+
+  /// The password field's placeholder
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập mật khẩu'**
+  String get registerPasswordPlaceholder;
+
+  /// The second password field's label
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập lại mật khẩu'**
+  String get registerConfirmLabel;
+
+  /// The second password field's placeholder
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập lại mật khẩu'**
+  String get registerConfirmPlaceholder;
+
+  /// The button that registers
+  ///
+  /// In vi, this message translates to:
+  /// **'Tạo tài khoản'**
+  String get registerSubmit;
+
+  /// The button while registering
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tạo tài khoản…'**
+  String get registerSubmitting;
+
+  /// Before the link to sign in
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã có tài khoản?'**
+  String get registerHaveAccount;
+
+  /// The link to sign in
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập'**
+  String get registerSignIn;
+
+  /// When registering failed without the server's words
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa tạo được tài khoản. Vui lòng thử lại.'**
+  String get registerFailed;
+
+  /// Under a username the rule refuses
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên đăng nhập gồm 3 đến 30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.'**
+  String get registerUsernameInvalid;
+
+  /// Under a password too short or too long
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu gồm 8 đến 128 ký tự.'**
+  String get registerPasswordInvalid;
+
+  /// Under a second password that differs
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu nhập lại chưa khớp.'**
+  String get registerMismatch;
+
+  /// What confirms the deletion of an account made with a username (SEC-196)
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập mật khẩu của tài khoản {username} để xác nhận bạn muốn xoá tài khoản.'**
+  String deleteAccountPasswordBody(String username);
+
+  /// The password field's label
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu'**
+  String get deleteAccountPasswordLabel;
+
+  /// The password field's placeholder
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập mật khẩu'**
+  String get deleteAccountPasswordPlaceholder;
+
+  /// Under an empty password
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập mật khẩu của bạn.'**
+  String get deleteAccountPasswordRequired;
+
+  /// The row of the username, for an account without an email (SEC-196)
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên đăng nhập'**
+  String get accountSettingsUsername;
 
   /// The deletion screen's title and the account tab's entry
   ///

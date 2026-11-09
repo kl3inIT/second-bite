@@ -1,17 +1,12 @@
-import 'dart:convert';
-
 import 'package:app_ui/app_ui.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:second_bite/core/api.dart';
-import 'package:second_bite/features/identity/data/google_auth.dart';
-import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
+import 'package:second_bite/features/identity/ui/sign_in_by_email_screen.dart';
 
 import '../../../helpers/helpers.dart';
-
-class _MockGoogleAuth extends Mock implements GoogleAuth;
 
 /// The words the server answers with, in Vietnamese (server/internal/*/errors.go).
 const _serverWords = {
@@ -44,43 +39,36 @@ DioException _problem(String code, int status, {String? requestId}) {
   );
 }
 
-/// A Google ID token naming [email], unsigned: only its claims are read.
-String _idToken(String email) {
-  String part(Object value) =>
-      base64Url.encode(utf8.encode(jsonEncode(value))).replaceAll('=', '');
-  return '${part({'alg': 'none'})}.${part({'email': email})}.sig';
-}
-
 void main() {
-  group(SignInScreen, () {
+  group(SignInByEmailScreen, () {
     late MockAuthRepository auth;
-    late GoogleAuth google;
 
     setUp(() {
       auth = MockAuthRepository();
       when(auth.currentAccount).thenAnswer((_) async => null);
-      when(auth.googleClientId).thenAnswer((_) async => null);
-      google = _MockGoogleAuth();
-      when(() => google.available).thenReturn(true);
     });
 
-    Future<void> pumpSignIn(WidgetTester tester) async {
+    Future<void> pumpSignIn(WidgetTester tester, {String? googleEmail}) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       await tester.pumpRouterApp(
         GoRouter(
-          initialLocation: '/sign-in',
+          initialLocation: '/sign-in/email',
           routes: [
             GoRoute(path: '/', builder: (_, _) => const Text('Trang chủ')),
             GoRoute(
               path: '/sign-in',
-              builder: (_, _) => const SignInScreen(returnTo: '/'),
+              builder: (_, _) => const Text('Mật khẩu ở đây'),
+            ),
+            GoRoute(
+              path: '/sign-in/email',
+              builder: (_, _) =>
+                  SignInByEmailScreen(returnTo: '/', googleEmail: googleEmail),
             ),
           ],
         ),
         auth: auth,
-        overrides: [googleAuthProvider.overrideWithValue(google)],
       );
       await tester.pump();
     }
@@ -103,41 +91,19 @@ void main() {
     }
 
     group('the email step', () {
-      testWidgets('renders the heading, the field, the button and the legal '
-          'line, without Google when the server does not offer it', (
-        tester,
-      ) async {
+      testWidgets('renders the heading, the field, the button, the way back '
+          'to the password and the legal line, without Google', (tester) async {
         await pumpSignIn(tester);
 
-        expect(find.text('Đăng nhập'), findsOneWidget);
-        expect(find.text('Đăng nhập để đặt món'), findsOneWidget);
+        expect(find.text('Đăng nhập bằng email'), findsWidgets);
         expect(find.text('Email'), findsOneWidget);
         expect(find.text('Gửi mã'), findsOneWidget);
+        expect(find.text('Đăng nhập bằng tên đăng nhập'), findsOneWidget);
         expect(
           find.textContaining('Điều khoản sử dụng', findRichText: true),
           findsOneWidget,
         );
-        expect(find.byType(AppGoogleButton), findsNothing);
-      });
-
-      testWidgets('shows Google first when the server offers it', (
-        tester,
-      ) async {
-        when(auth.googleClientId).thenAnswer((_) async => 'web-client');
-        await pumpSignIn(tester);
-
-        expect(find.text('Tiếp tục với Google'), findsOneWidget);
-        expect(find.text('hoặc dùng email'), findsOneWidget);
-      });
-
-      testWidgets('hides Google where this build cannot sign in with it', (
-        tester,
-      ) async {
-        when(auth.googleClientId).thenAnswer((_) async => 'web-client');
-        when(() => google.available).thenReturn(false);
-        await pumpSignIn(tester);
-
-        expect(find.byType(AppGoogleButton), findsNothing);
+        expect(find.text('Tiếp tục với Google'), findsNothing);
       });
 
       testWidgets('says when the address is not one', (tester) async {
@@ -332,81 +298,37 @@ void main() {
         await tester.tapOnText(find.textRange.ofSubstring('Đổi email'));
         await tester.pump();
 
-        expect(find.text('Đăng nhập để đặt món'), findsOneWidget);
+        expect(find.text('Gửi mã'), findsOneWidget);
       });
     });
 
-    group('Google', () {
-      setUp(() {
-        when(auth.googleClientId).thenAnswer((_) async => 'web-client');
-      });
+    testWidgets('fills in the address Google gave and says why', (
+      tester,
+    ) async {
+      await pumpSignIn(tester, googleEmail: 'lan@company.vn');
 
-      testWidgets('signs in with the token and its nonce', (tester) async {
-        when(() => google.signIn('web-client')).thenAnswer(
-          (_) async => (idToken: _idToken('lan@gmail.com'), nonce: 'n-1'),
-        );
-        when(
-          () => auth.signInWithGoogle(
-            idToken: any(named: 'idToken'),
-            nonce: 'n-1',
-          ),
-        ).thenAnswer((_) async => sampleAccount);
-        await pumpSignIn(tester);
+      expect(find.text('Email này đã có tài khoản'), findsOneWidget);
+      expect(
+        find.text(
+          'lan@company.vn đã có tài khoản Second Bite. '
+          'Nhận mã qua email này để đăng nhập.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Gửi mã đến email này'), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'lan@company.vn',
+      );
+    });
 
-        await tester.tap(find.text('Tiếp tục với Google'));
-        await tester.pumpAndSettle();
+    testWidgets('goes back to the username and the password', (tester) async {
+      await pumpSignIn(tester);
 
-        expect(find.text('Trang chủ'), findsOneWidget);
-      });
+      await tester.tap(find.text('Đăng nhập bằng tên đăng nhập'));
+      await tester.pumpAndSettle();
 
-      testWidgets('does nothing when Google is closed', (tester) async {
-        when(() => google.signIn(any())).thenAnswer((_) async => null);
-        await pumpSignIn(tester);
-
-        await tester.tap(find.text('Tiếp tục với Google'));
-        await tester.pump();
-
-        expect(find.text('Đăng nhập để đặt món'), findsOneWidget);
-        verifyNever(
-          () => auth.signInWithGoogle(
-            idToken: any(named: 'idToken'),
-            nonce: any(named: 'nonce'),
-          ),
-        );
-      });
-
-      testWidgets('asks for the emailed code when the address needs it', (
-        tester,
-      ) async {
-        when(() => google.signIn(any())).thenAnswer(
-          (_) async => (idToken: _idToken('lan@company.vn'), nonce: 'n-1'),
-        );
-        when(
-          () => auth.signInWithGoogle(
-            idToken: any(named: 'idToken'),
-            nonce: any(named: 'nonce'),
-          ),
-        ).thenThrow(_problem('IDENTITY_GOOGLE_LINK_REQUIRED', 409));
-        await pumpSignIn(tester);
-
-        await tester.tap(find.text('Tiếp tục với Google'));
-        await tester.pump();
-
-        expect(find.text('Email này đã có tài khoản'), findsOneWidget);
-        expect(
-          find.text(
-            'lan@company.vn đã có tài khoản Second Bite. '
-            'Nhận mã qua email này để đăng nhập.',
-          ),
-          findsOneWidget,
-        );
-        expect(find.text('Gửi mã đến email này'), findsOneWidget);
-        expect(find.byType(AppGoogleButton), findsNothing);
-        expect(
-          tester.widget<TextField>(find.byType(TextField)).controller!.text,
-          'lan@company.vn',
-        );
-      });
+      expect(find.text('Mật khẩu ở đây'), findsOneWidget);
     });
 
     testWidgets('leaves at once for someone already signed in', (tester) async {

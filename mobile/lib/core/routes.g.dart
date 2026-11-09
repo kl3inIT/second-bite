@@ -16,6 +16,8 @@ List<RouteBase> get $appRoutes => [
   $termsRoute,
   $privacyRoute,
   $signInRoute,
+  $signInByEmailRoute,
+  $registerRoute,
 ];
 
 RouteBase get $appShellRoute => StatefulShellRouteData.$route(
@@ -499,6 +501,76 @@ mixin $SignInRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/sign-in',
+    queryParams: {if (_self.returnTo != null) 'return-to': _self.returnTo},
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $signInByEmailRoute => GoRouteData.$route(
+  path: '/sign-in/email',
+  hasOverriddenOnExit: false,
+  factory: $SignInByEmailRoute._fromState,
+);
+
+mixin $SignInByEmailRoute on GoRouteData {
+  static SignInByEmailRoute _fromState(GoRouterState state) =>
+      SignInByEmailRoute(
+        returnTo: state.uri.queryParameters['return-to'],
+        googleEmail: state.uri.queryParameters['google-email'],
+      );
+
+  SignInByEmailRoute get _self => this as SignInByEmailRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/sign-in/email',
+    queryParams: {
+      if (_self.returnTo != null) 'return-to': _self.returnTo,
+      if (_self.googleEmail != null) 'google-email': _self.googleEmail,
+    },
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $registerRoute => GoRouteData.$route(
+  path: '/register',
+  hasOverriddenOnExit: false,
+  factory: $RegisterRoute._fromState,
+);
+
+mixin $RegisterRoute on GoRouteData {
+  static RegisterRoute _fromState(GoRouterState state) =>
+      RegisterRoute(returnTo: state.uri.queryParameters['return-to']);
+
+  RegisterRoute get _self => this as RegisterRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/register',
     queryParams: {if (_self.returnTo != null) 'return-to': _self.returnTo},
   );
 
