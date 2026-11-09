@@ -4,6 +4,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:second_bite/core/language_button.dart';
 import 'package:second_bite/core/routes.dart';
+import 'package:second_bite/features/identity/domain/account_handle.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
@@ -89,7 +90,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                                         account == null
                                             ? l10n.accountGuestTitle
                                             : name.isEmpty
-                                            ? account.email
+                                            ? account.handle
                                             : name,
                                         style: text.title,
                                         maxLines: 1,
@@ -101,7 +102,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                                           ? l10n.accountGuestBody
                                           : name.isEmpty
                                           ? l10n.accountSignedIn
-                                          : account.email,
+                                          : account.handle,
                                       style: text.bodySm.copyWith(
                                         color: scheme.onSurfaceVariant,
                                       ),

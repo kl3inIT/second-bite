@@ -43,6 +43,15 @@ void main() {
       registerFallbackValue(
         const DeleteAccountInputBody(challengeId: '', code: ''),
       );
+      registerFallbackValue(
+        const PasswordSignInInputBody(username: '', password: ''),
+      );
+      registerFallbackValue(
+        const RegisterInputBody(username: '', password: ''),
+      );
+      registerFallbackValue(
+        const DeleteAccountWithPasswordInputBody(password: ''),
+      );
     });
 
     setUp(() {
@@ -55,6 +64,63 @@ void main() {
       when(() => store.write(any())).thenAnswer((_) async {});
       when(store.clear).thenAnswer((_) async {});
       repository = AuthRepository(api, store);
+    });
+
+    test(
+      'signs in with a username and a password, and keeps the token',
+      () async {
+        when(() => signIn.signInWithPassword(body: any(named: 'body')))
+            .thenAnswer((_) async => session);
+
+        expect(
+          await repository.signInWithPassword(username: 'Lan', password: 'pw'),
+          sampleAccount,
+        );
+        verify(
+          () => signIn.signInWithPassword(
+            body: const PasswordSignInInputBody(
+              username: 'Lan',
+              password: 'pw',
+            ),
+          ),
+        ).called(1);
+        verify(() => store.write('tok')).called(1);
+      },
+    );
+
+    test('registers with the token in the body, and keeps it', () async {
+      when(() => signIn.registerWithPassword(body: any(named: 'body')))
+          .thenAnswer((_) async => session);
+
+      expect(
+        await repository.register(username: 'lan', password: 'password-1'),
+        sampleAccount,
+      );
+      verify(
+        () => signIn.registerWithPassword(
+          body: const RegisterInputBody(
+            username: 'lan',
+            password: 'password-1',
+          ),
+        ),
+      ).called(1);
+      verify(() => store.write('tok')).called(1);
+    });
+
+    test('deletes with the password, and forgets the session', () async {
+      when(() => accounts.deleteMyAccountWithPassword(body: any(named: 'body')))
+          .thenAnswer((_) async {});
+
+      await repository.deleteAccountWithPassword('password-1');
+
+      verify(
+        () => accounts.deleteMyAccountWithPassword(
+          body: const DeleteAccountWithPasswordInputBody(
+            password: 'password-1',
+          ),
+        ),
+      ).called(1);
+      verify(store.clear).called(1);
     });
 
     test('asks for a code and returns its challenge', () async {

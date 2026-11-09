@@ -45,6 +45,17 @@ class CurrentAccount extends _$CurrentAccount {
     await ref
         .read(authRepositoryProvider)
         .deleteAccount(challengeId: challengeId, code: code);
+    await _deleted();
+  }
+
+  /// Deletes the account made with a username with its [password]
+  /// (SEC-196): no one is signed in after.
+  Future<void> deleteAccountWithPassword(String password) async {
+    await ref.read(authRepositoryProvider).deleteAccountWithPassword(password);
+    await _deleted();
+  }
+
+  Future<void> _deleted() async {
     state = const AsyncData(null);
     try {
       await ref.read(googleAuthProvider).signOut();

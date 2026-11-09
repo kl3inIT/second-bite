@@ -38,6 +38,22 @@ void main() {
       expect(find.text('Xoá tài khoản'), findsNWidgets(2));
     });
 
+    testWidgets('names an account made with a username by it, without an '
+        'email row (SEC-196)', (tester) async {
+      await tester.pumpApp(
+        const AccountSettingsScreen(),
+        auth: signedInAs(
+          sampleAccount.copyWith(email: '', username: 'lan.nguyen'),
+        ),
+        overrides: [mySellersProvider.overrideWith((_) async => [])],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('lan.nguyen'), findsNWidgets(2));
+      expect(find.text('Tên đăng nhập'), findsOneWidget);
+      expect(find.text('Email'), findsNothing);
+    });
+
     testWidgets('hides the shops row for someone with none', (tester) async {
       await tester.pumpApp(
         const AccountSettingsScreen(),

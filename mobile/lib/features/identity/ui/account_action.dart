@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_ui/app_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:second_bite/core/routes.dart';
+import 'package:second_bite/features/identity/domain/account_handle.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
 import 'package:second_bite/l10n/l10n.dart';
 
@@ -27,9 +28,9 @@ class AccountAction extends ConsumerWidget {
     final value = account.value;
     if (value == null) return _SignInCapsule(returnTo: returnTo);
     return _AccountMenu(
-      email: value.email,
+      email: value.handle,
       name: value.displayName.isEmpty
-          ? value.email.split('@').first
+          ? value.handle.split('@').first
           : value.displayName,
     );
   }

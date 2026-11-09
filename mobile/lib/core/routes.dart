@@ -6,6 +6,8 @@ import 'package:second_bite/features/identity/domain/return_to.dart';
 import 'package:second_bite/features/identity/ui/account_screen.dart';
 import 'package:second_bite/features/identity/ui/account_settings_screen.dart';
 import 'package:second_bite/features/identity/ui/delete_account_screen.dart';
+import 'package:second_bite/features/identity/ui/register_screen.dart';
+import 'package:second_bite/features/identity/ui/sign_in_by_email_screen.dart';
 import 'package:second_bite/features/identity/ui/sign_in_screen.dart';
 import 'package:second_bite/features/legal/ui/legal_screen.dart';
 import 'package:second_bite/features/legal/ui/legal_text.dart';
@@ -383,4 +385,41 @@ class SignInRoute extends GoRouteData with $SignInRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       SignInScreen(returnTo: readReturnTo(returnTo));
+}
+
+/// Signing in with the emailed code at `/sign-in/email?returnTo=`, as on the
+/// web since SEC-193 (SEC-196); `googleEmail` is the address Google gave when
+/// its account needs the code, empty when it gave none.
+@TypedGoRoute<SignInByEmailRoute>(path: '/sign-in/email')
+class SignInByEmailRoute extends GoRouteData with $SignInByEmailRoute {
+  /// The route to sign in by email, then back to [returnTo].
+  const new({this.returnTo, this.googleEmail});
+
+  /// Where to go once signed in.
+  final String? returnTo;
+
+  /// The address Google gave, when Google opened this screen.
+  final String? googleEmail;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      SignInByEmailScreen(
+        returnTo: readReturnTo(returnTo),
+        googleEmail: googleEmail,
+      );
+}
+
+/// Registering with a username and a password at `/register?returnTo=`, as
+/// on the web (SEC-196).
+@TypedGoRoute<RegisterRoute>(path: '/register')
+class RegisterRoute extends GoRouteData with $RegisterRoute {
+  /// The route to register, then back to [returnTo].
+  const new({this.returnTo});
+
+  /// Where to go once registered.
+  final String? returnTo;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      RegisterScreen(returnTo: readReturnTo(returnTo));
 }

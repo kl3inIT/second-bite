@@ -18,6 +18,25 @@ enum SignInProblemKind {
   /// Google has not verified the address.
   googleUnverified,
 
+  /// A username and a password that do not match an account: the password
+  /// is cleared (SEC-196).
+  credentialsIncorrect,
+
+  /// Too many wrong passwords for the username.
+  signInLimit,
+
+  /// A username the server's rule refuses: under the username.
+  usernameInvalid,
+
+  /// A username someone has: under the username.
+  usernameTaken,
+
+  /// A password the server's rule refuses: under the password.
+  passwordInvalid,
+
+  /// The password that confirms a deletion is wrong: it is cleared.
+  passwordIncorrect,
+
   /// Anything else, with the request's reference when there is one.
   failed,
 }
@@ -41,6 +60,13 @@ class SignInProblem {
       'IDENTITY_CHALLENGE_GONE' ||
       'IDENTITY_CODE_ATTEMPTS_EXHAUSTED' => SignInProblemKind.codeGone,
       'IDENTITY_EMAIL_NOT_VERIFIED' => SignInProblemKind.googleUnverified,
+      'IDENTITY_CREDENTIALS_INCORRECT' =>
+        SignInProblemKind.credentialsIncorrect,
+      'IDENTITY_SIGN_IN_LIMIT_EXCEEDED' => SignInProblemKind.signInLimit,
+      'IDENTITY_USERNAME_INVALID' => SignInProblemKind.usernameInvalid,
+      'IDENTITY_USERNAME_TAKEN' => SignInProblemKind.usernameTaken,
+      'IDENTITY_PASSWORD_INVALID' => SignInProblemKind.passwordInvalid,
+      'IDENTITY_PASSWORD_INCORRECT' => SignInProblemKind.passwordIncorrect,
       _ => SignInProblemKind.failed,
     };
     final reference = error is DioException

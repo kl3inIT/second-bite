@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:second_bite/core/app_locale.dart';
 import 'package:second_bite/core/routes.dart';
+import 'package:second_bite/features/identity/domain/account_handle.dart';
 import 'package:second_bite/features/identity/ui/current_account.dart';
 import 'package:second_bite/features/identity/ui/sign_in_problem.dart';
 import 'package:second_bite/features/seller/data/seller_repository.dart';
@@ -69,7 +70,7 @@ class AccountSettingsScreen extends ConsumerWidget {
                                       header: true,
                                       child: Text(
                                         account.displayName.isEmpty
-                                            ? account.email
+                                            ? account.handle
                                             : account.displayName,
                                         style: text.title,
                                         maxLines: 1,
@@ -78,7 +79,7 @@ class AccountSettingsScreen extends ConsumerWidget {
                                     ),
                                     if (account.displayName.isNotEmpty)
                                       Text(
-                                        account.email,
+                                        account.handle,
                                         style: text.bodySm.copyWith(
                                           color: scheme.onSurfaceVariant,
                                         ),
@@ -100,10 +101,16 @@ class AccountSettingsScreen extends ConsumerWidget {
                             padding: const EdgeInsets.all(SpacingTokens.space1),
                             child: Column(
                               children: [
-                                _Row(
-                                  label: l10n.accountSettingsEmail,
-                                  value: account.email,
-                                ),
+                                if (account.email.isEmpty)
+                                  _Row(
+                                    label: l10n.accountSettingsUsername,
+                                    value: account.username,
+                                  )
+                                else
+                                  _Row(
+                                    label: l10n.accountSettingsEmail,
+                                    value: account.email,
+                                  ),
                                 _Row(
                                   label: l10n.accountSettingsDisplayName,
                                   value: account.displayName.isEmpty

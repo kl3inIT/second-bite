@@ -467,9 +467,9 @@
   "@signInHeading": {
     "description": "The sign-in screen's heading"
   },
-  "signInOr": "hoặc dùng email",
+  "signInOr": "hoặc",
   "@signInOr": {
-    "description": "The divider between Google and the email field"
+    "description": "The divider between the password's button and the other ways in"
   },
   "signInGoogle": "Tiếp tục với Google",
   "@signInGoogle": {
@@ -578,6 +578,144 @@
   "signInNotArrived": "Chưa thấy email? Xem trong thư rác (Spam).",
   "@signInNotArrived": {
     "description": "Under the code field"
+  },
+  "signInUsernameLabel": "Tên đăng nhập",
+  "@signInUsernameLabel": {
+    "description": "The username field's label (SEC-196)"
+  },
+  "signInUsernamePlaceholder": "Nhập tên đăng nhập",
+  "@signInUsernamePlaceholder": {
+    "description": "The username field's placeholder"
+  },
+  "signInPasswordLabel": "Mật khẩu",
+  "@signInPasswordLabel": {
+    "description": "The password field's label"
+  },
+  "signInPasswordPlaceholder": "Nhập mật khẩu",
+  "@signInPasswordPlaceholder": {
+    "description": "The password field's placeholder"
+  },
+  "signInSubmit": "Đăng nhập",
+  "@signInSubmit": {
+    "description": "The button that signs in with the username and the password"
+  },
+  "signInSigningIn": "Đang đăng nhập…",
+  "@signInSigningIn": {
+    "description": "The button while signing in"
+  },
+  "signInWithEmail": "Đăng nhập bằng email",
+  "@signInWithEmail": {
+    "description": "The button to the emailed code's screen"
+  },
+  "signInEmailHeading": "Đăng nhập bằng email",
+  "@signInEmailHeading": {
+    "description": "The title and heading of the emailed code's screen"
+  },
+  "signInUsePassword": "Đăng nhập bằng tên đăng nhập",
+  "@signInUsePassword": {
+    "description": "The link from the emailed code back to the username and the password"
+  },
+  "signInNoAccount": "Chưa có tài khoản?",
+  "@signInNoAccount": {
+    "description": "Before the link to register"
+  },
+  "signInRegister": "Đăng ký",
+  "@signInRegister": {
+    "description": "The link to register"
+  },
+  "signInUsernameRequired": "Nhập tên đăng nhập.",
+  "@signInUsernameRequired": {
+    "description": "Under an empty username"
+  },
+  "signInPasswordRequired": "Nhập mật khẩu.",
+  "@signInPasswordRequired": {
+    "description": "Under an empty password"
+  },
+  "registerTitle": "Tạo tài khoản",
+  "@registerTitle": {
+    "description": "The register screen's title and heading (SEC-196)"
+  },
+  "registerUsernameLabel": "Tên đăng nhập",
+  "@registerUsernameLabel": {
+    "description": "The username field's label"
+  },
+  "registerUsernamePlaceholder": "Nhập tên đăng nhập",
+  "@registerUsernamePlaceholder": {
+    "description": "The username field's placeholder"
+  },
+  "registerPasswordLabel": "Mật khẩu",
+  "@registerPasswordLabel": {
+    "description": "The password field's label"
+  },
+  "registerPasswordPlaceholder": "Nhập mật khẩu",
+  "@registerPasswordPlaceholder": {
+    "description": "The password field's placeholder"
+  },
+  "registerConfirmLabel": "Nhập lại mật khẩu",
+  "@registerConfirmLabel": {
+    "description": "The second password field's label"
+  },
+  "registerConfirmPlaceholder": "Nhập lại mật khẩu",
+  "@registerConfirmPlaceholder": {
+    "description": "The second password field's placeholder"
+  },
+  "registerSubmit": "Tạo tài khoản",
+  "@registerSubmit": {
+    "description": "The button that registers"
+  },
+  "registerSubmitting": "Đang tạo tài khoản…",
+  "@registerSubmitting": {
+    "description": "The button while registering"
+  },
+  "registerHaveAccount": "Đã có tài khoản?",
+  "@registerHaveAccount": {
+    "description": "Before the link to sign in"
+  },
+  "registerSignIn": "Đăng nhập",
+  "@registerSignIn": {
+    "description": "The link to sign in"
+  },
+  "registerFailed": "Chưa tạo được tài khoản. Vui lòng thử lại.",
+  "@registerFailed": {
+    "description": "When registering failed without the server's words"
+  },
+  "registerUsernameInvalid": "Tên đăng nhập gồm 3 đến 30 ký tự: chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.",
+  "@registerUsernameInvalid": {
+    "description": "Under a username the rule refuses"
+  },
+  "registerPasswordInvalid": "Mật khẩu gồm 8 đến 128 ký tự.",
+  "@registerPasswordInvalid": {
+    "description": "Under a password too short or too long"
+  },
+  "registerMismatch": "Mật khẩu nhập lại chưa khớp.",
+  "@registerMismatch": {
+    "description": "Under a second password that differs"
+  },
+  "deleteAccountPasswordBody": "Nhập mật khẩu của tài khoản {username} để xác nhận bạn muốn xoá tài khoản.",
+  "@deleteAccountPasswordBody": {
+    "description": "What confirms the deletion of an account made with a username (SEC-196)",
+    "placeholders": {
+      "username": {
+        "type": "String",
+        "example": "lan.nguyen"
+      }
+    }
+  },
+  "deleteAccountPasswordLabel": "Mật khẩu",
+  "@deleteAccountPasswordLabel": {
+    "description": "The password field's label"
+  },
+  "deleteAccountPasswordPlaceholder": "Nhập mật khẩu",
+  "@deleteAccountPasswordPlaceholder": {
+    "description": "The password field's placeholder"
+  },
+  "deleteAccountPasswordRequired": "Nhập mật khẩu của bạn.",
+  "@deleteAccountPasswordRequired": {
+    "description": "Under an empty password"
+  },
+  "accountSettingsUsername": "Tên đăng nhập",
+  "@accountSettingsUsername": {
+    "description": "The row of the username, for an account without an email (SEC-196)"
   },
   "deleteAccountTitle": "Xoá tài khoản",
   "@deleteAccountTitle": {

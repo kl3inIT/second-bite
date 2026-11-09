@@ -60,6 +60,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(signIn);
       await tester.pumpAndSettle();
+      // The emailed code is on a screen of its own, above sign-in (SEC-196).
+      await tester.tap(find.text('Đăng nhập bằng email'));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'lan@gmail.com');
       await tester.tap(find.text('Gửi mã'));
       await tester.pumpAndSettle();
@@ -89,6 +92,27 @@ void main() {
         expect(find.text('Đã đăng nhập'), findsOneWidget);
       },
     );
+
+    testWidgets('signing in with a username from account settings comes back '
+        'to it (SEC-196)', (tester) async {
+      when(
+        () => auth.signInWithPassword(username: 'lan', password: 'password-1'),
+      ).thenAnswer((_) async => sampleAccount);
+      await pumpAt(tester, '/account/settings');
+
+      final signIn = find.widgetWithText(FilledButton, 'Đăng nhập');
+      await tester.ensureVisible(signIn);
+      await tester.pumpAndSettle();
+      await tester.tap(signIn);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(0), 'lan');
+      await tester.enterText(find.byType(TextField).at(1), 'password-1');
+      await tester.tap(find.widgetWithText(FilledButton, 'Đăng nhập'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AccountSettingsScreen), findsOneWidget);
+      expect(find.text('lan@gmail.com'), findsWidgets);
+    });
 
     testWidgets('signing in from the deletion comes back to the deletion', (
       tester,

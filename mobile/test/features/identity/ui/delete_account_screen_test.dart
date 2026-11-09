@@ -103,6 +103,67 @@ void main() {
       expect(find.text('Được giữ lại, không còn gắn với bạn'), findsNothing);
     });
 
+    testWidgets('deletes an account made with a username with its password, '
+        'after a wrong one (SEC-196)', (tester) async {
+      final auth = signedInAs(
+        sampleAccount.copyWith(email: '', username: 'lan.nguyen'),
+      );
+      when(() => auth.deleteAccountWithPassword('wrong-password')).thenThrow(
+        DioException(
+          requestOptions: RequestOptions(),
+          response: Response(
+            requestOptions: RequestOptions(),
+            statusCode: 400,
+            data: <String, Object?>{
+              'status': 400,
+              'detail': 'Mật khẩu chưa đúng.',
+              'code': 'IDENTITY_PASSWORD_INCORRECT',
+            },
+          ),
+        ),
+      );
+      when(() => auth.deleteAccountWithPassword('right-password'))
+          .thenAnswer((_) async {});
+
+      await tester.pumpApp(
+        const DeleteAccountScreen(),
+        auth: auth,
+        overrides: [ownedSellerNamesProvider.overrideWith((_) async => [])],
+      );
+      await tester.pump();
+
+      expect(
+        find.textContaining('lan.nguyen', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.text('Gửi mã xác nhận'), findsNothing);
+      verifyNever(auth.requestDeletionCode);
+
+      final confirm = find.widgetWithText(
+        FilledButton,
+        'Xoá vĩnh viễn tài khoản',
+      );
+      await tester.tapVisible(confirm);
+      await tester.pumpAndSettle();
+      expect(find.text('Nhập mật khẩu của bạn.'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'wrong-password');
+      await tester.tapVisible(confirm);
+      await tester.pumpAndSettle();
+      expect(find.text('Mật khẩu chưa đúng.'), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        isEmpty,
+      );
+
+      await tester.enterText(find.byType(TextField), 'right-password');
+      await tester.tapVisible(confirm);
+      await tester.pumpAndSettle();
+
+      verify(() => auth.deleteAccountWithPassword('right-password')).called(1);
+      expect(find.text('Đã xoá tài khoản'), findsOneWidget);
+    });
+
     testWidgets('holds the code until the shops are read, and reads them '
         'again after a failure', (tester) async {
       final auth = signedInAs(sampleAccount);

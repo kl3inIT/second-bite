@@ -15,17 +15,13 @@ class _MockGoogleAuth extends Mock implements GoogleAuth;
 
 /// The words the server answers with, in Vietnamese (server/internal/*/errors.go).
 const _serverWords = {
-  'IDENTITY_EMAIL_INVALID': 'Nhập một địa chỉ email, ví dụ ten@gmail.com.',
-  'IDENTITY_CODE_LIMIT_EXCEEDED':
-      'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.',
-  'IDENTITY_CODE_INCORRECT':
-      'Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.',
-  'IDENTITY_CHALLENGE_GONE': 'Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.',
-  'PLATFORM_INTERNAL_FAILURE': 'Đã có lỗi ngoài ý muốn. Thử lại sau ít phút.',
+  'IDENTITY_CREDENTIALS_INCORRECT': 'Tên đăng nhập hoặc mật khẩu chưa đúng.',
+  'IDENTITY_SIGN_IN_LIMIT_EXCEEDED':
+      'Bạn đã nhập sai quá nhiều lần. Đợi một lúc rồi thử lại.',
 };
 
 /// The client's failure for a problem the server answered with.
-DioException _problem(String code, int status, {String? requestId}) {
+DioException _problem(String code, int status) {
   final options = RequestOptions(path: '/auth');
   return DioException(
     requestOptions: options,
@@ -38,7 +34,6 @@ DioException _problem(String code, int status, {String? requestId}) {
         'status': status,
         'detail': ?_serverWords[code],
         'code': code,
-        'requestId': ?requestId,
       },
     ),
   );
@@ -77,6 +72,16 @@ void main() {
               path: '/sign-in',
               builder: (_, _) => const SignInScreen(returnTo: '/'),
             ),
+            GoRoute(
+              path: '/sign-in/email',
+              builder: (_, state) => Text(
+                'Email: ${state.uri.queryParameters['google-email'] ?? '-'}',
+              ),
+            ),
+            GoRoute(
+              path: '/register',
+              builder: (_, _) => const Text('Đăng ký ở đây'),
+            ),
           ],
         ),
         auth: auth,
@@ -85,260 +90,155 @@ void main() {
       await tester.pump();
     }
 
-    Future<void> sendCode(WidgetTester tester) async {
-      when(() => auth.requestCode('lan@gmail.com'))
-          .thenAnswer((_) async => 'ch-1');
-      await tester.enterText(find.byType(TextField), ' lan@gmail.com ');
-      await tester.tap(find.text('Gửi mã'));
+    Future<void> signIn(
+      WidgetTester tester,
+      String username,
+      String password,
+    ) async {
+      await tester.enterText(find.byType(TextField).at(0), username);
+      await tester.enterText(find.byType(TextField).at(1), password);
+      await tester.tap(find.widgetWithText(FilledButton, 'Đăng nhập'));
       await tester.pump();
     }
 
-    void answerCode(Future<AccountBody> Function() answer) {
+    void answerPassword(Future<AccountBody> Function() answer) {
       when(
-        () => auth.signIn(
-          challengeId: any(named: 'challengeId'),
-          code: any(named: 'code'),
+        () => auth.signInWithPassword(
+          username: any(named: 'username'),
+          password: any(named: 'password'),
         ),
       ).thenAnswer((_) => answer());
     }
 
-    group('the email step', () {
-      testWidgets('renders the heading, the field, the button and the legal '
-          'line, without Google when the server does not offer it', (
-        tester,
-      ) async {
-        await pumpSignIn(tester);
+    testWidgets('opens on the username and the password, then the other ways '
+        'in, without Google when the server does not offer it', (tester) async {
+      await pumpSignIn(tester);
 
-        expect(find.text('Đăng nhập'), findsOneWidget);
-        expect(find.text('Đăng nhập để đặt món'), findsOneWidget);
-        expect(find.text('Email'), findsOneWidget);
-        expect(find.text('Gửi mã'), findsOneWidget);
-        expect(
-          find.textContaining('Điều khoản sử dụng', findRichText: true),
-          findsOneWidget,
-        );
-        expect(find.byType(AppGoogleButton), findsNothing);
-      });
-
-      testWidgets('shows Google first when the server offers it', (
-        tester,
-      ) async {
-        when(auth.googleClientId).thenAnswer((_) async => 'web-client');
-        await pumpSignIn(tester);
-
-        expect(find.text('Tiếp tục với Google'), findsOneWidget);
-        expect(find.text('hoặc dùng email'), findsOneWidget);
-      });
-
-      testWidgets('hides Google where this build cannot sign in with it', (
-        tester,
-      ) async {
-        when(auth.googleClientId).thenAnswer((_) async => 'web-client');
-        when(() => google.available).thenReturn(false);
-        await pumpSignIn(tester);
-
-        expect(find.byType(AppGoogleButton), findsNothing);
-      });
-
-      testWidgets('says when the address is not one', (tester) async {
-        when(() => auth.requestCode(any()))
-            .thenThrow(_problem('IDENTITY_EMAIL_INVALID', 422));
-        await pumpSignIn(tester);
-
-        await tester.enterText(find.byType(TextField), 'lan');
-        await tester.tap(find.text('Gửi mã'));
-        await tester.pump();
-
-        expect(
-          find.text('Nhập một địa chỉ email, ví dụ ten@gmail.com.'),
-          findsOneWidget,
-        );
-      });
-
-      testWidgets('says when too many codes were asked for', (tester) async {
-        when(() => auth.requestCode(any()))
-            .thenThrow(_problem('IDENTITY_CODE_LIMIT_EXCEEDED', 429));
-        await pumpSignIn(tester);
-
-        await tester.enterText(find.byType(TextField), 'limit@example.com');
-        await tester.tap(find.text('Gửi mã'));
-        await tester.pump();
-
-        expect(
-          find.text(
-            'Bạn đã xin quá nhiều mã cho email này. Đợi một lúc rồi thử lại.',
-          ),
-          findsOneWidget,
-        );
-      });
-
-      testWidgets('gives the reference of any other failure', (tester) async {
-        when(() => auth.requestCode(any())).thenThrow(
-          _problem('PLATFORM_INTERNAL_FAILURE', 500, requestId: 'REQ-9'),
-        );
-        await pumpSignIn(tester);
-
-        await tester.enterText(find.byType(TextField), 'lan@gmail.com');
-        await tester.tap(find.text('Gửi mã'));
-        await tester.pump();
-
-        expect(
-          find.text(
-            'Đã có lỗi ngoài ý muốn. Thử lại sau ít phút. Mã tham chiếu: REQ-9',
-          ),
-          findsOneWidget,
-        );
-      });
-
-      testWidgets('says it in its own words when no answer came', (
-        tester,
-      ) async {
-        when(() => auth.requestCode(any())).thenThrow(
-          DioException(requestOptions: RequestOptions(path: '/auth')),
-        );
-        await pumpSignIn(tester);
-
-        await tester.enterText(find.byType(TextField), 'lan@gmail.com');
-        await tester.tap(find.text('Gửi mã'));
-        await tester.pump();
-
-        expect(
-          find.text('Chưa đăng nhập được. Vui lòng thử lại.'),
-          findsOneWidget,
-        );
-      });
+      expect(find.text('Đăng nhập để đặt món'), findsOneWidget);
+      expect(find.text('Tên đăng nhập'), findsOneWidget);
+      expect(find.text('Mật khẩu'), findsOneWidget);
+      expect(find.text('Đăng nhập bằng email'), findsOneWidget);
+      expect(find.text('Chưa có tài khoản?'), findsOneWidget);
+      expect(find.text('Đăng ký'), findsOneWidget);
+      expect(
+        find.textContaining('Điều khoản sử dụng', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.byType(AppGoogleButton), findsNothing);
+      final password = tester.widget<TextField>(find.byType(TextField).at(1));
+      expect(password.obscureText, isTrue);
     });
 
-    group('the code step', () {
-      testWidgets('names the address, the spam folder and the wait', (
-        tester,
-      ) async {
-        await pumpSignIn(tester);
-        await sendCode(tester);
+    testWidgets('signs in with the username trimmed and the password as typed, '
+        'back to where sign-in was asked', (tester) async {
+      answerPassword(() async => sampleAccount);
+      await pumpSignIn(tester);
 
-        expect(find.text('Kiểm tra email của bạn'), findsOneWidget);
-        expect(
-          find.textContaining(
-            'Mã đăng nhập 6 số đã gửi đến lan@gmail.com.',
-            findRichText: true,
-          ),
-          findsOneWidget,
-        );
-        expect(
-          find.text('Chưa thấy email? Xem trong thư rác (Spam).'),
-          findsOneWidget,
-        );
-        expect(find.text('Gửi lại mã sau 1:00'), findsOneWidget);
-      });
+      await signIn(tester, ' Lan ', ' bí mật 1 ');
+      await tester.pumpAndSettle();
 
-      testWidgets('counts down, then offers a new code', (tester) async {
-        await pumpSignIn(tester);
-        await sendCode(tester);
+      verify(
+        () => auth.signInWithPassword(username: 'Lan', password: ' bí mật 1 '),
+      ).called(1);
+      expect(find.text('Trang chủ'), findsOneWidget);
+    });
 
-        await tester.pump(const Duration(seconds: 32));
-        expect(find.text('Gửi lại mã sau 0:28'), findsOneWidget);
+    testWidgets('asks for both fields before sending anything', (tester) async {
+      await pumpSignIn(tester);
 
-        await tester.pump(const Duration(seconds: 28));
-        expect(find.text('Gửi lại mã'), findsOneWidget);
+      await signIn(tester, '  ', '');
 
-        await tester.tap(find.text('Gửi lại mã'));
-        await tester.pump();
-        verify(() => auth.requestCode('lan@gmail.com')).called(2);
-        expect(find.text('Gửi lại mã sau 1:00'), findsOneWidget);
-      });
+      expect(find.text('Nhập tên đăng nhập.'), findsOneWidget);
+      expect(find.text('Nhập mật khẩu.'), findsOneWidget);
+      verifyNever(
+        () => auth.signInWithPassword(
+          username: any(named: 'username'),
+          password: any(named: 'password'),
+        ),
+      );
 
-      testWidgets('keeps only the digits of a paste and signs in at six, '
-          'back to where sign-in was asked', (tester) async {
-        answerCode(() async => sampleAccount);
-        await pumpSignIn(tester);
-        await sendCode(tester);
+      await tester.enterText(find.byType(TextField).at(0), 'lan');
+      await tester.pump();
+      expect(find.text('Nhập tên đăng nhập.'), findsNothing);
+    });
 
-        await tester.enterText(find.byType(TextField), '12 34\n56');
-        await tester.pumpAndSettle();
+    testWidgets("says a wrong password in the server's words and clears it", (
+      tester,
+    ) async {
+      answerPassword(
+        () => Future.error(_problem('IDENTITY_CREDENTIALS_INCORRECT', 400)),
+      );
+      await pumpSignIn(tester);
 
-        verify(() => auth.signIn(challengeId: 'ch-1', code: '123456'))
-            .called(1);
-        expect(find.text('Trang chủ'), findsOneWidget);
-      });
+      await signIn(tester, 'lan', 'wrong-password');
 
-      testWidgets('confirms with the button', (tester) async {
-        answerCode(() async => sampleAccount);
-        await pumpSignIn(tester);
-        await sendCode(tester);
-        final confirm = find.widgetWithText(FilledButton, 'Xác nhận');
-        expect(tester.widget<FilledButton>(confirm).onPressed, isNull);
+      expect(
+        find.text('Tên đăng nhập hoặc mật khẩu chưa đúng.'),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
+        isEmpty,
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField).at(0)).controller!.text,
+        'lan',
+      );
+    });
 
-        await tester.enterText(find.byType(TextField), '12345');
-        await tester.pump();
-        expect(tester.widget<FilledButton>(confirm).onPressed, isNull);
+    testWidgets('says when too many wrong passwords were tried', (
+      tester,
+    ) async {
+      answerPassword(
+        () => Future.error(_problem('IDENTITY_SIGN_IN_LIMIT_EXCEEDED', 429)),
+      );
+      await pumpSignIn(tester);
 
-        // A sixth digit submits by itself; the button offers the same.
-        answerCode(
-          () => Future.delayed(const Duration(seconds: 1), () {
-            return sampleAccount;
-          }),
-        );
-        await tester.enterText(find.byType(TextField), '123456');
-        await tester.pump();
-        expect(find.text('Đang xác nhận…'), findsOneWidget);
-        await tester.pumpAndSettle(const Duration(seconds: 1));
-        expect(find.text('Trang chủ'), findsOneWidget);
-      });
+      await signIn(tester, 'lan', 'password-1');
 
-      testWidgets('clears a wrong code and says so', (tester) async {
-        answerCode(
-          () => Future.error(_problem('IDENTITY_CODE_INCORRECT', 422)),
-        );
-        await pumpSignIn(tester);
-        await sendCode(tester);
+      expect(
+        find.text('Bạn đã nhập sai quá nhiều lần. Đợi một lúc rồi thử lại.'),
+        findsOneWidget,
+      );
+    });
 
-        await tester.enterText(find.byType(TextField), '111111');
-        await tester.pump();
+    testWidgets('opens the emailed code on its own screen', (tester) async {
+      await pumpSignIn(tester);
 
-        expect(
-          find.text('Mã chưa đúng. Xem lại email mới nhất rồi nhập lại.'),
-          findsOneWidget,
-        );
-        expect(
-          tester.widget<TextField>(find.byType(TextField)).controller!.text,
-          isEmpty,
-        );
-        expect(find.text('Kiểm tra email của bạn'), findsOneWidget);
-      });
+      await tester.tap(find.text('Đăng nhập bằng email'));
+      await tester.pumpAndSettle();
 
-      testWidgets('offers a new code at once when the code is gone', (
-        tester,
-      ) async {
-        answerCode(
-          () => Future.error(_problem('IDENTITY_CHALLENGE_GONE', 410)),
-        );
-        await pumpSignIn(tester);
-        await sendCode(tester);
+      expect(find.text('Email: -'), findsOneWidget);
+    });
 
-        await tester.enterText(find.byType(TextField), '123456');
-        await tester.pump();
+    testWidgets('opens the register screen', (tester) async {
+      await pumpSignIn(tester);
 
-        expect(
-          find.text('Mã này đã hết hạn hoặc đã dùng. Gửi lại mã mới.'),
-          findsOneWidget,
-        );
-        expect(find.text('Gửi lại mã'), findsOneWidget);
-      });
+      await tester.tap(find.text('Đăng ký'));
+      await tester.pumpAndSettle();
 
-      testWidgets('goes back to the address with "Đổi email"', (tester) async {
-        await pumpSignIn(tester);
-        await sendCode(tester);
-
-        await tester.tapOnText(find.textRange.ofSubstring('Đổi email'));
-        await tester.pump();
-
-        expect(find.text('Đăng nhập để đặt món'), findsOneWidget);
-      });
+      expect(find.text('Đăng ký ở đây'), findsOneWidget);
     });
 
     group('Google', () {
       setUp(() {
         when(auth.googleClientId).thenAnswer((_) async => 'web-client');
+      });
+
+      testWidgets('is offered under the emailed code', (tester) async {
+        await pumpSignIn(tester);
+
+        expect(find.text('Tiếp tục với Google'), findsOneWidget);
+        expect(find.text('hoặc'), findsOneWidget);
+      });
+
+      testWidgets('is hidden where this build cannot sign in with it', (
+        tester,
+      ) async {
+        when(() => google.available).thenReturn(false);
+        await pumpSignIn(tester);
+
+        expect(find.byType(AppGoogleButton), findsNothing);
       });
 
       testWidgets('signs in with the token and its nonce', (tester) async {
@@ -375,7 +275,7 @@ void main() {
         );
       });
 
-      testWidgets('asks for the emailed code when the address needs it', (
+      testWidgets('opens the emailed code with the address when it needs it', (
         tester,
       ) async {
         when(() => google.signIn(any())).thenAnswer(
@@ -390,22 +290,9 @@ void main() {
         await pumpSignIn(tester);
 
         await tester.tap(find.text('Tiếp tục với Google'));
-        await tester.pump();
+        await tester.pumpAndSettle();
 
-        expect(find.text('Email này đã có tài khoản'), findsOneWidget);
-        expect(
-          find.text(
-            'lan@company.vn đã có tài khoản Second Bite. '
-            'Nhận mã qua email này để đăng nhập.',
-          ),
-          findsOneWidget,
-        );
-        expect(find.text('Gửi mã đến email này'), findsOneWidget);
-        expect(find.byType(AppGoogleButton), findsNothing);
-        expect(
-          tester.widget<TextField>(find.byType(TextField)).controller!.text,
-          'lan@company.vn',
-        );
+        expect(find.text('Email: lan@company.vn'), findsOneWidget);
       });
     });
 
