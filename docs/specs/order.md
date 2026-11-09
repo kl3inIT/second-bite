@@ -152,7 +152,7 @@ It follows `seller.LocationChangedEvent` (listener `order.follow_seller_location
 ## Limits
 
 - One client address places at most 60 orders in ten minutes, signed in or not; past it `PLATFORM_TOO_MANY_REQUESTS` (429) with `Retry-After` (SEC-160).
-- What one person holds ([SEC-158](../increments/active/sec-158-order-limits/design.md)), checked when an order is placed, after its idempotency key, in the placing transaction under an advisory lock on the phone number, so two orders placed at once cannot both pass:
+- What one person holds ([SEC-158](../increments/completed/sec-158-order-limits/design.md)), checked when an order is placed, after its idempotency key, in the placing transaction under an advisory lock on the phone number, so two orders placed at once cannot both pass:
   - a line holds no more units than its dish's cap, the post's own or the offer settings' default (`ORDER_OVER_DISH_LIMIT`);
   - a phone number that missed `missedLimit` orders (3) in the last `missedDays` (30) cannot order (`ORDER_PHONE_MISSED_ORDERS`); a missed order is one whose window ended in those days with no hand-over, or one refused in them as `no_answer`, `no_show` or `late`, so the block lifts as they pass;
   - a phone number holds at most `openPerPhonePerSeller` orders (2) at one store still to collect (`ORDER_PHONE_HOLDS_ORDERS`).

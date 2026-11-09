@@ -35,12 +35,14 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 
 - The customer's web, through October 2026: [SEC-49 — looking around](increments/completed/sec-49-web-flow-1/design.md), [SEC-76 — the flow end to end](increments/completed/sec-76-web-customer-flow/design.md), [SEC-88 — the seller's page holds the dishes](increments/completed/sec-88-web-seller-page-dish-sheet/design.md), [SEC-83 — the orders list and an order's page](increments/completed/sec-83-web-orders-figma/design.md), [SEC-97 — pickup and review](increments/completed/sec-97-pickup-and-review/design.md), [SEC-109 — favourites](increments/completed/sec-109-favourites/design.md), [SEC-117 — chat on each order and live status](increments/completed/sec-117-order-chat-live/design.md), [SEC-175 — more kinds of dish](increments/completed/sec-175-dish-kinds/design.md) and [SEC-101 — responsive pages](increments/completed/sec-101-responsive/design.md), whose seller page, cart and audit at three widths were left undone.
 - Stores and admins, through October 2026: [SEC-55 — the seller's catalog](increments/completed/sec-55-seller-catalog/design.md), [SEC-65 — an owner-less seller cannot be approved](increments/completed/sec-65-ownerless-approval/design.md), [SEC-126 — account deletion's follow-ups](increments/completed/sec-126-deletion-follow-ups/design.md), and every post, order and review for admins ([SEC-134](increments/completed/sec-134-admin-posts/design.md), [SEC-135](increments/completed/sec-135-admin-orders/design.md), [SEC-145](increments/completed/sec-145-admin-reviews/design.md)).
+- [SEC-158 — Order limits](increments/completed/sec-158-order-limits/design.md), 9 November 2026: a cap per dish in one order that the store may set, open orders per phone number at a store, and missed orders blocking a number for some days.
 
 ## Active
 
 - [Buyer discount](increments/active/buyer-discount/design.md) — promotions an admin runs, taken off an order when it is placed, for the two-week support programme from 2 November 2026; the server first, then the web, the store's app and the programme's figures.
 - [SEC-204 — Ordering in the app for customers](increments/active/sec-204-app-ordering/design.md): the web's customer flow in the Flutter app, from a store's page to an order's live page and its chat; stores keep the web (decided 8 November 2026).
-- [SEC-158 — Order limits](increments/active/sec-158-order-limits/design.md) — a cap per dish in one order that the store may set, open orders per phone number at a store, and missed orders blocking a number for some days.
+- [SEC-196 — Username sign-in in the app](increments/active/sec-196-app-username-sign-in/design.md): the web's sign-in, register and password deletion in the app; merged 9 November 2026, waits for its check on a device.
+- [SEC-38 — Sign in with Apple](increments/active/sec-38-sign-in-with-apple/design.md): the server and the iOS app, off until the Apple Developer account exists (SEC-14); merged 9 November 2026.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 
 ## Candidates
