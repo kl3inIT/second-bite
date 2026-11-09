@@ -491,5 +491,7 @@
   "favouritesNoneTonight": "Nothing on sale tonight",
   "favouritesEmptyTitle": "No favourite shops yet",
   "favouritesEmptyBody": "Tap ♡ on a shop's page to follow it.",
-  "favouritesExplore": "Explore shops"
+  "favouritesExplore": "Explore shops",
+  "sellerMapLabel": "Where {seller} is on the map",
+  "orderMapTitle": "Map of where to collect from {seller}"
 }

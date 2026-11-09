@@ -2,6 +2,9 @@
     <!-- The phone's place, asked only when "Gần tôi" is tapped, to sort shops by distance. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- The API and the store map's tiles (SEC-206) in a release build, which the debug and
+         profile manifests alone grant. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- No backup: the session token (flutter_secure_storage) is encrypted with a Keystore key that
          never leaves the phone, so a restored copy could not be read, and a session stays on its phone. -->
     <application

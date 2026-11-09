@@ -1971,4 +1971,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favouritesExplore => 'Explore shops';
+
+  @override
+  String sellerMapLabel(String seller) {
+    return 'Where $seller is on the map';
+  }
+
+  @override
+  String orderMapTitle(String seller) {
+    return 'Map of where to collect from $seller';
+  }
 }

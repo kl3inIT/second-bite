@@ -40,7 +40,7 @@ The app follows `GET /live` as `web/src/lib/live-client.ts` does: one socket for
 
 - The order's QR encodes its id, as the web's, drawn by `qr_flutter`.
 - "Chỉ đường" opens Google Maps' directions URL, "share" opens the system share sheet, both through the Flutter team's `url_launcher` and `share_plus`.
-- The store's map is to use the web's self-hosted map at `/map/` through `maplibre_gl`, the MapLibre project's Flutter plugin, so no map service is added. It waits: the web builds the style in JavaScript, so the map service must first serve it as a JSON file (plan step 4).
+- The store's map uses the web's self-hosted map at `/map/` through `maplibre_gl`, the MapLibre project's Flutter plugin, so no map service is added. The site serves the style the web builds in JavaScript as a file, `GET /map-style.json` (SEC-206), with its URLs on the origin it was asked on, so staging's style points at staging's tiles; the app reads it from the API's origin without `/api`. The map is still, as the web's: no gesture, the camera at street zoom inside Hanoi's bounds, the brand-coloured pin at its centre, the attribution kept, and a tap opening the directions. MapLibre Native reads the `pmtiles://` archive on Android and iOS; the browser preview draws no map, as MapLibre there needs the PMTiles protocol registered by the page.
 - "Gần tôi" reads the device's position once through `geolocator`, after the button is pressed, and asks for permission then; Android and iOS declare the "when in use" location permission with the reason in Vietnamese and English.
 
 ### 7. The order limits arrive with SEC-158
@@ -64,7 +64,7 @@ Each arrives with its first consumer ([mobile guideline › Stack](../../../guid
 | `qr_flutter` | Its authors, the most used QR package | The order's QR |
 | `uuid` | Dart community, the most used | Idempotency keys, checkout id |
 | `geolocator` | Baseflow | "Gần tôi" |
-| `maplibre_gl` | MapLibre | The store's map, once the style is served (plan step 4) |
+| `maplibre_gl` | MapLibre | The store's map from `/map-style.json` (plan step 4) |
 
 ## Verification plan
 

@@ -2,6 +2,7 @@ import 'package:app_ui/app_ui.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/routes.dart';
+import 'package:second_bite/core/store_map.dart';
 import 'package:second_bite/features/offer/ui/offer_format.dart';
 import 'package:second_bite/features/order/domain/order_facts.dart';
 import 'package:second_bite/l10n/l10n.dart';
@@ -653,9 +654,8 @@ class OrderSummary extends StatelessWidget {
 
 /// {@template order_directions}
 /// Where the counter is: the store and its counter, and the way there in
-/// the phone's maps (Figma D2 › chỗ nhận). The store's map waits for the
-/// map's style as a file (SEC-204 step 4); "Nhắn quán" for the chat (step
-/// 12).
+/// the phone's maps (Figma D2 › chỗ nhận), over the store's map
+/// (SEC-206).
 /// {@endtemplate}
 class OrderDirections extends StatelessWidget {
   /// {@macro order_directions}
@@ -678,6 +678,14 @@ class OrderDirections extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: SpacingTokens.space3,
             children: [
+              StoreMap(
+                point: (
+                  latitude: order.seller.latitude,
+                  longitude: order.seller.longitude,
+                ),
+                label: l10n.orderMapTitle(order.seller.name),
+                directions: orderDirectionsUri(order.seller),
+              ),
               Text(
                 l10n.orderPlaceLine(order.seller.name, order.seller.address),
                 style: context.appTextStyles.bodySmStrong,

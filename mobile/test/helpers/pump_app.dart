@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:second_bite/core/api.dart';
 import 'package:second_bite/core/live_client.dart';
+import 'package:second_bite/core/store_map.dart';
 import 'package:second_bite/features/identity/data/auth_repository.dart';
 import 'package:second_bite/features/order/data/order_live.dart';
 import 'package:second_bite/l10n/l10n.dart';
@@ -34,6 +35,14 @@ const sampleAccount = AccountBody(
   role: AccountBodyRole.customer,
 );
 
+/// The key of the stand-in [drawTestStoreMap] draws.
+const testStoreMapKey = Key('test-store-map');
+
+/// Draws a stand-in for the store's map: MapLibre is a platform view, which
+/// a widget test cannot draw.
+Widget? drawTestStoreMap(BuildContext context, MapPoint point) =>
+    const SizedBox.expand(key: testStoreMapKey);
+
 /// Pumps a screen inside the app's theme and localizations, as the testing
 /// skill asks, instead of an inline `MaterialApp` in each test.
 extension PumpApp on WidgetTester {
@@ -57,6 +66,7 @@ extension PumpApp on WidgetTester {
           authRepositoryProvider.overrideWithValue(auth ?? signedInAs(null)),
           liveClientProvider.overrideWithValue(live ?? TestLiveClient()),
           apiProvider.overrideWithValue(api ?? testApi()),
+          storeMapDrawProvider.overrideWithValue(drawTestStoreMap),
           ...overrides,
         ],
         retry: (_, _) => null,
@@ -87,6 +97,7 @@ extension PumpApp on WidgetTester {
           authRepositoryProvider.overrideWithValue(auth ?? signedInAs(null)),
           liveClientProvider.overrideWithValue(live ?? TestLiveClient()),
           apiProvider.overrideWithValue(api ?? testApi()),
+          storeMapDrawProvider.overrideWithValue(drawTestStoreMap),
           ...overrides,
         ],
         retry: (_, _) => null,

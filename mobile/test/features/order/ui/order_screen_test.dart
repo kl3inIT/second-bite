@@ -94,6 +94,8 @@ void main() {
         );
         expect(find.byType(CancelOrder), findsOneWidget);
         expect(find.text('#SB-1001'), findsOneWidget);
+        // The store's map on the directions card (SEC-206).
+        expect(find.byKey(testStoreMapKey), findsOneWidget);
       });
 
       testWidgets('a ready order with its QR and no cancelling', (
