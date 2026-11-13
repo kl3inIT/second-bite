@@ -7,7 +7,7 @@ name: secondbite
 
 services:
   postgres:
-    image: postgis/postgis:18-3.6
+    image: postgis/postgis:18-3.7
     environment:
       POSTGRES_DB: secondbite
       POSTGRES_USER: secondbite
