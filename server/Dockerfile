@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Build from server/: docker build -t second-bite-server server. The migrations are embedded in the binary.
 
-FROM golang:1.27.3-trixie@sha256:d9fa6e7ba43678ee1e5d1617007db9a134612032a74e2d86b44a9f582f1564cc AS build
+FROM golang:1.27.4-trixie@sha256:f18c3d73a184fb0582828510722e723b63a93f7188d11dd223d9be6f6880e65d AS build
 
 WORKDIR /workspace/server
 COPY go.mod go.sum ./
