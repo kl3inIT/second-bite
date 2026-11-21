@@ -45,6 +45,16 @@ export const useAppForm: typeof appForm.useAppForm = (options) => {
   });
 };
 
+/**
+ * The `action` of a form built with `useAppForm` (docs/guidelines/web.md › Forms). It sends the form unless a
+ * send is under way, or `blocked` says the form would refuse it now. React replays every press made before the
+ * page hydrated, one after another and with the props of the first render, so the second press of a double tap
+ * meets the first one in flight and does nothing, and a press the form no longer takes is not sent.
+ */
+export function submitAction(formApi: AnyFormApi, blocked?: () => boolean) {
+  return () => (formApi.state.isSubmitting || blocked?.() ? undefined : formApi.handleSubmit());
+}
+
 /** A refused submission's errors: the failure no field can say, and the messages on its fields. */
 type ServerErrors = {
   form?: Failure;

@@ -1,6 +1,7 @@
 // Adapted from BeyondPilot's web/src/components/form/form-context.ts (revision 5fd043a8), without its
 // "every field required unless Optional" mode, which no Second Bite form uses.
 import { createFormHookContexts } from "@tanstack/react-form";
+import { useLayoutEffect, useRef } from "react";
 
 import { fieldIds } from "./field-ids";
 
@@ -43,4 +44,22 @@ export function useFieldValidity<TValue>() {
     ids: fieldIds(field),
     spoken: Boolean(errorMap.onChange || errorMap.onBlur),
   };
+}
+
+/**
+ * A ref for a text control bound to its field that keeps what the person typed before the page hydrated. Until
+ * then the server's HTML takes the typing, or the browser fills a saved password in, and React leaves that on the
+ * screen; the field takes it when the control mounts, so a submit sends what the person sees rather than an
+ * empty field. Once mounted, the control and its field agree, so it does nothing after a client render.
+ */
+export function useValueTypedEarly<TElement extends HTMLInputElement | HTMLTextAreaElement>() {
+  const field = useFieldContext<string>();
+  const ref = useRef<TElement>(null);
+  useLayoutEffect(() => {
+    const shown = ref.current?.value;
+    if (shown !== undefined && shown !== field.state.value) field.handleChange(shown);
+    // Only what was typed before the control mounted; after that, its onChange keeps the field.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return ref;
 }

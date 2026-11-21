@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 
-import { useFieldValidity, useFormContext } from "./form-context";
+import { useFieldValidity, useFormContext, useValueTypedEarly } from "./form-context";
 
 type Labelled = {
   label: ReactNode;
@@ -42,11 +42,13 @@ type TextFieldProps = Labelled &
 /** A line of text bound to its field. */
 export function TextField({ label, description, required, ...input }: TextFieldProps) {
   const { field, invalid, errors, ids, describedBy, errorRole } = useDescribed<string>(description);
+  const typed = useValueTypedEarly<HTMLInputElement>();
   return (
     <Field data-invalid={invalid || undefined}>
       <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
       <Input
         {...input}
+        ref={typed}
         id={ids.control}
         name={field.name}
         value={field.state.value}
@@ -68,11 +70,13 @@ type TextareaFieldProps = Labelled &
 /** Several lines of text bound to their field. */
 export function TextareaField({ label, description, required, ...textarea }: TextareaFieldProps) {
   const { field, invalid, errors, ids, describedBy, errorRole } = useDescribed<string>(description);
+  const typed = useValueTypedEarly<HTMLTextAreaElement>();
   return (
     <Field data-invalid={invalid || undefined}>
       <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
       <Textarea
         {...textarea}
+        ref={typed}
         id={ids.control}
         name={field.name}
         value={field.state.value}
