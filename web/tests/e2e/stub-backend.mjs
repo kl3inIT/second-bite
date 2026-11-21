@@ -825,6 +825,26 @@ async function passwordDeletion(request, response, account) {
   }
 }
 
+// Changing the password of an account made with a username (SEC-208): the new password is judged first, then the
+// current one; the account's other sessions end and the one asking stays.
+async function passwordChange(request, response, account, token) {
+  const { currentPassword, newPassword } = await readBody(request);
+  if (!account) problem(response, 401, "PLATFORM_AUTHENTICATION_REQUIRED");
+  else if (!account.username) problem(response, 409, "IDENTITY_NO_PASSWORD");
+  else if (newPassword.length < 8 || newPassword.length > 128 || newPassword === account.username) {
+    problem(response, 400, "IDENTITY_PASSWORD_INVALID");
+  } else if (passwords.get(account.username) !== currentPassword) {
+    problem(response, 400, "IDENTITY_PASSWORD_INCORRECT");
+  } else {
+    passwords.set(account.username, newPassword);
+    for (const [other, signedIn] of accounts) {
+      if (other !== token && signedIn.username === account.username) accounts.delete(other);
+    }
+    response.writeHead(204);
+    response.end();
+  }
+}
+
 // Deleting an account (SEC-37): the deletion code goes to the signed-in account's address; 123456 is right and
 // any other is not, and a sign-in challenge cannot delete. A right code ends the session and clears the cookie.
 // An address starting with "owner." owns a seller besides those it opened (sellerRoutes), for the warning
@@ -832,6 +852,10 @@ async function passwordDeletion(request, response, account) {
 async function deletion(request, response, url) {
   const token = tokenOf(request);
   const account = accounts.get(token);
+  if (request.method === "PUT" && url.pathname === "/accounts/me/password") {
+    await passwordChange(request, response, account, token);
+    return true;
+  }
   if (request.method === "POST" && url.pathname === "/accounts/me/password-deletion") {
     await passwordDeletion(request, response, account);
     return true;

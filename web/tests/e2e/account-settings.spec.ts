@@ -52,3 +52,62 @@ test.describe("naming the account on the web", () => {
     await expect(page.getByRole("definition").filter({ hasText: "Chưa có" })).toBeVisible();
   });
 });
+
+// SEC-208 › Verification plan › Web: an account made with a username changes its password from account settings with
+// the old one as the only proof; an account that signs in by email has no password and is not offered the form.
+test.describe("changing the password on the web", () => {
+  test("refuses a wrong current password, then changes it", async ({ page }) => {
+    const username = `doi.${Date.now().toString(36)}`;
+    const made = await page.request.post("/api/auth/accounts", {
+      data: { username, password: "a long password", session: "cookie" },
+    });
+    expect(made.status()).toBe(201);
+
+    await page.goto("/vi/account/settings");
+    await expect(page.getByRole("heading", { level: 2, name: "Đổi mật khẩu" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page, { exclude: ["[data-decorative]"] });
+
+    const current = await hydrated(page.getByLabel("Mật khẩu hiện tại"));
+    const next = page.getByLabel("Mật khẩu mới", { exact: true });
+    const confirm = page.getByLabel("Nhập lại mật khẩu mới");
+    const submit = page.getByRole("button", { name: "Đổi mật khẩu" });
+
+    await current.fill("not the password");
+    await next.fill("a better password");
+    await confirm.fill("a better password");
+    await submit.click();
+    await expect(page.getByText("Mật khẩu chưa đúng.")).toBeVisible();
+    await expect(current).toHaveValue("");
+
+    // The two new passwords differ: refused before the server is asked, the current one kept as typed.
+    await current.fill("a long password");
+    await confirm.fill("another one");
+    await submit.click();
+    await expect(page.getByText("Mật khẩu nhập lại chưa khớp.")).toBeVisible();
+    await expect(current).toHaveValue("a long password");
+
+    await confirm.fill("a better password");
+    await submit.click();
+    await expect(page.getByRole("status")).toContainText("Đã đổi mật khẩu");
+    await expect(current).toHaveValue("");
+
+    const old = await page.request.post("/api/auth/password-sessions", {
+      data: { username, password: "a long password", session: "cookie" },
+    });
+    expect(old.status()).toBe(400);
+    const fresh = await page.request.post("/api/auth/password-sessions", {
+      data: { username, password: "a better password", session: "cookie" },
+    });
+    expect(fresh.status()).toBe(201);
+  });
+
+  test("does not offer the form to an account that signs in by email", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `matkhau.${testInfo.project.name}@example.com`);
+    await page.goto("/vi/account/settings");
+
+    await expect(page.getByRole("heading", { level: 2, name: "Xoá tài khoản" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Đổi mật khẩu" })).toHaveCount(0);
+  });
+});
