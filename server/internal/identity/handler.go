@@ -71,6 +71,13 @@ type deleteAccountWithPasswordInput struct {
 	}
 }
 
+type changePasswordInput struct {
+	Body struct {
+		CurrentPassword string `json:"currentPassword" doc:"The password the account has now, which confirms the change"`
+		NewPassword     string `json:"newPassword" doc:"8 to 128 characters, not the username"`
+	}
+}
+
 type setDisplayNameInput struct {
 	Body struct {
 		DisplayName string `json:"displayName" maxLength:"200" doc:"1 to 50 characters once trimmed; Google never replaces it"`
@@ -337,6 +344,24 @@ func registerAccountOperations(api huma.API, s *Service, security []map[string][
 		}
 
 		return &signOutOutput{SetCookie: []http.Cookie{clearedCookie()}}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "changeMyPassword",
+		Method:      http.MethodPut,
+		Path:        "/accounts/me/password",
+		Summary:     "Change the password of the signed-in account",
+		Description: "For an account made with a username, which has no address to email a code to: the password it has now is the proof. " +
+			"The account's other sessions end; this one stays. A wrong current password counts with the tries to sign in.",
+		Tags:          tagAccounts,
+		Security:      security,
+		DefaultStatus: http.StatusNoContent,
+	}, func(ctx context.Context, in *changePasswordInput) (*struct{}, error) {
+		if err := s.ChangePassword(ctx, in.Body.CurrentPassword, in.Body.NewPassword); err != nil {
+			return nil, err
+		}
+
+		return nil, nil
 	})
 
 	huma.Register(api, huma.Operation{

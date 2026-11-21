@@ -250,3 +250,11 @@ FROM identity_accounts WHERE username = @username::text;
 -- name: GetPasswordHash :one
 -- The hash a signed-in account confirms its deletion against; empty when it has no password.
 SELECT coalesce(password_hash, '')::text AS password_hash FROM identity_accounts WHERE id = @id;
+
+-- name: UpdatePasswordHash :exec
+-- A signed-in account replaces the hash of its password (SEC-208).
+UPDATE identity_accounts SET password_hash = @password_hash::text WHERE id = @id;
+
+-- name: DeleteOtherSessions :exec
+-- The sessions of an account but the one making the request, ended when its password changes (SEC-208).
+DELETE FROM identity_sessions WHERE account_id = @account_id AND id <> @id;
