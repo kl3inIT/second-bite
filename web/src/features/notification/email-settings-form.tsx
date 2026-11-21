@@ -7,7 +7,7 @@ import { useState } from "react";
 import { z } from "zod";
 
 import { refuse, useAppForm } from "@/components/form/app-form";
-import { useFieldValidity } from "@/components/form/form-context";
+import { useFieldValidity, useValueTypedEarly } from "@/components/form/form-context";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,10 +89,7 @@ export function EmailSettingsForm({
         noValidate
         aria-labelledby="email-settings-title"
         className="flex flex-col gap-5"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit();
-        }}
+        action={() => form.handleSubmit()}
       >
         <h2 id="email-settings-title" className="text-headline text-foreground">
           {t("title")}
@@ -327,11 +324,13 @@ function PasswordField({
   warning?: string;
 }) {
   const { field, invalid, errors, ids } = useFieldValidity<string>();
+  const typed = useValueTypedEarly<HTMLInputElement>();
   const marked = invalid || warning !== undefined;
   return (
     <Field data-invalid={marked || undefined}>
       <FieldLabel htmlFor={ids.control}>{label}</FieldLabel>
       <Input
+        ref={typed}
         id={ids.control}
         name={field.name}
         type="password"
@@ -399,10 +398,7 @@ function TestEmail({
           id={form.formId}
           noValidate
           className="flex flex-col gap-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!blocked) void form.handleSubmit();
-          }}
+          action={() => (blocked ? undefined : form.handleSubmit())}
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-start">
             <div className="flex-1">

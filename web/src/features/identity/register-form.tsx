@@ -66,14 +66,7 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
   });
 
   return (
-    <form
-      id={form.formId}
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
+    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
       <FieldGroup>
         <h1 className="text-page-title text-foreground">{t("heading")}</h1>
         <form.AppField name="username">

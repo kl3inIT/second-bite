@@ -64,14 +64,7 @@ function ConfirmStep({ email, onSent }: { email: string; onSent: (challengeId: s
   });
 
   return (
-    <form
-      id={form.formId}
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
+    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
       <FieldGroup>
         <p className="text-body-sm">
           {t.rich("confirmBody", {
@@ -152,14 +145,7 @@ function CodeStep({
   }
 
   return (
-    <form
-      id={form.formId}
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
+    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
       <FieldGroup>
         <header className="flex flex-col gap-1">
           <h2 className="text-title">{t("codeHeading")}</h2>
@@ -238,14 +224,7 @@ export function DeleteAccountWithPasswordForm({ username }: { username: string }
   });
 
   return (
-    <form
-      id={form.formId}
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
+    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
       <FieldGroup>
         <p className="text-body-sm">
           {t.rich("passwordBody", {

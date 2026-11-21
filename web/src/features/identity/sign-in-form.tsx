@@ -97,14 +97,7 @@ function EmailStep({
   });
 
   return (
-    <form
-      id={form.formId}
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
+    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
       <FieldGroup>
         <h1 className="text-page-title text-foreground">{t("emailHeading")}</h1>
         <form.AppField name="email">
@@ -209,14 +202,7 @@ function CodeStep({
   }
 
   return (
-    <form
-      id={form.formId}
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
+    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
       <FieldGroup>
         <header className="flex flex-col gap-1">
           <h1 className="text-page-title text-foreground">{t("codeHeading")}</h1>
