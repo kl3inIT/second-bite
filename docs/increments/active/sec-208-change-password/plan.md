@@ -1,4 +1,4 @@
-# SEC-208 — Change the password of an account made with a username: plan
+Done, 21 November 2026 |Done, 21 November 2026 |Done, 21 November 2026 |Done, 21 November 2026 |# SEC-208 — Change the password of an account made with a username: plan
 
 Design: [design.md](design.md). Tracked in Linear as SEC-208. The app follows in its own issue after the web.
 

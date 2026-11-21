@@ -36,7 +36,7 @@ No migration: `identity_accounts.password_hash` is replaced in place; `identity_
 
 ## 5. Web
 
-A card on the account screen of an account that has a username: three password fields (`autocomplete` `current-password`, `new-password`, `new-password`), one button, the same errors as the register form for the new password, and the field of the old password marked wrong on `IDENTITY_PASSWORD_INCORRECT`. Strings in both catalogs. A short hint under the new password says to switch the phone's keyboard to English before typing it, which is why this exists.
+A card on the account screen of an account that has a username: three password fields (`autocomplete` `current-password`, `new-password`, `new-password`), one button, the same errors as the register form for the new password, and the field of the old password marked wrong on `IDENTITY_PASSWORD_INCORRECT`. Strings in both catalogs.
 
 ## Verification plan
 
