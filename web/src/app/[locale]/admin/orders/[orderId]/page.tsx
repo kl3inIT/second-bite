@@ -12,7 +12,7 @@ import { TimeLeft } from "@/features/admin-orders/time-left";
 import { shownPhone, StatusBadge } from "@/features/admin-sellers/seller-parts";
 import { requireAdmin } from "@/features/identity/current-account";
 import { sessionHeaders } from "@/features/identity/session";
-import { formatPrice } from "@/features/offers/format";
+import { formatCost, formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import { getOrder, getSeller, type OrderBody, type SellerBody } from "@/lib/api/generated";
@@ -48,6 +48,8 @@ export default async function OrderPage({
   params,
   searchParams,
 }: PageProps<"/[locale]/admin/orders/[orderId]">) {
+  const free = (await getTranslations("Price"))("free");
+  const cost = (amount: number) => formatCost(amount, free);
   const fromStore = (await searchParams).from === "store";
   const { orderId } = await params;
   await requireAdmin(`/admin/orders/${orderId}`);
@@ -183,7 +185,7 @@ export default async function OrderPage({
                     : t("orders.detail.total")}
                 </dt>
                 <dd className="font-display text-price-lg text-foreground">
-                  {formatPrice(order.totalVnd)}
+                  {cost(order.totalVnd)}
                 </dd>
               </div>
               <div className="flex flex-col gap-1">
@@ -234,7 +236,7 @@ export default async function OrderPage({
                         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                           <span className="text-body-sm-strong text-foreground">{line.name}</span>
                           <span className="text-body-sm">
-                            {formatPrice(line.priceVnd)}{" "}
+                            {cost(line.priceVnd)}{" "}
                             <s className="text-muted-foreground">
                               <span className="sr-only">{t("orders.detail.originalPrice")} </span>
                               {formatPrice(line.originalPriceVnd)}
@@ -251,7 +253,7 @@ export default async function OrderPage({
                           </span>
                         </span>
                         <span className="text-body-sm-strong whitespace-nowrap text-foreground">
-                          {formatPrice(line.priceVnd * line.units)}
+                          {cost(line.priceVnd * line.units)}
                         </span>
                       </li>
                     ))}
@@ -262,7 +264,7 @@ export default async function OrderPage({
                       {t("orders.detail.linesTotal")}
                     </span>
                     <span className="font-display text-price-lg text-foreground">
-                      {formatPrice(order.totalVnd)}
+                      {cost(order.totalVnd)}
                     </span>
                   </div>
                   {order.promotion && order.discountVnd > 0 && (
@@ -283,7 +285,7 @@ export default async function OrderPage({
                           {t("orders.detail.payVnd")}
                         </span>
                         <span className="font-display text-price-lg text-foreground">
-                          {formatPrice(order.payVnd)}
+                          {cost(order.payVnd)}
                         </span>
                       </div>
                     </>

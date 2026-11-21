@@ -41,7 +41,7 @@ During the pilot the customer pays the seller at the counter; the module records
 | `POST /admin/reviews/{orderId}/hide` `{reason?}` | Admins | `200` the review, hidden from every read but the admins'; the reason, up to 500 characters, is kept with the audit event (SEC-145) |
 | `POST /admin/reviews/{orderId}/show` | Admins | `200` the review, shown again everywhere (SEC-145) |
 
-An order carries its number (`SB-` and a number), status, seller (name, address, collection point), lines (offer, name, unit, price, original price, units, photo), total, window, the time of each transition, the cancel or refusal reason, its checkout, who collects (name and phone number), its review once rated (stars, tags, comment, time) and, to its customer, the access.
+An order carries its number (`SB-` and a number), status, seller (name, address, collection point), lines (offer, name, unit, price, original price, units, photo), total (0 for food given away free, which is placed, made ready and handed over as any other order, with no discount), window, the time of each transition, the cancel or refusal reason, its checkout, who collects (name and phone number), its review once rated (stars, tags, comment, time) and, to its customer, the access.
 
 Published to other modules: `Service` alone. The admin's report (`stats`) reads `OrderDays`, and `FirstOrderDays`, the customers whose first order, by phone number, is collected each day (SEC-192).
 

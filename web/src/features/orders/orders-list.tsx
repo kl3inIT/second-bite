@@ -5,7 +5,7 @@ import { getFormatter, getTimeZone, getTranslations } from "next-intl/server";
 import { BiteCorner } from "@/components/bite-corner";
 import { buttonVariants } from "@/components/ui/button";
 import { UnreadPill } from "@/components/unread-pill";
-import { formatPrice } from "@/features/offers/format";
+import { formatCost } from "@/features/offers/format";
 import { listOffers } from "@/features/offers/list-offers";
 import { TonightOffers } from "@/features/offers/tonight-offers";
 import { Link } from "@/i18n/navigation";
@@ -56,6 +56,8 @@ function Thumb({ order, size }: { order: Order; size: "md" | "sm" }) {
  * dishes, the number, the total and the counter.
  */
 async function OpenOrderCard({ order }: { order: Order }) {
+  const free = (await getTranslations("Price"))("free");
+  const cost = (amount: number) => formatCost(amount, free);
   const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
   const from = format.dateTime(new Date(order.windowStart), "time");
   const until = format.dateTime(new Date(order.windowEnd), "time");
@@ -79,10 +81,14 @@ async function OpenOrderCard({ order }: { order: Order }) {
           <h3 className="line-clamp-2 text-title">{dishesOf(order)}</h3>
           <p className="text-label text-muted-foreground">
             {order.status === "ready"
-              ? t("cardMetaReady", { number: order.number, total: formatPrice(order.payVnd) })
+              ? t("cardMetaReady", {
+                  number: order.number,
+                  total: cost(order.payVnd),
+                  free: order.payVnd === 0 ? "yes" : "no",
+                })
               : t("cardMetaWindow", {
                   number: order.number,
-                  total: formatPrice(order.payVnd),
+                  total: cost(order.payVnd),
                   from,
                   until,
                 })}
@@ -111,6 +117,8 @@ const endedTone: Record<Order["status"], string> = {
 
 /** A seller's order that has ended, on one line (Figma K8 › past): its day, what became of it and what it cost. */
 async function EndedOrderRow({ order }: { order: Order }) {
+  const free = (await getTranslations("Price"))("free");
+  const cost = (amount: number) => formatCost(amount, free);
   const [t, format] = await Promise.all([getTranslations("Orders"), getFormatter()]);
   const at = new Date(order.windowStart);
   const date = t("date", {
@@ -121,7 +129,7 @@ async function EndedOrderRow({ order }: { order: Order }) {
     ...(order.status === "collected" ? [order.seller.name] : []),
     date,
     t(`endedLine.${order.status}`),
-    ...(order.status === "collected" ? [formatPrice(order.payVnd)] : []),
+    ...(order.status === "collected" ? [cost(order.payVnd)] : []),
   ];
 
   return (

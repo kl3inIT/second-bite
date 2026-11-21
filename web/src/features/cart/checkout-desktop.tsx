@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { FailureAlert } from "@/components/failure-alert";
 
 import { totals } from "./cart";
@@ -15,6 +16,7 @@ import { OrderButton } from "./order-button";
 // seller's portions, the total, the price over what it would have been and "Đặt món", which asks who collects in a
 // dialog (SEC-76). The two columns stack below 1024px, the summary under the cards.
 export function CheckoutDesktop({ cart, live, now, pending, problem, onConfirmed }: CheckoutProps) {
+  const cost = usePrice();
   const t = useTranslations("Cart");
   const { units, priceVnd, originalPriceVnd } = totals(live ?? { baskets: [] });
   const orders = live?.baskets.length ?? 0;
@@ -57,9 +59,7 @@ export function CheckoutDesktop({ cart, live, now, pending, problem, onConfirmed
                 <span className="min-w-0 truncate">
                   {t("sellerUnits", { seller: basket.seller.name, units: own.units })}
                 </span>
-                <span className="shrink-0 font-display text-price-sm">
-                  {formatPrice(own.priceVnd)}
-                </span>
+                <span className="shrink-0 font-display text-price-sm">{cost(own.priceVnd)}</span>
               </li>
             );
           })}
@@ -67,11 +67,11 @@ export function CheckoutDesktop({ cart, live, now, pending, problem, onConfirmed
         <dl className="flex flex-col gap-3 border-t border-border pt-3 text-body-sm text-foreground">
           <div className="flex items-center justify-between gap-3">
             <dt>{t("dishes", { units })}</dt>
-            <dd className="font-display text-price-sm">{formatPrice(priceVnd)}</dd>
+            <dd className="font-display text-price-sm">{cost(priceVnd)}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-title">{t("total")}</dt>
-            <dd className="font-display text-price">{formatPrice(priceVnd)}</dd>
+            <dd className="font-display text-price">{cost(priceVnd)}</dd>
           </div>
         </dl>
         <PromotionNotice sellerIds={(live?.baskets ?? []).map((b) => b.seller.id)} />
@@ -79,9 +79,7 @@ export function CheckoutDesktop({ cart, live, now, pending, problem, onConfirmed
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
               <p className="flex items-baseline gap-1.5">
-                <span className="font-display text-price-lg text-primary">
-                  {formatPrice(priceVnd)}
-                </span>
+                <span className="font-display text-price-lg text-primary">{cost(priceVnd)}</span>
                 <s className="text-label text-muted-foreground">{formatPrice(originalPriceVnd)}</s>
               </p>
               <p className="text-label-strong text-foreground">

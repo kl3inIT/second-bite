@@ -176,7 +176,7 @@ class LineRow extends ConsumerWidget {
                 )
               else
                 Text(
-                  formatPrice(line.quantity * line.priceVnd),
+                  formatCost(line.quantity * line.priceVnd, l10n.priceFree),
                   style: text.price,
                 ),
             ],

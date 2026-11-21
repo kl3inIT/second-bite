@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { getFormatter, getTranslations } from "next-intl/server";
 
-import { formatPrice } from "@/features/offers/format";
+import { formatCost } from "@/features/offers/format";
 import type { OfferBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
 
@@ -9,9 +9,11 @@ import { photoUrl } from "@/lib/api/photo";
 // person can do beside it. The line depends on the status: on sale and sold out say the window and the units
 // left, over says what sold, withdrawn only the price.
 export async function PostRow({ offer, action }: { offer: OfferBody; action?: React.ReactNode }) {
+  const free = (await getTranslations("Price"))("free");
+  const cost = (amount: number) => formatCost(amount, free);
   const [t, format] = await Promise.all([getTranslations("PostRow"), getFormatter()]);
   const time = (at: string) => format.dateTime(new Date(at), "time");
-  const price = formatPrice(offer.priceVnd);
+  const price = cost(offer.priceVnd);
   const window = { from: time(offer.windowStart), until: time(offer.windowEnd) };
   const quantity = { left: offer.unitsLeft, units: offer.units, unit: offer.unit };
 

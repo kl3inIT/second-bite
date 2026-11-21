@@ -1025,6 +1025,7 @@ components:
             $ref: "#/components/schemas/OfferPhotoBody"
           type: array
         priceVnd:
+          description: 0 when it is given away free
           format: int64
           type: integer
         seller:
@@ -1431,6 +1432,7 @@ components:
             $ref: "#/components/schemas/OfferPhotoBody"
           type: array
         priceVnd:
+          description: 0 when it is given away free
           format: int64
           type: integer
         sellerId:
@@ -1529,13 +1531,14 @@ components:
           type: string
         originalPriceVnd:
           format: int64
-          minimum: 1001
+          minimum: 1
           type: integer
         photoId:
           type: string
         priceVnd:
+          description: 0 gives it away free; any other price is at least 1000
           format: int64
-          minimum: 1000
+          minimum: 0
           type: integer
         unit:
           maxLength: 20
@@ -1618,17 +1621,17 @@ components:
           minLength: 1
           type: string
         originalPriceVnd:
-          description: What one unit normally sells for; the price must be the minimum discount below it
+          description: What one unit normally sells for; the price must be the minimum discount below it, and a free offer has one too
           format: int64
-          minimum: 1001
+          minimum: 1
           type: integer
         photoId:
           description: "The cover: from POST /photos, or the photo of an earlier offer of the seller"
           type: string
         priceVnd:
-          description: Price of one unit, in whole đồng
+          description: "Price of one unit, in whole đồng: 0 gives it away free, any other price is at least 1000"
           format: int64
-          minimum: 1000
+          minimum: 0
           type: integer
         unit:
           description: What one unit is called; "suất" when empty

@@ -447,7 +447,10 @@ class _ChatOrderCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(formatPrice(order.payVnd), style: text.price),
+                Text(
+                  formatCost(order.payVnd, l10n.priceFree),
+                  style: text.price,
+                ),
                 Text(
                   formatPrice(order.payVnd + savingOf(order)),
                   style: text.label.copyWith(

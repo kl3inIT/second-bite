@@ -101,6 +101,22 @@ void main() {
         expect(find.text('Xem đơn'), findsOneWidget);
       });
 
+      testWidgets('a free order as Miễn phí, collected at the counter', (
+        tester,
+      ) async {
+        await pumpOrders(tester, (
+          open: [
+            sampleOrder(
+              id: 'a',
+            ).copyWith(totalVnd: 0, payVnd: 0, status: OrderBodyStatus.ready),
+          ],
+          ended: const [],
+        ));
+        await tester.pump();
+
+        expect(find.text('#SB-1001 · Miễn phí · nhận tại quầy'), findsOne);
+      });
+
       testWidgets('ended orders under their day, with what became of them', (
         tester,
       ) async {

@@ -15,13 +15,13 @@ abstract class OfferDetailsBody with _$OfferDetailsBody {
     required OfferDetailsBodyKind kind,
     required String name,
 
-    /// What one unit normally sells for; the price must be the minimum discount below it
+    /// What one unit normally sells for; the price must be the minimum discount below it, and a free offer has one too
     required int originalPriceVnd,
 
     /// The cover: from POST /photos, or the photo of an earlier offer of the seller
     required String photoId,
 
-    /// Price of one unit, in whole đồng
+    /// Price of one unit, in whole đồng: 0 gives it away free, any other price is at least 1000
     required int priceVnd,
     required int units,
 

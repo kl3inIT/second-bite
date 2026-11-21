@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/i18n/navigation";
 
@@ -30,6 +30,7 @@ export function GoneSheet({
   onKeep: () => void;
   onOrderRest: (rest: Basket) => void;
 }) {
+  const cost = usePrice();
   const t = useTranslations("Cart");
   const phone = useIsMobile();
   const gone = cut.filter(({ left }) => left === 0);
@@ -53,11 +54,11 @@ export function GoneSheet({
                   rest.lines.length === 1
                     ? t("line", { quantity: rest.lines[0].quantity, name: rest.lines[0].name })
                     : t("restUnits", { units: totals(rest).units }),
-                price: formatPrice(totals(rest).priceVnd),
+                price: cost(totals(rest).priceVnd),
               })
             : t("orderWithout", {
                 orders: afterRest?.baskets.length ?? 0,
-                price: formatPrice(afterRest ? totals(afterRest).priceVnd : 0),
+                price: cost(afterRest ? totals(afterRest).priceVnd : 0),
               })}
         </Button>
       )}

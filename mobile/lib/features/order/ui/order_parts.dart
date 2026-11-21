@@ -536,7 +536,7 @@ class OrderSummary extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    formatPrice(line.priceVnd * line.units),
+                    formatCost(line.priceVnd * line.units, l10n.priceFree),
                     style: text.price.copyWith(color: scheme.primary),
                   ),
                   Semantics(
@@ -619,7 +619,10 @@ class OrderSummary extends StatelessWidget {
                       excludeSemantics: true,
                       child: Text(formatPrice(order.totalVnd), style: struck),
                     ),
-                  Text(formatPrice(order.payVnd), style: text.price),
+                  Text(
+                    formatCost(order.payVnd, l10n.priceFree),
+                    style: text.price,
+                  ),
                 ],
               ),
               end: true,

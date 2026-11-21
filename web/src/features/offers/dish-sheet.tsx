@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 import { DiscountBadge } from "./discount-label";
 import { formatPrice } from "./format";
+import { usePrice } from "./use-price";
 import { cappedPerOrder, mostPerOrder, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 
@@ -68,6 +69,7 @@ function DishBody({
   title: React.ReactNode;
   className?: string;
 }) {
+  const cost = usePrice();
   const t = useTranslations("Dish");
   const cards = useTranslations("OfferCard");
   const original = formatPrice(offer.originalPriceVnd);
@@ -84,9 +86,7 @@ function DishBody({
         {title}
         <div className="flex flex-col gap-0.5">
           <p className="flex items-baseline gap-1.25">
-            <span className="font-display text-price text-primary">
-              {formatPrice(offer.priceVnd)}
-            </span>
+            <span className="font-display text-price text-primary">{cost(offer.priceVnd)}</span>
             <s aria-hidden className="text-label text-muted-foreground">
               {original}
             </s>
@@ -143,6 +143,7 @@ function AddBar({
   onAdded: () => void;
   className?: string;
 }) {
+  const cost = usePrice();
   const t = useTranslations("Dish");
   const cart = useCart();
   const room = mostPerOrder(offer) - quantityOf(cart, offer.id);
@@ -177,7 +178,7 @@ function AddBar({
         }}
       >
         {room > 0
-          ? t("add", { price: formatPrice(count * offer.priceVnd) })
+          ? t("add", { price: cost(count * offer.priceVnd) })
           : t(capped ? "capChosen" : "allChosen", { units: mostPerOrder(offer) })}
       </Button>
       {capped && (

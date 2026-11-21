@@ -6,7 +6,7 @@ import { useFormatter, useNow, useTranslations } from "next-intl";
 import { ChoiceOption } from "@/components/choice-option";
 import { Button } from "@/components/ui/button";
 import { RadioGroup } from "@/components/ui/radio-group";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { directionsHref } from "@/features/offers/offer";
 import { OfferPhoto } from "@/features/offers/offer-photo";
 import { SellerLogo } from "@/features/offers/seller-logo";
@@ -122,13 +122,14 @@ function LineRow({ cart, line, over }: { cart: Cart; line: CartLine; over: boole
 
 /** What a dish's portions cost, or "Hết giờ nhận" once its window has closed and it can no longer be ordered. */
 export function LinePrice({ line, over }: { line: CartLine; over: boolean }) {
+  const cost = usePrice();
   const t = useTranslations("Cart");
 
   return over ? (
     <p className="text-label-strong text-sale">{t("over")}</p>
   ) : (
     <p className="font-display text-price-sm text-foreground">
-      {formatPrice(line.quantity * line.priceVnd)}
+      {cost(line.quantity * line.priceVnd)}
     </p>
   );
 }

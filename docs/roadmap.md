@@ -43,6 +43,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-204 — Ordering in the app for customers](increments/active/sec-204-app-ordering/design.md): the web's customer flow in the Flutter app, from a store's page to an order's live page and its chat; stores keep the web (decided 8 November 2026).
 - [SEC-196 — Username sign-in in the app](increments/active/sec-196-app-username-sign-in/design.md): the web's sign-in, register and password deletion in the app; merged 9 November 2026, waits for its check on a device.
 - [SEC-38 — Sign in with Apple](increments/active/sec-38-sign-in-with-apple/design.md): the server and the iOS app, off until the Apple Developer account exists (SEC-14); merged 9 November 2026.
+- [Free offers](increments/active/free-offers/design.md): a store posts food given away at 0 đồng, shown as Miễn phí, reserved and handed over as any order; for the Tasco Mall pilot of 22 November 2026, in review.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 
 ## Candidates

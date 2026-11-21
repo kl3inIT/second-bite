@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { DiscountBadge } from "./discount-label";
 import { DishSheet } from "./dish-sheet";
 import { formatPrice } from "./format";
+import { usePrice } from "./use-price";
 import { dishAnchor, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 
@@ -27,6 +28,7 @@ export function SellerDish({
   focused: boolean;
   compact?: boolean;
 }) {
+  const cost = usePrice();
   const t = useTranslations("OfferCard");
   const [open, setOpen] = useState(false);
   const original = formatPrice(offer.originalPriceVnd);
@@ -78,7 +80,7 @@ export function SellerDish({
                 compact ? "text-price-sm md:text-price" : "text-price",
               )}
             >
-              {formatPrice(offer.priceVnd)}
+              {cost(offer.priceVnd)}
             </span>
             <s aria-hidden className="text-label text-muted-foreground">
               {original}

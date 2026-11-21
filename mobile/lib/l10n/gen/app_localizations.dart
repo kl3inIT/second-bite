@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Second Bite'**
   String get appTitle;
 
+  /// A price or a total of 0đ: food the shop gives away
+  ///
+  /// In vi, this message translates to:
+  /// **'Miễn phí'**
+  String get priceFree;
+
   /// The area under the header's place while every shop is shown
   ///
   /// In vi, this message translates to:
@@ -1813,11 +1819,11 @@ abstract class AppLocalizations {
     String until,
   );
 
-  /// A ready order's number and what to pay
+  /// A ready order's number and what to pay; free is yes when it comes to 0đ
   ///
   /// In vi, this message translates to:
-  /// **'#{number} · {total} · trả khi nhận'**
-  String ordersCardMetaReady(String number, String total);
+  /// **'#{number} · {total} · {free, select, yes{nhận tại quầy} other{trả khi nhận}}'**
+  String ordersCardMetaReady(String number, String total, String free);
 
   /// Opens a ready order's QR code
   ///
@@ -2262,17 +2268,22 @@ abstract class AppLocalizations {
   /// **'Bạn đã nhận món'**
   String get orderTimelineCollected;
 
-  /// Moment: collected, its line
+  /// Moment: collected, its line; free is yes when it came to 0đ
   ///
   /// In vi, this message translates to:
-  /// **'{time} · đã trả {total}'**
-  String orderTimelineCollectedBody(String time, String total);
+  /// **'{time} · {free, select, yes{nhận miễn phí} other{đã trả {total}}}'**
+  String orderTimelineCollectedBody(String time, String total, String free);
 
-  /// Moment: collected and rated
+  /// Moment: collected and rated; free is yes when it came to 0đ
   ///
   /// In vi, this message translates to:
-  /// **'{time} · đã trả {total} · bạn chấm {stars} sao'**
-  String orderTimelineCollectedRated(String time, String total, int stars);
+  /// **'{time} · {free, select, yes{nhận miễn phí} other{đã trả {total}}} · bạn chấm {stars} sao'**
+  String orderTimelineCollectedRated(
+    String time,
+    String total,
+    String free,
+    int stars,
+  );
 
   /// Moment: refused
   ///

@@ -8,7 +8,7 @@ import { ListFooter } from "@/features/admin/list-footer";
 import { OrderActions } from "@/features/admin-orders/order-actions";
 import { OrderStatusBadge } from "@/features/admin-orders/order-status";
 import { useLinesSummary } from "@/features/admin-orders/orders-list";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { DayBar } from "@/features/seller/day-filter";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody } from "@/lib/api/generated";
@@ -69,6 +69,7 @@ export function SellerOrders({
 }
 
 function useColumns(): DataTableColumns<OrderBody> {
+  const cost = usePrice();
   const t = useTranslations("Admin.orders");
   const gone = useTranslations("Orders")("customerGone");
   const format = useFormatter();
@@ -112,7 +113,7 @@ function useColumns(): DataTableColumns<OrderBody> {
       id: "total",
       header: t("column.total"),
       meta: { width: "w-24" },
-      cell: ({ row }) => formatPrice(row.original.totalVnd),
+      cell: ({ row }) => cost(row.original.totalVnd),
     },
     {
       id: "status",

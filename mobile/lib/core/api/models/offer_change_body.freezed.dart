@@ -19,7 +19,8 @@ mixin _$OfferChangeBody {
  String? get description; OfferChangeBodyKind? get kind;/// Leaves it as it is when absent, and empties it when the kind is changed from other
  String? get kindLabel;/// How many units one order may take; 0 takes the cap away, so the settings' default applies
  int? get maxPerOrder;/// Replaces the photos after the cover; at most two
- List<String>? get morePhotoIds; String? get name; int? get originalPriceVnd; String? get photoId; int? get priceVnd; String? get unit; int? get units; int? get weightGrams; DateTime? get windowEnd; DateTime? get windowStart;
+ List<String>? get morePhotoIds; String? get name; int? get originalPriceVnd; String? get photoId;/// 0 gives it away free; any other price is at least 1000
+ int? get priceVnd; String? get unit; int? get units; int? get weightGrams; DateTime? get windowEnd; DateTime? get windowStart;
 /// Create a copy of OfferChangeBody
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -254,6 +255,7 @@ class _OfferChangeBody implements OfferChangeBody {
 @override final  String? name;
 @override final  int? originalPriceVnd;
 @override final  String? photoId;
+/// 0 gives it away free; any other price is at least 1000
 @override final  int? priceVnd;
 @override final  String? unit;
 @override final  int? units;

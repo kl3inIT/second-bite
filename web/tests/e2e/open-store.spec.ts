@@ -403,6 +403,134 @@ test.describe("posting a dish on the web", () => {
     await expect(page.getByRole("link", { name: "Đang bán · 2" })).toBeVisible();
   });
 
+  test("posts a dish given away free, at 0đ with its original price, and lists it as Miễn phí", async ({
+    page,
+  }, testInfo) => {
+    const store = await sampleStore(page, "free", testInfo);
+    await page.goto(`/vi/stores/${store}/offers`);
+    await page.getByRole("link", { name: "Đăng món" }).click();
+
+    const drawer = page.getByRole("dialog");
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+    await drawer
+      .getByRole("listitem")
+      .filter({ hasText: "Túi bánh mì và croissant, 4 chiếc" })
+      .getByRole("button", { name: "Chọn" })
+      .click();
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+
+    await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveText("76.000đ");
+    const free = drawer.getByRole("button", { name: "Miễn phí", exact: true });
+    await free.click();
+    await expect(free).toHaveAttribute("aria-pressed", "true");
+    await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveText("Miễn phí");
+    await expectNoSeriousA11yViolations(page);
+
+    const sent = page.waitForRequest(
+      (request) =>
+        request.method() === "POST" &&
+        new URL(request.url()).pathname.endsWith(`/sellers/${store}/offers`),
+    );
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    const body = (await sent).postDataJSON() as { originalPriceVnd: number; priceVnd: number };
+    expect(body.priceVnd).toBe(0);
+    expect(body.originalPriceVnd).toBe(95_000);
+    await expect(page.getByText("Đã đăng 3 suất. Khách đặt được ngay.")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(
+      page.getByRole("listitem").filter({ hasText: "Túi bánh mì và croissant" }).first(),
+    ).toContainText("· Miễn phí");
+  });
+
+  /** Opens the post drawer at its last step with the earlier dish "Túi bánh mì và croissant, 4 chiếc". */
+  async function earlierDishDrawer(page: Page, store: string) {
+    await page.goto(`/vi/stores/${store}/offers`);
+    await page.getByRole("link", { name: "Đăng món" }).click();
+    const drawer = page.getByRole("dialog");
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+    await drawer
+      .getByRole("listitem")
+      .filter({ hasText: "Túi bánh mì và croissant, 4 chiếc" })
+      .getByRole("button", { name: "Chọn" })
+      .click();
+    await drawer.getByRole("button", { name: "Tiếp tục" }).click();
+    await expect(drawer.getByText("Giá bán & số lượng")).toBeVisible();
+    return drawer;
+  }
+
+  /** Waits for the post the drawer sends, and answers its body. */
+  function postedBody(page: Page, store: string) {
+    return page
+      .waitForRequest(
+        (request) =>
+          request.method() === "POST" &&
+          new URL(request.url()).pathname.endsWith(`/sellers/${store}/offers`),
+      )
+      .then((request) => request.postDataJSON() as { originalPriceVnd: number; priceVnd: number });
+  }
+
+  test("gives a dish away free whose original price is under 1.000đ", async ({
+    page,
+  }, testInfo) => {
+    const store = await sampleStore(page, "freecheap", testInfo);
+    const drawer = await earlierDishDrawer(page, store);
+    await drawer.getByLabel("Giá gốc (đồng)").fill("500");
+    await drawer.getByRole("button", { name: "Miễn phí", exact: true }).click();
+    await expect(drawer.getByLabel("Giá bán (đồng)")).toHaveText("Miễn phí");
+
+    const sent = postedBody(page, store);
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    const body = await sent;
+    expect(body.priceVnd).toBe(0);
+    expect(body.originalPriceVnd).toBe(500);
+    await expect(page.getByText("Đã đăng 3 suất. Khách đặt được ngay.")).toBeVisible({
+      timeout: 15_000,
+    });
+  });
+
+  test("posts a closed free post again as Miễn phí", async ({ page }, testInfo) => {
+    const store = await sampleStore(page, "freeagain", testInfo);
+    const drawer = await earlierDishDrawer(page, store);
+    await drawer.getByRole("button", { name: "Miễn phí", exact: true }).click();
+    await drawer.getByRole("button", { name: "Đăng", exact: true }).click();
+    await expect(page.getByText("Đã đăng 3 suất. Khách đặt được ngay.")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Withdrawn, the free post is closed, and posted again from there.
+    await page
+      .getByRole("listitem")
+      .filter({ hasText: "Miễn phí" })
+      .getByRole("link", { name: "Sửa" })
+      .click();
+    await page.getByRole("dialog").getByRole("button", { name: "Rút bài" }).click();
+    await expect(page.getByRole("dialog").getByText("Rút bài này?")).toBeVisible();
+    await page.getByRole("dialog").getByRole("button", { name: "Rút bài" }).click();
+    const closed = page.getByRole("listitem").filter({ hasText: "Đã rút · Miễn phí" });
+    await expect(closed).toBeVisible({ timeout: 15_000 });
+    await page.goto(`/vi/stores/${store}/offers?tab=closed`);
+    await closed.getByRole("link", { name: "Đăng lại" }).click();
+
+    const again = page.getByRole("dialog");
+    await expect(again.getByText("Từ bài đã đóng")).toBeVisible();
+    await expect(again.getByLabel("Giá bán (đồng)")).toHaveText("Miễn phí");
+    await expect(again.getByRole("button", { name: "Miễn phí", exact: true })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await again
+      .getByRole("group", { name: "Bắt đầu", exact: true })
+      .getByRole("button")
+      .first()
+      .click();
+    const sent = postedBody(page, store);
+    await again.getByRole("button", { name: "Đăng", exact: true }).click();
+    const body = await sent;
+    expect(body.priceVnd).toBe(0);
+    expect(body.originalPriceVnd).toBe(95_000);
+  });
+
   test("applies custom discounts and pickup times without changing cancelled drafts", async ({
     page,
     isMobile,
@@ -447,7 +575,8 @@ test.describe("posting a dish on the web", () => {
       ["Kết thúc", 5],
     ] as const) {
       const group = drawer.getByRole("group", { name, exact: true });
-      const buttons = group.getByRole("button");
+      // "Miễn phí" sits on a row of its own under the discounts, as wide as the group.
+      const buttons = group.getByRole("button").filter({ hasNotText: "Miễn phí" });
       await expect(buttons).toHaveCount(count);
       // Browsers quantize a 1.5px stroke to device pixels; the input-edge colour must stay the same.
       expect(
@@ -476,6 +605,12 @@ test.describe("posting a dish on the web", () => {
         expect(box.width).toBeCloseTo(boxes[0]!.width, 0);
       }
     }
+    const discounts = await drawer
+      .getByRole("group", { name: "Giảm giá (%)", exact: true })
+      .boundingBox();
+    const free = await drawer.getByRole("button", { name: "Miễn phí", exact: true }).boundingBox();
+    expect(free!.width).toBeCloseTo(discounts!.width, 0);
+    expect(free!.height).toBeGreaterThanOrEqual(44);
     await expectNoSeriousA11yViolations(page);
     await page.screenshot({ path: testInfo.outputPath("posting-layout.png") });
     await drawer.getByRole("button", { name: "50%", exact: true }).click();
@@ -497,7 +632,7 @@ test.describe("posting a dish on the web", () => {
     await popup.getByRole("button", { name: "Nhập mức khác…", exact: true }).click();
     await popup.getByLabel("Giảm giá (%)").fill("19");
     await popup.getByRole("button", { name: "Áp dụng", exact: true }).click();
-    await expect(popup.getByText("Nhập số nguyên từ 20% đến 99%.")).toBeVisible();
+    await expect(popup.getByText("Nhập số nguyên từ 20% đến 100%.")).toBeVisible();
     await expect(sale).toHaveText("6.000đ");
     await popup.getByLabel("Giảm giá (%)").fill("35");
     await expectNoSeriousA11yViolations(page);

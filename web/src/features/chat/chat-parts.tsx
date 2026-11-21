@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { StoreMap } from "@/components/map/store-map";
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { directionsHref } from "@/features/offers/offer";
 import { customerOf, dishesOf, savingOf, unitsOf, type Order } from "@/features/orders/order";
 import { Photo } from "@/features/orders/order-parts";
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
  * what it costs above what it would have cost. A seller's phone names the order instead of the dishes (Figma Q7).
  */
 export function ChatOrderCard({ order, phoneTitle }: { order: Order; phoneTitle?: string }) {
+  const cost = usePrice();
   const t = useTranslations("Chat");
   const orders = useTranslations("Orders");
   const format = useFormatter();
@@ -54,7 +56,7 @@ export function ChatOrderCard({ order, phoneTitle }: { order: Order; phoneTitle?
         </p>
       </div>
       <p className="flex shrink-0 flex-col items-end">
-        <span className="font-display text-price">{formatPrice(order.payVnd)}</span>
+        <span className="font-display text-price">{cost(order.payVnd)}</span>
         <s className="text-label text-muted-foreground">
           <span className="sr-only">{orders("originalPrice")}</span>
           {formatPrice(order.payVnd + savingOf(order))}

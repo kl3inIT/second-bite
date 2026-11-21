@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { DiscountBadge } from "./discount-label";
 import { DishSheet } from "./dish-sheet";
 import { formatPrice } from "./format";
+import { usePrice } from "./use-price";
 import { cappedPerOrder, dishAnchor, kindsByCount, mostPerOrder, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 
@@ -207,6 +208,7 @@ function DishCard({
   anchored: boolean;
   ringed: boolean;
 }) {
+  const cost = usePrice();
   const t = useTranslations("OfferCard");
   const [open, setOpen] = useState(false);
   const original = formatPrice(offer.originalPriceVnd);
@@ -247,9 +249,7 @@ function DishCard({
         </div>
         <div className="flex items-end justify-between gap-2">
           <p className="flex min-w-0 flex-col">
-            <span className="font-display text-price-lg text-primary">
-              {formatPrice(offer.priceVnd)}
-            </span>
+            <span className="font-display text-price-lg text-primary">{cost(offer.priceVnd)}</span>
             <s aria-hidden className="text-label text-muted-foreground">
               {original}
             </s>

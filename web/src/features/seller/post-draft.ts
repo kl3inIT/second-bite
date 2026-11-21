@@ -6,6 +6,8 @@ import type { DishBody, OfferBody } from "@/lib/api/generated";
 
 /** The first value of the offer settings (docs/specs/offer.md); an admin may change it, and the backend then answers. */
 export const MIN_DISCOUNT_PERCENT = 20;
+/** The discount of food given away free: its price is 0đ, the only price below 1.000đ the backend takes. */
+export const FREE_PERCENT = 100;
 export const MIN_WINDOW_MINUTES = 30;
 export const MAX_WINDOW_MINUTES = 360;
 
@@ -16,8 +18,8 @@ export function maxPrice(original: number, minDiscountPercent = MIN_DISCOUNT_PER
 
 /**
  * The price a post starts from once the original price is known: the dearest one that keeps the minimum
- * discount, in whole đồng (76.000đ for 95.000đ, 7.992đ for 9.990đ at 20% off); nothing
- * while no price of at least 1.000đ keeps the discount.
+ * discount, in whole đồng (76.000đ for 95.000đ, 7.992đ for 9.990đ at 20% off), and 0 at 100% off, given away
+ * free; nothing while no price of at least 1.000đ keeps the discount.
  */
 export function suggestedPrice(
   original: number,
@@ -27,9 +29,10 @@ export function suggestedPrice(
     !Number.isFinite(original) ||
     !Number.isInteger(percent) ||
     percent < MIN_DISCOUNT_PERCENT ||
-    percent >= 100
+    percent > FREE_PERCENT
   )
     return undefined;
+  if (percent === FREE_PERCENT) return 0;
   const price = maxPrice(original, percent);
   return price >= 1000 ? price : undefined;
 }
@@ -41,9 +44,15 @@ export function discountPercent(original: number, price: number): number {
 
 export type PriceProblem = "missing" | "tooHigh";
 
-/** Why a price cannot be posted against the original price, or nothing. */
+/**
+ * Why a price cannot be posted against the original price, or nothing. 0đ gives the food away free, and then
+ * any original price above 0 will do, as the backend takes; a paid price and its original are 1.000đ or more.
+ */
 export function priceProblem(original: number, price: number): PriceProblem | undefined {
-  if (!Number.isFinite(price) || price < 1000 || !Number.isFinite(original) || original < 1000) {
+  const free = price === 0;
+  const priceValid = free || price >= 1000;
+  const originalValid = original >= (free ? 1 : 1000);
+  if (!Number.isFinite(price) || !priceValid || !Number.isFinite(original) || !originalValid) {
     return "missing";
   }
   return price > maxPrice(original) ? "tooHigh" : undefined;

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 import { DishLink } from "./dish-link";
 import { formatPrice } from "./format";
+import { usePrice } from "./use-price";
 import { isAvailable, type OfferSummary } from "./offer";
 import { OfferPhoto } from "./offer-photo";
 
@@ -11,6 +12,7 @@ import { OfferPhoto } from "./offer-photo";
 // price beside the old one struck through, and the dish on one line. `square` is the 112px photograph of a
 // followed seller's row (Figma K9).
 export function DishTile({ offer, square = false }: { offer: OfferSummary; square?: boolean }) {
+  const cost = usePrice();
   const t = useTranslations("OfferCard");
   const original = formatPrice(offer.originalPriceVnd);
 
@@ -26,7 +28,7 @@ export function DishTile({ offer, square = false }: { offer: OfferSummary; squar
       </div>
       <p className="flex items-baseline gap-0.75">
         <span className="shrink-0 font-display text-price-sm text-primary">
-          {formatPrice(offer.priceVnd)}
+          {cost(offer.priceVnd)}
         </span>
         <s aria-hidden className="truncate text-label text-muted-foreground">
           {original}

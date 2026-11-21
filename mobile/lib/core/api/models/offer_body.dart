@@ -36,6 +36,8 @@ abstract class OfferBody with _$OfferBody {
 
     /// Every photo, the cover first
     required List<OfferPhotoBody> photos,
+
+    /// 0 when it is given away free
     required int priceVnd,
     required String sellerId,
 

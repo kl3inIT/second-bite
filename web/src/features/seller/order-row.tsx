@@ -2,7 +2,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { UnreadPill } from "@/components/unread-pill";
-import { formatPrice } from "@/features/offers/format";
+import { formatCost } from "@/features/offers/format";
 import type { OrderBody } from "@/lib/api/generated";
 
 import { Link } from "@/i18n/navigation";
@@ -18,6 +18,8 @@ import { customerOf } from "@/features/orders/order";
 // the order's own page (Figma Q5j, Q5k); its buttons and the phone's copy stay above that link. In the cancelled
 // tab a line says why it ended. A customer's own cancelling, and a window that ran out, are not taken back.
 export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab }) {
+  const free = (await getTranslations("Price"))("free");
+  const cost = (amount: number) => formatCost(amount, free);
   const [t, orders] = await Promise.all([
     getTranslations("StoreOrders"),
     getTranslations("Orders"),
@@ -87,7 +89,7 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
         <span aria-hidden className="h-11 w-px bg-border max-md:hidden" />
         <p className="flex w-25 flex-col">
           <span className="text-note text-muted-foreground">{t("amount")}</span>
-          <span className="text-card-title">{formatPrice(order.totalVnd)}</span>
+          <span className="text-card-title">{cost(order.totalVnd)}</span>
         </p>
       </div>
       {(tab === "preparing" || tab === "ready") && (

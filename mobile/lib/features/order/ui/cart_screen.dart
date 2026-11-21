@@ -182,12 +182,15 @@ class _Confirmation extends StatelessWidget {
         const SizedBox(height: SpacingTokens.space3),
         _SumLine(
           label: Text(l10n.cartDishes(units), style: text.bodySm),
-          value: Text(formatPrice(priceVnd), style: text.price),
+          value: Text(formatCost(priceVnd, l10n.priceFree), style: text.price),
         ),
         const SizedBox(height: SpacingTokens.space3),
         _SumLine(
           label: Text(l10n.cartTotal, style: text.title),
-          value: Text(formatPrice(priceVnd), style: text.priceLg),
+          value: Text(
+            formatCost(priceVnd, l10n.priceFree),
+            style: text.priceLg,
+          ),
         ),
         const SizedBox(height: SpacingTokens.space3),
         PromotionNotice(
@@ -268,7 +271,7 @@ class _OrderBar extends StatelessWidget {
       children: [
         if (failed is PlaceFailed) _Failed(failed),
         AppCartBar(
-          price: formatPrice(priceVnd),
+          price: formatCost(priceVnd, l10n.priceFree),
           originalPrice: original,
           originalPriceLabel: l10n.offerOriginalPrice(original),
           summary: l10n.cartTotalSummary(

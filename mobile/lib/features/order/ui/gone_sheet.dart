@@ -71,7 +71,7 @@ class GoneSheet extends StatelessWidget {
                             rest.lines.first.name,
                           )
                         : l10n.cartRestUnits(restTotals.units),
-                    formatPrice(restTotals.priceVnd),
+                    formatCost(restTotals.priceVnd, l10n.priceFree),
                   ),
                 ),
               ),
