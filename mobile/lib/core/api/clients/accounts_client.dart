@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/account_body.dart';
+import '../models/change_password_input_body.dart';
 import '../models/delete_account_input_body.dart';
 import '../models/delete_account_with_password_input_body.dart';
 import '../models/request_code_output_body.dart';
@@ -40,6 +41,14 @@ abstract class AccountsClient {
   /// The code confirms the deletion only; it cannot sign in. It shares the address's limits with the sign-in codes.
   @POST('/accounts/me/deletion-codes')
   Future<RequestCodeOutputBody> requestAccountDeletionCode();
+
+  /// Change the password of the signed-in account.
+  ///
+  /// For an account made with a username, which has no address to email a code to: the password it has now is the proof. The account's other sessions end; this one stays. A wrong current password counts with the tries to sign in.
+  @PUT('/accounts/me/password')
+  Future<void> changeMyPassword({
+    @Body() required ChangePasswordInputBody body,
+  });
 
   /// Delete the signed-in account with its password.
   ///

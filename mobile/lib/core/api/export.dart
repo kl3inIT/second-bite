@@ -38,6 +38,7 @@ export 'models/audit_event_body.dart';
 export 'models/audit_events_output_body.dart';
 export 'models/block_seller_request.dart';
 export 'models/cancel_order_request.dart';
+export 'models/change_password_input_body.dart';
 export 'models/change_seller_owner_request.dart';
 export 'models/collection_point_body.dart';
 export 'models/counts_body.dart';

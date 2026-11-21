@@ -284,7 +284,7 @@ func (s *Service) DeleteAccountWithPassword(ctx context.Context, password string
 }
 
 // confirmPassword checks the password an account made with a username confirms
-// its deletion with. A try is counted before the password is compared and given
+// its deletion, or the change of its password, with. A try is counted before the password is compared and given
 // back when it was right or could not be judged; a wrong one keeps its count.
 func (s *Service) confirmPassword(ctx context.Context, account Account, password string) error {
 	if utf8.RuneCountInString(password) > maxPasswordLength {
@@ -311,8 +311,8 @@ func (s *Service) confirmPassword(ctx context.Context, account Account, password
 	}
 
 	if !right {
-		s.logger.InfoContext(ctx, "account deletion password wrong",
-			slog.String("event", "identity.delete_account.failed"),
+		s.logger.InfoContext(ctx, "password confirmation wrong",
+			slog.String("event", "identity.password_confirmation.failed"),
 			slog.String("account_id", account.ID.String()),
 			slog.String("error_code", ErrPasswordIncorrect.Code),
 		)

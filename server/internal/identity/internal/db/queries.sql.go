@@ -334,6 +334,21 @@ func (q *Queries) DeleteOldChallenges(ctx context.Context) error {
 	return err
 }
 
+const deleteOtherSessions = `-- name: DeleteOtherSessions :exec
+DELETE FROM identity_sessions WHERE account_id = $1 AND id <> $2
+`
+
+type DeleteOtherSessionsParams struct {
+	AccountID uuid.UUID
+	ID        uuid.UUID
+}
+
+// The sessions of an account but the one making the request, ended when its password changes (SEC-208).
+func (q *Queries) DeleteOtherSessions(ctx context.Context, arg DeleteOtherSessionsParams) error {
+	_, err := q.db.Exec(ctx, deleteOtherSessions, arg.AccountID, arg.ID)
+	return err
+}
+
 const deleteSession = `-- name: DeleteSession :exec
 DELETE FROM identity_sessions WHERE id = $1
 `
@@ -1100,6 +1115,21 @@ type TouchSessionParams struct {
 
 func (q *Queries) TouchSession(ctx context.Context, arg TouchSessionParams) error {
 	_, err := q.db.Exec(ctx, touchSession, arg.LifetimeSeconds, arg.ID)
+	return err
+}
+
+const updatePasswordHash = `-- name: UpdatePasswordHash :exec
+UPDATE identity_accounts SET password_hash = $1::text WHERE id = $2
+`
+
+type UpdatePasswordHashParams struct {
+	PasswordHash string
+	ID           uuid.UUID
+}
+
+// A signed-in account replaces the hash of its password (SEC-208).
+func (q *Queries) UpdatePasswordHash(ctx context.Context, arg UpdatePasswordHashParams) error {
+	_, err := q.db.Exec(ctx, updatePasswordHash, arg.PasswordHash, arg.ID)
 	return err
 }
 

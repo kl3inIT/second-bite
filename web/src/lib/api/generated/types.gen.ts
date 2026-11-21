@@ -292,6 +292,17 @@ export type CancelOrderRequest = {
     reason?: string;
 };
 
+export type ChangePasswordInputBody = {
+    /**
+     * The password the account has now, which confirms the change
+     */
+    currentPassword: string;
+    /**
+     * 8 to 128 characters, not the username
+     */
+    newPassword: string;
+};
+
 export type ChangeSellerOwnerRequest = {
     /**
      * The new owner's address
@@ -1870,6 +1881,31 @@ export type RequestAccountDeletionCodeResponses = {
 };
 
 export type RequestAccountDeletionCodeResponse = RequestAccountDeletionCodeResponses[keyof RequestAccountDeletionCodeResponses];
+
+export type ChangeMyPasswordData = {
+    body: ChangePasswordInputBody;
+    path?: never;
+    query?: never;
+    url: '/accounts/me/password';
+};
+
+export type ChangeMyPasswordErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ChangeMyPasswordError = ChangeMyPasswordErrors[keyof ChangeMyPasswordErrors];
+
+export type ChangeMyPasswordResponses = {
+    /**
+     * No Content
+     */
+    204: void;
+};
+
+export type ChangeMyPasswordResponse = ChangeMyPasswordResponses[keyof ChangeMyPasswordResponses];
 
 export type DeleteMyAccountWithPasswordData = {
     body: DeleteAccountWithPasswordInputBody;

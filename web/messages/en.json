@@ -738,6 +738,24 @@
     "nameInvalid": "Enter a display name of 1 to 50 characters.",
     "username": "Username"
   },
+  "ChangePassword": {
+    "title": "Change password",
+    "currentLabel": "Current password",
+    "currentPlaceholder": "Enter your current password",
+    "newLabel": "New password",
+    "newPlaceholder": "Enter a new password",
+    "confirmLabel": "Confirm the new password",
+    "confirmPlaceholder": "Enter the new password again",
+    "submit": "Change password",
+    "saving": "Changing the password…",
+    "done": "Your password is changed. Your other devices are signed out.",
+    "failed": "Your password could not be changed. Please try again.",
+    "errors": {
+      "current": "Enter your current password.",
+      "password": "A password has 8 to 128 characters.",
+      "mismatch": "The two passwords do not match."
+    }
+  },
   "DeleteAccount": {
     "title": "Delete your account",
     "description": "How to delete your Second Bite account: confirm with an emailed code; what is deleted at once, what goes a few minutes later and what is kept.",

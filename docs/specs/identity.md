@@ -17,6 +17,7 @@ Owns accounts and their role, emailed sign-in codes, Google sign-in, Sign in wit
 | `GET /accounts/me` | A signed-in caller | `200 {id, email, username, role, displayName}`; `email` is empty for an account made with a username, `username` for one that signs in by email or Google |
 | `PUT /accounts/me` `{displayName}` | A signed-in caller | `200` the account, its name trimmed (SEC-61) |
 | `POST /accounts/me/deletion-codes` | A signed-in caller | `202 {challengeId, expiresAt}`; a code that only confirms the deletion is emailed to the account's address (SEC-37) |
+| `PUT /accounts/me/password` `{currentPassword, newPassword}` | A signed-in caller whose account has a password | `204`; the hash is replaced and the account's other sessions end, this one stays; the new password follows the rules of a registration and is judged before a try is spent, a wrong current one counts with the username's tries to sign in (SEC-208) |
 | `POST /accounts/me/password-deletion` `{password}` | A signed-in caller whose account has a password | `204`; the account is deleted as with the code and the session cookie cleared (SEC-193) |
 | `POST /accounts/me/deletion` `{challengeId, code}` | A signed-in caller holding a deletion code of their own address | `204`; the account is deleted and the session cookie cleared |
 | `GET /admin/admins` | Admins | `200 {admins}`, by address, each with its creation and last sign-in (SEC-75) |
@@ -93,9 +94,9 @@ Administrative commands: `secondbite admin grant EMAIL` makes an account an admi
 | `IDENTITY_USERNAME_TAKEN` | 409 | The username is another account's, exactly as typed |
 | `IDENTITY_CREDENTIALS_INCORRECT` | 400 | An unknown username or a wrong password, alike; 400 like a wrong code so that a client does not read it as an ended session |
 | `IDENTITY_SIGN_IN_LIMIT_EXCEEDED` | 429 | The username has used its five tries in the window; `Retry-After` gives the wait |
-| `IDENTITY_PASSWORD_INCORRECT` | 400 | A wrong password confirming a deletion |
+| `IDENTITY_PASSWORD_INCORRECT` | 400 | A wrong password confirming a deletion, or the wrong current password of a change (SEC-208) |
 | `IDENTITY_NO_EMAIL` | 409 | A deletion code asked for, or used, by an account that has no address |
-| `IDENTITY_NO_PASSWORD` | 409 | A deletion by password asked for by an account that has none |
+| `IDENTITY_NO_PASSWORD` | 409 | A deletion by password, or a change of the password, asked for by an account that has none |
 | `IDENTITY_ADDRESS_UNPROVEN` | 409 | A role or a seller membership is given by address while the address's account holds a Google link Google does not speak for; the owner signs in once with the emailed code, then it succeeds (SEC-39) |
 | `IDENTITY_DISPLAY_NAME_INVALID` | 400 | A display name empty once trimmed, longer than 50 characters, or holding a control character |
 | `IDENTITY_ACCOUNT_NOT_FOUND` | 404 | The account does not exist |

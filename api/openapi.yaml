@@ -533,6 +533,19 @@ components:
           maxLength: 200
           type: string
       type: object
+    ChangePasswordInputBody:
+      additionalProperties: false
+      properties:
+        currentPassword:
+          description: The password the account has now, which confirms the change
+          type: string
+        newPassword:
+          description: 8 to 128 characters, not the username
+          type: string
+      required:
+        - currentPassword
+        - newPassword
+      type: object
     ChangeSellerOwnerRequest:
       additionalProperties: false
       properties:
@@ -3478,6 +3491,31 @@ paths:
         - bearer: []
         - cookie: []
       summary: Email the signed-in account's address a code that confirms its deletion
+      tags:
+        - Accounts
+  /accounts/me/password:
+    put:
+      description: "For an account made with a username, which has no address to email a code to: the password it has now is the proof. The account's other sessions end; this one stays. A wrong current password counts with the tries to sign in."
+      operationId: changeMyPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: Change the password of the signed-in account
       tags:
         - Accounts
   /accounts/me/password-deletion:
