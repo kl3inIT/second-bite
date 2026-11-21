@@ -90,7 +90,7 @@ class CartBar extends ConsumerWidget {
     final original = formatPrice(originalPriceVnd);
 
     return AppCartBar(
-      price: formatPrice(priceVnd),
+      price: formatCost(priceVnd, l10n.priceFree),
       originalPrice: original,
       originalPriceLabel: l10n.offerOriginalPrice(original),
       summary: l10n.cartSummary(

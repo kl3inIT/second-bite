@@ -13,6 +13,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appTitle => 'Second Bite';
 
   @override
+  String get priceFree => 'Miễn phí';
+
+  @override
   String get homeArea => 'Hà Nội';
 
   @override
@@ -1068,8 +1071,12 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String ordersCardMetaReady(String number, String total) {
-    return '#$number · $total · trả khi nhận';
+  String ordersCardMetaReady(String number, String total, String free) {
+    String _temp0 = intl.Intl.selectLogic(free, {
+      'yes': 'nhận tại quầy',
+      'other': 'trả khi nhận',
+    });
+    return '#$number · $total · $_temp0';
   }
 
   @override
@@ -1346,13 +1353,26 @@ class AppLocalizationsVi extends AppLocalizations {
   String get orderTimelineCollected => 'Bạn đã nhận món';
 
   @override
-  String orderTimelineCollectedBody(String time, String total) {
-    return '$time · đã trả $total';
+  String orderTimelineCollectedBody(String time, String total, String free) {
+    String _temp0 = intl.Intl.selectLogic(free, {
+      'yes': 'nhận miễn phí',
+      'other': 'đã trả $total',
+    });
+    return '$time · $_temp0';
   }
 
   @override
-  String orderTimelineCollectedRated(String time, String total, int stars) {
-    return '$time · đã trả $total · bạn chấm $stars sao';
+  String orderTimelineCollectedRated(
+    String time,
+    String total,
+    String free,
+    int stars,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(free, {
+      'yes': 'nhận miễn phí',
+      'other': 'đã trả $total',
+    });
+    return '$time · $_temp0 · bạn chấm $stars sao';
   }
 
   @override

@@ -246,7 +246,12 @@ class _DishSheetState extends ConsumerState<DishSheet> {
                           : null,
                       child: Text(
                         room > 0
-                            ? l10n.dishAdd(formatPrice(_count * offer.priceVnd))
+                            ? l10n.dishAdd(
+                                formatCost(
+                                  _count * offer.priceVnd,
+                                  l10n.priceFree,
+                                ),
+                              )
                             : offer.cappedPerOrder
                             ? l10n.dishCapChosen(offer.mostPerOrder)
                             : l10n.dishAllChosen(offer.mostPerOrder),
@@ -323,7 +328,7 @@ class _PriceLine extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.end,
       children: [
         Text(
-          formatPrice(offer.priceVnd),
+          formatCost(offer.priceVnd, context.l10n.priceFree),
           style: text.price.copyWith(color: scheme.primary),
         ),
         Semantics(

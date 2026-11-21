@@ -482,7 +482,8 @@ class OrderTimeline extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = context.appColors;
     final units = unitsOf(order);
-    final total = formatPrice(order.payVnd);
+    final total = formatCost(order.payVnd, l10n.priceFree);
+    final free = order.payVnd == 0 ? 'yes' : 'no';
     final reason = refuseReasonOf(l10n, order.refuseReason);
     final placed = (
       l10n.orderTimelinePlaced,
@@ -530,11 +531,13 @@ class OrderTimeline extends StatelessWidget {
             final review? => l10n.orderTimelineCollectedRated(
               formatTime(order.collectedAt ?? order.windowEnd),
               total,
+              free,
               review.stars,
             ),
             null => l10n.orderTimelineCollectedBody(
               formatTime(order.collectedAt ?? order.windowEnd),
               total,
+              free,
             ),
           },
         ),

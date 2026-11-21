@@ -4,6 +4,10 @@
   "@appTitle": {
     "description": "The app's name, shown by the system and read for the wordmark"
   },
+  "priceFree": "Miễn phí",
+  "@priceFree": {
+    "description": "A price or a total of 0đ: food the shop gives away"
+  },
   "homeArea": "Hà Nội",
   "@homeArea": {
     "description": "The area under the header's place while every shop is shown"
@@ -1518,14 +1522,17 @@
       }
     }
   },
-  "ordersCardMetaReady": "#{number} · {total} · trả khi nhận",
+  "ordersCardMetaReady": "#{number} · {total} · {free, select, yes{nhận tại quầy} other{trả khi nhận}}",
   "@ordersCardMetaReady": {
-    "description": "A ready order's number and what to pay",
+    "description": "A ready order's number and what to pay; free is yes when it comes to 0đ",
     "placeholders": {
       "number": {
         "type": "String"
       },
       "total": {
+        "type": "String"
+      },
+      "free": {
         "type": "String"
       }
     }
@@ -1976,26 +1983,32 @@
   "@orderTimelineCollected": {
     "description": "Moment: collected"
   },
-  "orderTimelineCollectedBody": "{time} · đã trả {total}",
+  "orderTimelineCollectedBody": "{time} · {free, select, yes{nhận miễn phí} other{đã trả {total}}}",
   "@orderTimelineCollectedBody": {
-    "description": "Moment: collected, its line",
+    "description": "Moment: collected, its line; free is yes when it came to 0đ",
     "placeholders": {
       "time": {
         "type": "String"
       },
       "total": {
+        "type": "String"
+      },
+      "free": {
         "type": "String"
       }
     }
   },
-  "orderTimelineCollectedRated": "{time} · đã trả {total} · bạn chấm {stars} sao",
+  "orderTimelineCollectedRated": "{time} · {free, select, yes{nhận miễn phí} other{đã trả {total}}} · bạn chấm {stars} sao",
   "@orderTimelineCollectedRated": {
-    "description": "Moment: collected and rated",
+    "description": "Moment: collected and rated; free is yes when it came to 0đ",
     "placeholders": {
       "time": {
         "type": "String"
       },
       "total": {
+        "type": "String"
+      },
+      "free": {
         "type": "String"
       },
       "stars": {

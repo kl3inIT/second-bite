@@ -13,6 +13,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Second Bite';
 
   @override
+  String get priceFree => 'Free';
+
+  @override
   String get homeArea => 'Long Biên, Hanoi';
 
   @override
@@ -1121,8 +1124,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String ordersCardMetaReady(String number, String total) {
-    return '#$number · $total · pay when you collect';
+  String ordersCardMetaReady(String number, String total, String free) {
+    String _temp0 = intl.Intl.selectLogic(free, {
+      'yes': 'collect at the counter',
+      'other': 'pay when you collect',
+    });
+    return '#$number · $total · $_temp0';
   }
 
   @override
@@ -1435,19 +1442,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderTimelineCollected => 'You collected the food';
 
   @override
-  String orderTimelineCollectedBody(String time, String total) {
-    return '$time · paid $total';
+  String orderTimelineCollectedBody(String time, String total, String free) {
+    String _temp0 = intl.Intl.selectLogic(free, {
+      'yes': 'collected free',
+      'other': 'paid $total',
+    });
+    return '$time · $_temp0';
   }
 
   @override
-  String orderTimelineCollectedRated(String time, String total, int stars) {
-    String _temp0 = intl.Intl.pluralLogic(
+  String orderTimelineCollectedRated(
+    String time,
+    String total,
+    String free,
+    int stars,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(free, {
+      'yes': 'collected free',
+      'other': 'paid $total',
+    });
+    String _temp1 = intl.Intl.pluralLogic(
       stars,
       locale: localeName,
       other: '$stars stars',
       one: '1 star',
     );
-    return '$time · paid $total · you rated $_temp0';
+    return '$time · $_temp0 · you rated $_temp1';
   }
 
   @override

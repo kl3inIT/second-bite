@@ -226,7 +226,7 @@ class _OpenOrderCard extends StatelessWidget {
     final ready = order.status == OrderBodyStatus.ready;
     final from = formatTime(order.windowStart);
     final until = formatTime(order.windowEnd);
-    final total = formatPrice(order.payVnd);
+    final total = formatCost(order.payVnd, l10n.priceFree);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -302,7 +302,11 @@ class _OpenOrderCard extends StatelessWidget {
                           ),
                           Text(
                             ready
-                                ? l10n.ordersCardMetaReady(order.number, total)
+                                ? l10n.ordersCardMetaReady(
+                                    order.number,
+                                    total,
+                                    order.payVnd == 0 ? 'yes' : 'no',
+                                  )
                                 : l10n.ordersCardMetaWindow(
                                     order.number,
                                     total,
@@ -351,7 +355,7 @@ class _EndedOrderRow extends StatelessWidget {
       if (collected) order.seller.name,
       l10n.ordersDate(day, month),
       endedLineOf(l10n, order.status),
-      if (collected) formatPrice(order.payVnd),
+      if (collected) formatCost(order.payVnd, l10n.priceFree),
     ].join(' · ');
     final tone = switch (order.status) {
       OrderBodyStatus.cancelled || OrderBodyStatus.refused => scheme.error,

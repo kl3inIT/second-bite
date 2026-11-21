@@ -8,6 +8,12 @@ final _dong = NumberFormat.decimalPattern('vi');
 /// [amount] in đồng, as "39.000đ".
 String formatPrice(int amount) => '${_dong.format(amount)}đ';
 
+/// A price or a total as customers read it: [free] (`priceFree`, "Miễn phí")
+/// for food given away at 0đ, else [formatPrice]. Sums that are not a price,
+/// such as a saving or a discount, stay [formatPrice], as on the web.
+String formatCost(int amount, String free) =>
+    amount == 0 ? free : formatPrice(amount);
+
 /// [moment] on the 24-hour clock in Asia/Ho_Chi_Minh, which keeps UTC+7 all
 /// year, whatever the phone's own time zone.
 String formatTime(DateTime moment) {
