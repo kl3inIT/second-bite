@@ -738,6 +738,24 @@
     "nameInvalid": "Nhập tên hiển thị từ 1 đến 50 ký tự.",
     "username": "Tên đăng nhập"
   },
+  "ChangePassword": {
+    "title": "Đổi mật khẩu",
+    "currentLabel": "Mật khẩu hiện tại",
+    "currentPlaceholder": "Nhập mật khẩu hiện tại",
+    "newLabel": "Mật khẩu mới",
+    "newPlaceholder": "Nhập mật khẩu mới",
+    "confirmLabel": "Nhập lại mật khẩu mới",
+    "confirmPlaceholder": "Nhập lại mật khẩu mới",
+    "submit": "Đổi mật khẩu",
+    "saving": "Đang đổi mật khẩu…",
+    "done": "Đã đổi mật khẩu. Các thiết bị khác đã bị đăng xuất.",
+    "failed": "Chưa đổi được mật khẩu. Vui lòng thử lại.",
+    "errors": {
+      "current": "Nhập mật khẩu hiện tại.",
+      "password": "Mật khẩu gồm 8 đến 128 ký tự.",
+      "mismatch": "Mật khẩu nhập lại chưa khớp."
+    }
+  },
   "DeleteAccount": {
     "title": "Xoá tài khoản",
     "description": "Cách xoá tài khoản Second Bite: xác nhận bằng mã gửi qua email; những gì bị xoá ngay, những gì xoá sau vài phút và những gì được giữ lại.",

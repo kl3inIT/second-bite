@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AccountAction } from "@/features/identity/account-action";
 import { accountHandle, accountLabel } from "@/features/identity/account-label";
+import { ChangePasswordForm } from "@/features/identity/change-password-form";
 import { getCurrentAccount } from "@/features/identity/current-account";
 import { DisplayNameRow } from "@/features/identity/display-name-row";
 import { getMySellers } from "@/features/identity/my-sellers";
@@ -50,8 +51,9 @@ export default async function AccountSettingsPage() {
 // The signed-in account and its sellers; someone signed out is sent to sign in, then back here. It reads the
 // session, so it renders inside Suspense.
 async function Settings() {
-  const [t, account, locale] = await Promise.all([
+  const [t, password, account, locale] = await Promise.all([
     getTranslations("AccountSettings"),
+    getTranslations("ChangePassword"),
     getCurrentAccount(),
     getLocale(),
   ]);
@@ -115,6 +117,18 @@ async function Settings() {
           </Row>
         </dl>
       </section>
+
+      {account.username && (
+        <section
+          aria-labelledby="settings-password"
+          className="flex flex-col gap-3 rounded-2xl bg-card p-4 text-card-foreground"
+        >
+          <h2 id="settings-password" className="text-title">
+            {password("title")}
+          </h2>
+          <ChangePasswordForm />
+        </section>
+      )}
 
       <section
         aria-labelledby="settings-delete"
