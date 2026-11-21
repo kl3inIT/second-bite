@@ -154,6 +154,9 @@
     "produce": "Produce",
     "other": "Other"
   },
+  "Price": {
+    "free": "Free"
+  },
   "OfferCard": {
     "soldOut": "Sold out",
     "window": "{from}–{until}",
@@ -532,8 +535,8 @@
       "readyBody": "{time} · the seller says come and collect",
       "toldBody": "{date}, {time} · the shop told you",
       "collected": "You collected the food",
-      "collectedBody": "{time} · paid {total}",
-      "collectedRated": "{time} · paid {total} · you rated {stars, plural, one {# star} other {# stars}}"
+      "collectedBody": "{time} · {free, select, yes {collected free} other {paid {total}}}",
+      "collectedRated": "{time} · {free, select, yes {collected free} other {paid {total}}} · you rated {stars, plural, one {# star} other {# stars}}"
     },
     "cancel": {
       "open": "Cancel order",
@@ -572,7 +575,7 @@
     "metaToday": "Order #{number} · placed today {time} · {seller}, {address}",
     "metaOn": "Order #{number} · placed {date} {time} · {seller}, {address}",
     "cardMetaWindow": "#{number} · {total} · collect {from}–{until}",
-    "cardMetaReady": "#{number} · {total} · pay when you collect",
+    "cardMetaReady": "#{number} · {total} · {free, select, yes {collect at the counter} other {pay when you collect}}",
     "day": {
       "today": "Today",
       "week": "This week",
@@ -1098,7 +1101,7 @@
     "original": "Original price (VND)",
     "price": "Price (VND)",
     "discount": "{percent}% off the original price. The minimum discount is {min}%.",
-    "discountHint": "The minimum discount off the original price is {min}%.",
+    "discountHint": "The minimum discount off the original price is {min}%. Choose Free to give it away (0đ).",
     "priceTooHigh": "The price must be at least {min}% below the original price, so at most {max}.",
     "priceMissing": "Enter an original price of at least 1,000đ.",
     "startQuestion": "From what time?",
@@ -1145,14 +1148,15 @@
       "units": "Enter a number of portions from 1 to 999.",
       "maxPerOrder": "Enter a number from 1 to 999, or leave it empty."
     },
-    "priceForDiscount": "The discounted price must be at least 1,000đ. Increase the original price or choose a smaller discount.",
+    "priceForDiscount": "The discounted price must be at least 1,000đ, or choose Free. Increase the original price or choose a smaller discount.",
     "discountLabel": "Discount (%)",
     "percent": "{percent}%",
     "other": "Other",
+    "free": "Free",
     "otherDiscount": "Custom discount",
     "enterDiscount": "Enter another discount…",
-    "discountRange": "At least {min}%, below 100%.",
-    "discountInvalid": "Enter a whole percentage from {min}% to 99%.",
+    "discountRange": "At least {min}%; 100% gives it away free.",
+    "discountInvalid": "Enter a whole percentage from {min}% to 100%.",
     "salePreview": "Sale price: {price}",
     "priceUnavailable": "No sale price yet",
     "apply": "Apply",

@@ -18,6 +18,7 @@ import { ChatEntry } from "@/features/chat/chat-entry";
 import { StoreMap } from "@/components/map/store-map";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { directionsHref } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -164,6 +165,7 @@ function totalLabel(order: Order, t: ReturnType<typeof useTranslations<"Orders">
 
 /** What the customer pays, beside the dishes' price struck through when a promotion took something off. */
 function PayValue({ order }: { order: Order }) {
+  const cost = usePrice();
   const t = useTranslations("Orders");
   return (
     <span className="flex items-baseline gap-1.5">
@@ -173,7 +175,7 @@ function PayValue({ order }: { order: Order }) {
           {formatPrice(order.totalVnd)}
         </s>
       )}
-      <span className="font-display text-price">{formatPrice(order.payVnd)}</span>
+      <span className="font-display text-price">{cost(order.payVnd)}</span>
     </span>
   );
 }
@@ -215,6 +217,7 @@ function Fact({ label, value, end }: { label: string; value: React.ReactNode; en
  * original price, then the saving and the total, the number and how it is paid.
  */
 export function OrderSummary({ order }: { order: Order }) {
+  const cost = usePrice();
   const t = useTranslations("Orders");
   const paid = isOpen(order) || order.status === "collected";
 
@@ -231,7 +234,7 @@ export function OrderSummary({ order }: { order: Order }) {
             <span className="line-clamp-2 min-w-0 flex-1 text-body-sm">{line.name}</span>
             <span className="flex shrink-0 flex-col items-end">
               <span className="font-display text-price text-primary">
-                {formatPrice(line.priceVnd * line.units)}
+                {cost(line.priceVnd * line.units)}
               </span>
               <s className="text-label text-muted-foreground">
                 <span className="sr-only">{t("originalPrice")}</span>

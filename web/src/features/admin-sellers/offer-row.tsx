@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import type { OfferBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
 
@@ -12,6 +13,7 @@ import { photoUrl } from "@/lib/api/photo";
 // window to collect; a withdrawn post says when it was taken down instead (AD-QD2). With `onOpen`, the dish's
 // name opens the post's panel (AD-QD3), and the whole frame answers the pointer.
 export function OfferRow({ offer, onOpen }: { offer: OfferBody; onOpen?: () => void }) {
+  const cost = usePrice();
   const t = useTranslations("Admin.sellers.detail");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
@@ -44,9 +46,7 @@ export function OfferRow({ offer, onOpen }: { offer: OfferBody; onOpen?: () => v
           )}
         </h3>
         <p className="flex items-baseline gap-2">
-          <span className="font-display text-price text-primary">
-            {formatPrice(offer.priceVnd)}
-          </span>
+          <span className="font-display text-price text-primary">{cost(offer.priceVnd)}</span>
           <span className="text-label text-muted-foreground line-through">
             {formatPrice(offer.originalPriceVnd)}
           </span>

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function CartBar({ width, className }: { width: string; className?: strin
 
 // The bar itself, drawn only once the cart holds something: the time it reads never runs while a page is prerendered.
 function Bar({ cart, width, className }: { cart: Cart; width: string; className?: string }) {
+  const cost = usePrice();
   const t = useTranslations("Cart");
   const now = useCartNow();
   const { units, priceVnd, originalPriceVnd } = totals(orderable(cart, now) ?? { baskets: [] });
@@ -33,7 +35,7 @@ function Bar({ cart, width, className }: { cart: Cart; width: string; className?
       <div className={cn("mx-auto flex w-full items-center gap-4 px-4 pt-3 pb-5", width)}>
         <div className="flex flex-col">
           <p className="flex items-baseline gap-1.5">
-            <span className="font-display text-price-lg text-primary">{formatPrice(priceVnd)}</span>
+            <span className="font-display text-price-lg text-primary">{cost(priceVnd)}</span>
             <s className="text-label text-muted-foreground">{formatPrice(originalPriceVnd)}</s>
           </p>
           <p className="text-label-strong text-foreground">

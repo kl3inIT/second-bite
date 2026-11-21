@@ -11,7 +11,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import type { HistoryOutputBody, MembershipBody, OrderBody, RecordBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
 
@@ -175,6 +175,7 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
 }
 
 function RecentOrder({ order }: { order: OrderBody }) {
+  const cost = usePrice();
   const t = useTranslations("Admin.accounts.outcome");
   const outcome = outcomeOf(order);
   const { variant, icon: Icon } = outcomeLook[outcome];
@@ -199,7 +200,7 @@ function RecentOrder({ order }: { order: OrderBody }) {
         <span className="text-muted-foreground"> · {order.seller.name}</span>
       </p>
       <span className="text-body-sm-strong whitespace-nowrap text-foreground">
-        {formatPrice(order.totalVnd)}
+        {cost(order.totalVnd)}
       </span>
       <Badge variant={variant}>
         <Icon data-icon="inline-start" aria-hidden />

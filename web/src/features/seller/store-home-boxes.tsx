@@ -2,7 +2,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
-import { formatPrice } from "@/features/offers/format";
+import { formatCost, formatPrice } from "@/features/offers/format";
 import { kindText } from "@/features/offers/offer";
 import { Link } from "@/i18n/navigation";
 import type { DishBody, OfferBody } from "@/lib/api/generated";
@@ -49,6 +49,8 @@ export function BoxSection({
 
 /** One post of the day: the name over two lines at most, the price over the old one, and the units left. */
 export async function PostBox({ offer }: { offer: OfferBody }) {
+  const free = (await getTranslations("Price"))("free");
+  const cost = (amount: number) => formatCost(amount, free);
   const [t, card] = await Promise.all([getTranslations("StoreHome"), getTranslations("OfferCard")]);
   const original = formatPrice(offer.originalPriceVnd);
   const onSale = offer.status === "on_sale";
@@ -72,9 +74,7 @@ export async function PostBox({ offer }: { offer: OfferBody }) {
           {offer.name}
         </h3>
         <p className="flex flex-wrap items-baseline gap-x-1.25">
-          <span className="font-display text-price-sm text-primary">
-            {formatPrice(offer.priceVnd)}
-          </span>
+          <span className="font-display text-price-sm text-primary">{cost(offer.priceVnd)}</span>
           <s aria-hidden className="text-label text-muted-foreground">
             {original}
           </s>

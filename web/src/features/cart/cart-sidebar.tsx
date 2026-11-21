@@ -4,7 +4,7 @@ import { MapPinIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { buttonVariants } from "@/components/ui/button";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { directionsHref } from "@/features/offers/offer";
 import { OfferPhoto } from "@/features/offers/offer-photo";
 import { SellerLogo } from "@/features/offers/seller-logo";
@@ -45,6 +45,7 @@ export function CartSidebar() {
 }
 
 function Filled({ cart }: { cart: Cart }) {
+  const cost = usePrice();
   const t = useTranslations("Cart");
   const now = useCartNow();
   const live = orderable(cart, now);
@@ -60,17 +61,17 @@ function Filled({ cart }: { cart: Cart }) {
       <dl className="flex flex-col gap-2 border-t border-border pt-3 text-body-sm text-foreground">
         <div className="flex items-center justify-between gap-3">
           <dt>{t("dishes", { units })}</dt>
-          <dd className="font-display text-price-sm">{formatPrice(priceVnd)}</dd>
+          <dd className="font-display text-price-sm">{cost(priceVnd)}</dd>
         </div>
         <div className="flex items-center justify-between gap-3">
           <dt className="text-title">{t("total")}</dt>
-          <dd className="font-display text-price">{formatPrice(priceVnd)}</dd>
+          <dd className="font-display text-price">{cost(priceVnd)}</dd>
         </div>
       </dl>
       <Link href="/cart" className={buttonVariants({ size: "lg" })}>
         {t("orderFor", {
           orders: Math.max(live?.baskets.length ?? 0, 1),
-          price: formatPrice(priceVnd),
+          price: cost(priceVnd),
         })}
       </Link>
     </>
@@ -81,6 +82,7 @@ function Filled({ cart }: { cart: Cart }) {
 // name over tonight's window in Tasco blue, the way there as a pin, the dishes with their − and +, and what this
 // seller's dishes come to.
 function SidebarOrder({ cart, basket, now }: { cart: Cart; basket: Basket; now: number }) {
+  const cost = usePrice();
   const t = useTranslations("Cart");
   const { from, until } = useWindow(basket, now);
   const heading = `sidebar-seller-${basket.seller.id}`;
@@ -126,7 +128,7 @@ function SidebarOrder({ cart, basket, now }: { cart: Cart; basket: Basket; now: 
         <span className="text-note font-semibold">
           {t("sellerTotal", { seller: basket.seller.name })}
         </span>
-        <span className="text-body-sm-strong">{formatPrice(subtotal)}</span>
+        <span className="text-body-sm-strong">{cost(subtotal)}</span>
       </p>
     </section>
   );

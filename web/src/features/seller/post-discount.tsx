@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 
 import { NumberInput } from "./number-input";
-import { MIN_DISCOUNT_PERCENT, suggestedPrice } from "./post-draft";
+import { FREE_PERCENT, MIN_DISCOUNT_PERCENT, suggestedPrice } from "./post-draft";
 
 const PRESETS = [20, 30, 40, 50];
 
-/** A form field for the discount; the drawer derives the sale price. */
+/** A form field for the discount; the drawer derives the sale price. 100% gives the food away free, at 0đ. */
 export function DiscountField({
   original,
   disabled,
@@ -29,6 +29,9 @@ export function DiscountField({
   const t = useTranslations("PostDrawer");
   const { field, invalid, errors, ids } = useFieldValidity<string>();
   const percent = Number(field.state.value);
+  const free = percent === FREE_PERCENT;
+  // A discount neither preset nor free is shown on the "other" choice.
+  const other = !PRESETS.includes(percent) && !free;
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState(false);
   function choose(next: number) {
@@ -80,10 +83,10 @@ export function DiscountField({
             <PopoverTrigger
               disabled={disabled}
               render={<Button type="button" variant="choice" size="choice" />}
-              aria-label={`${t("otherDiscount")}: ${PRESETS.includes(percent) ? t("other") : t("percent", { percent })}`}
-              aria-pressed={!PRESETS.includes(percent)}
+              aria-label={`${t("otherDiscount")}: ${other ? t("percent", { percent }) : t("other")}`}
+              aria-pressed={other}
             >
-              {PRESETS.includes(percent) ? t("other") : t("percent", { percent })}
+              {other ? t("percent", { percent }) : t("other")}
             </PopoverTrigger>
             <PopoverContent align="end" variant="choices">
               {custom ? (
@@ -119,6 +122,20 @@ export function DiscountField({
               )}
             </PopoverContent>
           </Popover>
+          {/* Food given away, as stores give meals to the mall's cleaners and guards: 0đ, the original price kept. */}
+          <Button
+            type="button"
+            variant="choice"
+            size="choice"
+            className="col-span-5"
+            aria-pressed={free}
+            disabled={disabled}
+            aria-invalid={invalid || undefined}
+            aria-describedby={invalid ? ids.error : undefined}
+            onClick={() => choose(FREE_PERCENT)}
+          >
+            {t("free")}
+          </Button>
         </div>
         {invalid && <FieldError id={ids.error} errors={errors} />}
       </fieldset>
@@ -138,12 +155,13 @@ function CustomDiscount({
   onApply: (percent: number) => void;
 }) {
   const t = useTranslations("PostDrawer");
+  const formatCost = usePrice();
   const id = useId();
   const [draft, setDraft] = useState(String(percent));
   const [attempted, setAttempted] = useState(false);
   const next = Number(draft);
   const valid =
-    draft !== "" && Number.isInteger(next) && next >= MIN_DISCOUNT_PERCENT && next < 100;
+    draft !== "" && Number.isInteger(next) && next >= MIN_DISCOUNT_PERCENT && next <= FREE_PERCENT;
   const price = valid ? suggestedPrice(original, next) : undefined;
   return (
     <>
@@ -168,7 +186,7 @@ function CustomDiscount({
       <p className="text-body-sm-strong text-primary" aria-live="polite">
         {price === undefined
           ? t("priceUnavailable")
-          : t("salePreview", { price: formatPrice(price) })}
+          : t("salePreview", { price: formatCost(price) })}
       </p>
       <div className="grid grid-cols-2 gap-2 pt-1">
         <Button type="button" variant="outline" onClick={onCancel}>

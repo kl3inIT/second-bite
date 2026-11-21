@@ -20,7 +20,7 @@ import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import { SearchBox } from "@/features/admin/search-box";
 import { StoreThumb } from "@/features/admin-sellers/seller-parts";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { Link } from "@/i18n/navigation";
 import type { OrderBody, OrderCountsBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
@@ -231,6 +231,7 @@ export function OrdersList({
 }
 
 function useColumns(): DataTableColumns<OrderBody> {
+  const cost = usePrice();
   const t = useTranslations("Admin.orders");
   const gone = useTranslations("Orders")("customerGone");
   const format = useFormatter();
@@ -285,9 +286,7 @@ function useColumns(): DataTableColumns<OrderBody> {
       id: "total",
       header: t("column.total"),
       meta: { width: "w-24" },
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap">{formatPrice(row.original.totalVnd)}</span>
-      ),
+      cell: ({ row }) => <span className="whitespace-nowrap">{cost(row.original.totalVnd)}</span>,
     },
     {
       id: "status",

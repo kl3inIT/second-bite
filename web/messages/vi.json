@@ -154,6 +154,9 @@
     "produce": "Rau củ quả",
     "other": "Khác"
   },
+  "Price": {
+    "free": "Miễn phí"
+  },
   "OfferCard": {
     "soldOut": "Đã hết",
     "window": "{from}–{until}",
@@ -532,8 +535,8 @@
       "readyBody": "{time} · quán báo bạn đến nhận",
       "toldBody": "{date}, {time} · đã báo cho bạn",
       "collected": "Bạn đã nhận món",
-      "collectedBody": "{time} · đã trả {total}",
-      "collectedRated": "{time} · đã trả {total} · bạn chấm {stars} sao"
+      "collectedBody": "{time} · {free, select, yes {nhận miễn phí} other {đã trả {total}}}",
+      "collectedRated": "{time} · {free, select, yes {nhận miễn phí} other {đã trả {total}}} · bạn chấm {stars} sao"
     },
     "cancel": {
       "open": "Huỷ đơn",
@@ -572,7 +575,7 @@
     "metaToday": "Đơn #{number} · đặt hôm nay {time} · {seller}, {address}",
     "metaOn": "Đơn #{number} · đặt {date} {time} · {seller}, {address}",
     "cardMetaWindow": "#{number} · {total} · nhận {from}–{until}",
-    "cardMetaReady": "#{number} · {total} · trả khi nhận",
+    "cardMetaReady": "#{number} · {total} · {free, select, yes {nhận tại quầy} other {trả khi nhận}}",
     "day": {
       "today": "Hôm nay",
       "week": "Tuần này",
@@ -1098,7 +1101,7 @@
     "original": "Giá gốc (đồng)",
     "price": "Giá bán (đồng)",
     "discount": "Giảm {percent}% so với giá gốc. Mức giảm tối thiểu là {min}%.",
-    "discountHint": "Mức giảm tối thiểu so với giá gốc là {min}%.",
+    "discountHint": "Mức giảm tối thiểu so với giá gốc là {min}%. Chọn Miễn phí để tặng món (0đ).",
     "priceTooHigh": "Giá bán phải thấp hơn giá gốc ít nhất {min}%, tức tối đa {max}.",
     "priceMissing": "Nhập giá gốc từ 1.000đ.",
     "startQuestion": "Từ mấy giờ?",
@@ -1145,14 +1148,15 @@
       "units": "Nhập số suất từ 1 đến 999.",
       "maxPerOrder": "Nhập số từ 1 đến 999, hoặc để trống."
     },
-    "priceForDiscount": "Giá bán sau giảm phải từ 1.000đ. Tăng giá gốc hoặc chọn mức giảm thấp hơn.",
+    "priceForDiscount": "Giá bán sau giảm phải từ 1.000đ, hoặc chọn Miễn phí. Tăng giá gốc hoặc chọn mức giảm thấp hơn.",
     "discountLabel": "Giảm giá (%)",
     "percent": "{percent}%",
     "other": "Khác",
+    "free": "Miễn phí",
     "otherDiscount": "Mức giảm khác",
     "enterDiscount": "Nhập mức khác…",
-    "discountRange": "Tối thiểu {min}%, dưới 100%.",
-    "discountInvalid": "Nhập số nguyên từ {min}% đến 99%.",
+    "discountRange": "Tối thiểu {min}%; 100% là miễn phí.",
+    "discountInvalid": "Nhập số nguyên từ {min}% đến 100%.",
     "salePreview": "Giá bán: {price}",
     "priceUnavailable": "Chưa có giá bán",
     "apply": "Áp dụng",

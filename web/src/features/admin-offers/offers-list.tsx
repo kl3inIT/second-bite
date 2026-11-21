@@ -20,7 +20,7 @@ import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import { SearchBox } from "@/features/admin/search-box";
 import { PostPanel } from "@/features/admin-sellers/seller-posts";
-import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { Link } from "@/i18n/navigation";
 import type { AdminOfferBody, OfferBody, OfferCountsBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
@@ -235,6 +235,7 @@ export function OffersList({
 }
 
 function useColumns(onOpen: (offer: OfferBody) => void): DataTableColumns<AdminOfferBody> {
+  const cost = usePrice();
   const t = useTranslations("Admin.offers");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
@@ -277,7 +278,7 @@ function useColumns(onOpen: (offer: OfferBody) => void): DataTableColumns<AdminO
       id: "price",
       header: t("column.price"),
       meta: { width: "w-24" },
-      cell: ({ row }) => formatPrice(row.original.offer.priceVnd),
+      cell: ({ row }) => cost(row.original.offer.priceVnd),
     },
     {
       id: "left",

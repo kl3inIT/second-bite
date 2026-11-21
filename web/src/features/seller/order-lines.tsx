@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { savingOf, unitsOf } from "@/features/orders/order";
 import type { OrderBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
@@ -12,6 +13,7 @@ import { photoUrl } from "@/lib/api/photo";
 // how it is paid. A promotion's discount shows what to collect and that Second Bite pays it back
 // (buyer-discount increment).
 export function OrderLines({ order }: { order: OrderBody }) {
+  const cost = usePrice();
   const t = useTranslations("StoreOrders.detail");
   const saving = savingOf(order);
 
@@ -43,7 +45,7 @@ export function OrderLines({ order }: { order: OrderBody }) {
             <span className="min-w-0 flex-1 text-body-sm-strong">{line.name}</span>
             <span className="flex shrink-0 flex-col items-end">
               <span className="font-display text-title text-primary">
-                {formatPrice(line.priceVnd * line.units)}
+                {cost(line.priceVnd * line.units)}
               </span>
               <span className="text-label text-muted-foreground line-through">
                 {formatPrice(line.originalPriceVnd * line.units)}
@@ -57,7 +59,7 @@ export function OrderLines({ order }: { order: OrderBody }) {
           <p className="flex items-end justify-between gap-3 rounded-2xl bg-secondary px-4 py-3 text-secondary-foreground">
             <span className="flex flex-col">
               <span className="text-label uppercase">{t("collect")}</span>
-              <span className="font-display text-price-lg">{formatPrice(order.payVnd)}</span>
+              <span className="font-display text-price-lg">{cost(order.payVnd)}</span>
             </span>
             <span className="text-label">
               {t("instead", { total: formatPrice(order.totalVnd) })}
@@ -76,7 +78,7 @@ export function OrderLines({ order }: { order: OrderBody }) {
         <Fact label={t("saving")} value={t("savingValue", { amount: formatPrice(saving) })} />
         <Fact
           label={order.discountVnd > 0 ? t("collect") : t("total")}
-          value={formatPrice(order.payVnd)}
+          value={cost(order.payVnd)}
           end
           strong
         />

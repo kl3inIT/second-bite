@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { formatPrice } from "@/features/offers/format";
 import { kindText } from "@/features/offers/offer";
+import { usePrice } from "@/features/offers/use-price";
 import { useRouter } from "@/i18n/navigation";
 import { changeOffer, postOffer, type OfferBody, uploadPhoto } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
@@ -27,6 +28,7 @@ import { DiscountField } from "./post-discount";
 import {
   type Dish,
   discountPercent,
+  FREE_PERCENT,
   type EditTarget,
   lengthIsAllowed,
   maxPrice,
@@ -78,7 +80,7 @@ function currentTime(): Date {
 /** The price a post starts from, as the form holds it: the suggested one for an original price, or empty. */
 function startingPrice(original: number | undefined, percent = MIN_DISCOUNT_PERCENT): string {
   const suggested = original ? suggestedPrice(original, percent) : undefined;
-  return suggested ? String(suggested) : "";
+  return suggested === undefined ? "" : String(suggested);
 }
 
 // The drawer that posts a dish (SEC-57, Figma P1 to P3, P2b, P3b, P3e, R1): the kind of post, the dish, then how
@@ -107,6 +109,7 @@ function PostDrawerBody({
 }) {
   const t = useTranslations("PostDrawer");
   const kindName = useTranslations("OfferKind");
+  const price = usePrice();
   const router = useRouter();
   const [now] = useState(currentTime);
   const base = edit?.dish ?? again ?? fromDish;
@@ -146,9 +149,13 @@ function PostDrawerBody({
     units: base?.units ? String(base.units) : "",
     maxPerOrder: base?.maxPerOrder ? String(base.maxPerOrder) : "",
     original: base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
-    price: edit && base?.priceVnd ? String(base.priceVnd) : startingPrice(base?.originalPriceVnd),
+    // A post given away free keeps its price of 0đ, and its discount of 100%.
+    price:
+      edit && base?.priceVnd !== undefined
+        ? String(base.priceVnd)
+        : startingPrice(base?.originalPriceVnd),
     discount: String(
-      edit && base?.originalPriceVnd && base.priceVnd
+      edit && base?.originalPriceVnd && base.priceVnd !== undefined
         ? discountPercent(base.originalPriceVnd, base.priceVnd)
         : MIN_DISCOUNT_PERCENT,
     ),
@@ -195,7 +202,7 @@ function PostDrawerBody({
     if (locked) return;
     const original = Number(value.original);
     const percent = Number(value.discount);
-    if (!Number.isInteger(percent) || percent < MIN_DISCOUNT_PERCENT || percent >= 100) {
+    if (!Number.isInteger(percent) || percent < MIN_DISCOUNT_PERCENT || percent > FREE_PERCENT) {
       context.addIssue({
         code: "custom",
         path: ["discount"],
@@ -530,7 +537,7 @@ function PostDrawerBody({
                           {formatPrice(Number(values.original))}
                         </del>
                         <output aria-label={t("price")} className="text-price-lg text-primary">
-                          {values.price ? formatPrice(Number(values.price)) : t("priceUnavailable")}
+                          {values.price ? price(Number(values.price)) : t("priceUnavailable")}
                         </output>
                       </span>
                     )}

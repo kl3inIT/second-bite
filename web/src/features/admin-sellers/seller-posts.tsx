@@ -16,6 +16,7 @@ import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { ListFooter } from "@/features/admin/list-footer";
 import { OfferActions } from "@/features/admin-offers/offer-actions";
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { Link } from "@/i18n/navigation";
 import type { OfferBody } from "@/lib/api/generated";
 import { photoUrl } from "@/lib/api/photo";
@@ -121,6 +122,7 @@ function PostsTable({
   offers: OfferBody[];
   onOpen: (offer: OfferBody) => void;
 }) {
+  const cost = usePrice();
   const t = useTranslations("Admin.sellers.detail");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
@@ -151,7 +153,7 @@ function PostsTable({
       id: "price",
       header: t("column.price"),
       meta: { width: "w-24" },
-      cell: ({ row }) => formatPrice(row.original.priceVnd),
+      cell: ({ row }) => cost(row.original.priceVnd),
     },
     {
       id: "discount",
@@ -245,6 +247,7 @@ export function PostPanel({
 }
 
 function PostFacts({ offer }: { offer: OfferBody }) {
+  const cost = usePrice();
   const t = useTranslations("Admin.sellers.detail");
   const format = useFormatter();
   const time = (at: string) => format.dateTime(new Date(at), "time");
@@ -290,9 +293,7 @@ function PostFacts({ offer }: { offer: OfferBody }) {
       <div className="flex flex-col gap-1">
         <h3 className="text-title-lg text-foreground">{offer.name}</h3>
         <p className="flex items-baseline gap-2">
-          <span className="font-display text-price text-primary">
-            {formatPrice(offer.priceVnd)}
-          </span>
+          <span className="font-display text-price text-primary">{cost(offer.priceVnd)}</span>
           <span className="text-label text-muted-foreground line-through">
             {formatPrice(offer.originalPriceVnd)}
           </span>

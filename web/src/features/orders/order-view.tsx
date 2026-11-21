@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ChatEntry } from "@/features/chat/chat-entry";
 import { PushCard } from "@/features/notification/push-card";
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -355,6 +356,7 @@ function endedAt(order: Order & { status: Ended }): string {
 
 /** What happened to an order, as a list of moments (Figma D5 › Trạng thái). */
 function Timeline({ order }: { order: Order }) {
+  const cost = usePrice();
   const t = useTranslations("Orders.timeline");
   const format = useFormatter();
   const date = useOrderDate();
@@ -370,7 +372,7 @@ function Timeline({ order }: { order: Order }) {
           date: date(order.createdAt),
           time: at(order.createdAt),
           units,
-          total: formatPrice(order.payVnd),
+          total: cost(order.payVnd),
         }),
       },
       // An order is confirmed when it is placed; staff never accept one (docs/specs/order.md).
@@ -388,7 +390,11 @@ function Timeline({ order }: { order: Order }) {
   }
   if (order.status === "collected") {
     const collectedAt = order.collectedAt ?? order.windowEnd;
-    const paid = { time: at(collectedAt), total: formatPrice(order.payVnd) };
+    const paid = {
+      time: at(collectedAt),
+      total: cost(order.payVnd),
+      free: order.payVnd === 0 ? "yes" : "no",
+    };
     moments.push(
       {
         title: t("placed"),
@@ -396,7 +402,7 @@ function Timeline({ order }: { order: Order }) {
           date: date(order.createdAt),
           time: at(order.createdAt),
           units,
-          total: formatPrice(order.payVnd),
+          total: cost(order.payVnd),
         }),
       },
       { title: t("confirmed"), body: t("confirmedBody", { time: at(order.createdAt), units }) },

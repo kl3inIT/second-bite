@@ -38,7 +38,7 @@ describe("the price of a post", () => {
     expect(suggestedPrice(9_999, 35)).toBe(6_499);
     expect(suggestedPrice(20_000, 90)).toBe(2_000);
     expect(suggestedPrice(20_000, 99)).toBeUndefined();
-    for (const percent of [19, 100, 35.5, Number.NaN])
+    for (const percent of [19, 101, 35.5, Number.NaN])
       expect(suggestedPrice(20_000, percent)).toBeUndefined();
   });
 
@@ -46,6 +46,15 @@ describe("the price of a post", () => {
     expect(priceProblem(95_000, Number.NaN)).toBe("missing");
     expect(priceProblem(Number.NaN, 57_000)).toBe("missing");
     expect(priceProblem(95_000, 500)).toBe("missing");
+  });
+
+  it("gives a dish away free at 100% off: 0đ, with its original price still asked", () => {
+    expect(suggestedPrice(95_000, 100)).toBe(0);
+    expect(suggestedPrice(95_000, 101)).toBeUndefined();
+    expect(priceProblem(95_000, 0)).toBeUndefined();
+    expect(priceProblem(95_000, 999)).toBe("missing");
+    expect(priceProblem(Number.NaN, 0)).toBe("missing");
+    expect(discountPercent(95_000, 0)).toBe(100);
   });
 
   it("says the discount in whole percent, rounded down", () => {

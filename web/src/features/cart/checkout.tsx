@@ -6,6 +6,7 @@ import { useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { formatPrice } from "@/features/offers/format";
+import { usePrice } from "@/features/offers/use-price";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/i18n/navigation";
 import { FailureAlert } from "@/components/failure-alert";
@@ -99,6 +100,7 @@ function Confirmation({ cart }: { cart: Cart }) {
 
 // The confirmation on a phone: the cards, payment, the summary and the policy in one column, with the bar at the foot.
 function CheckoutPhone({ cart, live, now, pending, problem, onConfirmed }: CheckoutProps) {
+  const cost = usePrice();
   const t = useTranslations("Cart");
   const { units, priceVnd, originalPriceVnd } = totals(live ?? { baskets: [] });
   const orders = live?.baskets.length ?? 0;
@@ -122,11 +124,11 @@ function CheckoutPhone({ cart, live, now, pending, problem, onConfirmed }: Check
           <dl className="flex flex-col gap-3 text-body-sm text-foreground">
             <div className="flex items-center justify-between gap-3">
               <dt>{t("dishes", { units })}</dt>
-              <dd className="font-display text-price-sm">{formatPrice(priceVnd)}</dd>
+              <dd className="font-display text-price-sm">{cost(priceVnd)}</dd>
             </div>
             <div className="flex items-center justify-between gap-3">
               <dt className="text-title-lg">{t("total")}</dt>
-              <dd className="font-display text-price">{formatPrice(priceVnd)}</dd>
+              <dd className="font-display text-price">{cost(priceVnd)}</dd>
             </div>
           </dl>
           <PromotionNotice sellerIds={(live?.baskets ?? []).map((b) => b.seller.id)} />
@@ -145,9 +147,7 @@ function CheckoutPhone({ cart, live, now, pending, problem, onConfirmed }: Check
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <div className="flex flex-col">
               <p className="flex flex-wrap items-baseline gap-x-1.5">
-                <span className="font-display text-price-lg text-primary">
-                  {formatPrice(priceVnd)}
-                </span>
+                <span className="font-display text-price-lg text-primary">{cost(priceVnd)}</span>
                 <s className="text-label text-muted-foreground">{formatPrice(originalPriceVnd)}</s>
               </p>
               <p className="text-label-strong text-foreground">
