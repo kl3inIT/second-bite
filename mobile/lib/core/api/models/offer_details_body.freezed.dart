@@ -16,9 +16,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$OfferDetailsBody {
 
- OfferDetailsBodyKind get kind; String get name;/// What one unit normally sells for; the price must be the minimum discount below it
+ OfferDetailsBodyKind get kind; String get name;/// What one unit normally sells for; the price must be the minimum discount below it, and a free offer has one too
  int get originalPriceVnd;/// The cover: from POST /photos, or the photo of an earlier offer of the seller
- String get photoId;/// Price of one unit, in whole đồng
+ String get photoId;/// Price of one unit, in whole đồng: 0 gives it away free, any other price is at least 1000
  int get priceVnd; int get units;/// The last handover
  DateTime get windowEnd;/// When the offer is ready to collect
  DateTime get windowStart;/// Required for a mixed_box, which is described by what it may hold; allergens are written here
@@ -244,11 +244,11 @@ class _OfferDetailsBody implements OfferDetailsBody {
 
 @override final  OfferDetailsBodyKind kind;
 @override final  String name;
-/// What one unit normally sells for; the price must be the minimum discount below it
+/// What one unit normally sells for; the price must be the minimum discount below it, and a free offer has one too
 @override final  int originalPriceVnd;
 /// The cover: from POST /photos, or the photo of an earlier offer of the seller
 @override final  String photoId;
-/// Price of one unit, in whole đồng
+/// Price of one unit, in whole đồng: 0 gives it away free, any other price is at least 1000
 @override final  int priceVnd;
 @override final  int units;
 /// The last handover

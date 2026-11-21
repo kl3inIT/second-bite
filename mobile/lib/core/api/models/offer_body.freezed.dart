@@ -21,7 +21,8 @@ mixin _$OfferBody {
  String get kindLabel; String get name; int get originalPriceVnd;/// How many units one order may take: the seller's cap, else the settings' default
  int get perOrderMax;/// The cover, which lists and orders show
  OfferPhotoBody get photo;/// Every photo, the cover first
- List<OfferPhotoBody> get photos; int get priceVnd; String get sellerId;/// sold_out and closed are read from the units left and the window
+ List<OfferPhotoBody> get photos;/// 0 when it is given away free
+ int get priceVnd; String get sellerId;/// sold_out and closed are read from the units left and the window
  OfferBodyStatus get status; String get unit; int get units; int get unitsLeft; DateTime get updatedAt; DateTime get windowEnd; DateTime get windowStart;/// The seller's own cap per order; none when the settings' default applies
  int? get maxPerOrder; int? get weightGrams; DateTime? get withdrawnAt;
 /// Create a copy of OfferBody
@@ -290,6 +291,7 @@ class _OfferBody implements OfferBody {
   return EqualUnmodifiableListView(_photos);
 }
 
+/// 0 when it is given away free
 @override final  int priceVnd;
 @override final  String sellerId;
 /// sold_out and closed are read from the units left and the window

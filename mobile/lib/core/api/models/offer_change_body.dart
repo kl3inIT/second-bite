@@ -26,6 +26,8 @@ abstract class OfferChangeBody with _$OfferChangeBody {
     String? name,
     int? originalPriceVnd,
     String? photoId,
+
+    /// 0 gives it away free; any other price is at least 1000
     int? priceVnd,
     String? unit,
     int? units,

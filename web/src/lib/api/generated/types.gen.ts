@@ -540,6 +540,9 @@ export type FoundBody = {
      * Every photo, the cover first
      */
     photos: Array<OfferPhotoBody>;
+    /**
+     * 0 when it is given away free
+     */
     priceVnd: number;
     seller: OfferSellerBody;
     sellerId: string;
@@ -740,6 +743,9 @@ export type OfferBody = {
      * Every photo, the cover first
      */
     photos: Array<OfferPhotoBody>;
+    /**
+     * 0 when it is given away free
+     */
     priceVnd: number;
     sellerId: string;
     /**
@@ -774,6 +780,9 @@ export type OfferChangeBody = {
     name?: string;
     originalPriceVnd?: number;
     photoId?: string;
+    /**
+     * 0 gives it away free; any other price is at least 1000
+     */
     priceVnd?: number;
     unit?: string;
     units?: number;
@@ -809,7 +818,7 @@ export type OfferDetailsBody = {
     morePhotoIds?: Array<string>;
     name: string;
     /**
-     * What one unit normally sells for; the price must be the minimum discount below it
+     * What one unit normally sells for; the price must be the minimum discount below it, and a free offer has one too
      */
     originalPriceVnd: number;
     /**
@@ -817,7 +826,7 @@ export type OfferDetailsBody = {
      */
     photoId: string;
     /**
-     * Price of one unit, in whole đồng
+     * Price of one unit, in whole đồng: 0 gives it away free, any other price is at least 1000
      */
     priceVnd: number;
     /**
