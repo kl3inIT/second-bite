@@ -44,10 +44,15 @@ export function discountPercent(original: number, price: number): number {
 
 export type PriceProblem = "missing" | "tooHigh";
 
-/** Why a price cannot be posted against the original price, or nothing; 0đ gives the food away free. */
+/**
+ * Why a price cannot be posted against the original price, or nothing. 0đ gives the food away free, and then
+ * any original price above 0 will do, as the backend takes; a paid price and its original are 1.000đ or more.
+ */
 export function priceProblem(original: number, price: number): PriceProblem | undefined {
-  const priceValid = price === 0 || price >= 1000;
-  if (!Number.isFinite(price) || !priceValid || !Number.isFinite(original) || original < 1000) {
+  const free = price === 0;
+  const priceValid = free || price >= 1000;
+  const originalValid = original >= (free ? 1 : 1000);
+  if (!Number.isFinite(price) || !priceValid || !Number.isFinite(original) || !originalValid) {
     return "missing";
   }
   return price > maxPrice(original) ? "tooHigh" : undefined;

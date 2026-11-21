@@ -139,6 +139,9 @@ function PostDrawerBody({
   const window = { start, end: new Date(start.getTime() + minutes * 60_000) };
   const over = windowIsOver(window, now);
 
+  // A post changed keeps its price; one posted again keeps it only when it gave the food away, at 0đ and 100%
+  // off, so a free meal is not posted again at a price.
+  const keptPrice = edit || (again && base?.priceVnd === 0) ? base?.priceVnd : undefined;
   const defaultValues: Values = {
     photo: undefined,
     name: "",
@@ -149,14 +152,10 @@ function PostDrawerBody({
     units: base?.units ? String(base.units) : "",
     maxPerOrder: base?.maxPerOrder ? String(base.maxPerOrder) : "",
     original: base?.originalPriceVnd ? String(base.originalPriceVnd) : "",
-    // A post given away free keeps its price of 0đ, and its discount of 100%.
-    price:
-      edit && base?.priceVnd !== undefined
-        ? String(base.priceVnd)
-        : startingPrice(base?.originalPriceVnd),
+    price: keptPrice !== undefined ? String(keptPrice) : startingPrice(base?.originalPriceVnd),
     discount: String(
-      edit && base?.originalPriceVnd && base.priceVnd !== undefined
-        ? discountPercent(base.originalPriceVnd, base.priceVnd)
+      keptPrice !== undefined && base?.originalPriceVnd
+        ? discountPercent(base.originalPriceVnd, keptPrice)
         : MIN_DISCOUNT_PERCENT,
     ),
   };
