@@ -19,10 +19,12 @@ type offerDetailsBody struct {
 	KindLabel   string `json:"kindLabel,omitempty"   doc:"What the seller calls a dish of the kind other; empty for any other kind" maxLength:"30"`
 	Unit        string `json:"unit,omitempty"        doc:"What one unit is called; \"suất\" when empty" maxLength:"20"`
 	Units       int    `json:"units"                 maximum:"999"   minimum:"1"`
-	PriceVND    int64  `json:"priceVnd"              doc:"Price of one unit, in whole đồng" minimum:"1000"`
+	// PriceVND is 0 or at least 1,000; a schema cannot say "or", so the
+	// contract keeps 0 as its floor and the service refuses 1 to 999.
+	PriceVND int64 `json:"priceVnd"              doc:"Price of one unit, in whole đồng: 0 gives it away free, any other price is at least 1000" minimum:"0"`
 	// OriginalPriceVND is checked against the minimum discount in the
 	// settings, which may change, so only its floor is in the contract.
-	OriginalPriceVND int64       `json:"originalPriceVnd"      doc:"What one unit normally sells for; the price must be the minimum discount below it" minimum:"1001"`
+	OriginalPriceVND int64       `json:"originalPriceVnd"      doc:"What one unit normally sells for; the price must be the minimum discount below it, and a free offer has one too" minimum:"1"`
 	WeightGrams      *int        `json:"weightGrams,omitempty" doc:"Weight of one unit, to measure food saved" maximum:"100000" minimum:"1"`
 	PhotoID          uuid.UUID   `json:"photoId"               doc:"The cover: from POST /photos, or the photo of an earlier offer of the seller"`
 	MorePhotoIDs     []uuid.UUID `json:"morePhotoIds,omitempty" doc:"Up to two more photos after the cover" maxItems:"2" nullable:"false"`
@@ -42,8 +44,8 @@ type offerChangeBody struct {
 	KindLabel        *string      `json:"kindLabel,omitempty"        doc:"Leaves it as it is when absent, and empties it when the kind is changed from other" maxLength:"30"`
 	Unit             *string      `json:"unit,omitempty"             maxLength:"20"`
 	Units            *int         `json:"units,omitempty"            maximum:"999"   minimum:"1"`
-	PriceVND         *int64       `json:"priceVnd,omitempty"         minimum:"1000"`
-	OriginalPriceVND *int64       `json:"originalPriceVnd,omitempty" minimum:"1001"`
+	PriceVND         *int64       `json:"priceVnd,omitempty"         doc:"0 gives it away free; any other price is at least 1000" minimum:"0"`
+	OriginalPriceVND *int64       `json:"originalPriceVnd,omitempty" minimum:"1"`
 	WeightGrams      *int         `json:"weightGrams,omitempty"      maximum:"100000" minimum:"1"`
 	PhotoID          *uuid.UUID   `json:"photoId,omitempty"`
 	MorePhotoIDs     *[]uuid.UUID `json:"morePhotoIds,omitempty" doc:"Replaces the photos after the cover; at most two" maxItems:"2"`
@@ -77,7 +79,7 @@ type offerBody struct {
 	Unit             string              `json:"unit"`
 	Units            int                 `json:"units"`
 	UnitsLeft        int                 `json:"unitsLeft"`
-	PriceVND         int64               `json:"priceVnd"`
+	PriceVND         int64               `json:"priceVnd"              doc:"0 when it is given away free"`
 	OriginalPriceVND int64               `json:"originalPriceVnd"`
 	DiscountPercent  int                 `json:"discountPercent"`
 	PerOrderMax      int                 `json:"perOrderMax"           doc:"How many units one order may take: the seller's cap, else the settings' default"`

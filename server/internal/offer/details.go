@@ -47,7 +47,9 @@ type Details struct {
 	KindLabel string
 	Unit      string
 	Units     int
-	PriceVND  int64
+	// PriceVND is 0 for food given away free, else at least
+	// minPaidPriceVND.
+	PriceVND int64
 	// OriginalPriceVND is what the food sells for normally; the price must be
 	// the minimum discount below it.
 	OriginalPriceVND int64
@@ -112,16 +114,25 @@ func (d Details) textValid() bool {
 		(d.Kind != KindMixedBox || d.Description != "")
 }
 
+// minPaidPriceVND is the lowest price of food that is not given away.
+const minPaidPriceVND = 1000
+
+// priceValid holds a price to free or at least minPaidPriceVND, and below the
+// original price, which a free offer still has.
+func priceValid(price, original int64) bool {
+	return (price == 0 || price >= minPaidPriceVND) && original > price
+}
+
 // amountsValid checks the units, the prices, the weight and the cap per order.
 func (d Details) amountsValid() bool {
 	return between(d.Units, 1, 999) &&
-		d.PriceVND >= 1000 && d.OriginalPriceVND > d.PriceVND &&
+		priceValid(d.PriceVND, d.OriginalPriceVND) &&
 		(d.WeightGrams == nil || between(*d.WeightGrams, 1, 100_000)) &&
 		(d.MaxPerOrder == nil || between(*d.MaxPerOrder, 1, 999))
 }
 
 // checkDiscount holds the price at least the minimum discount below the
-// original price.
+// original price; a free offer is 100% below it, so it always passes.
 func checkDiscount(price, original int64, set Settings) error {
 	if price*100 > original*int64(100-set.MinDiscountPercent) {
 		return ErrDiscountTooSmall
