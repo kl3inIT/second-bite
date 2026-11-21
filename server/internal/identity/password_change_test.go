@@ -41,25 +41,7 @@ func TestChangePassword(t *testing.T) {
 
 	ctx := sessionCtx(t, s, session)
 
-	// A new password that breaks the rules is refused before a try is spent:
-	// six of them, with a wrong old password, leave the limit unreached.
-	for range 6 {
-		if err := s.ChangePassword(ctx, wrongPassword, shortNewPass); !errors.Is(err, ErrPasswordInvalid) {
-			t.Fatalf("a short new password: %v, want ErrPasswordInvalid", err)
-		}
-	}
-
-	if err := s.ChangePassword(ctx, lanPassword, changeUser); !errors.Is(err, ErrPasswordInvalid) {
-		t.Errorf("the username as the new password: %v, want ErrPasswordInvalid", err)
-	}
-
-	if err := s.ChangePassword(ctx, wrongPassword, newPassword); !errors.Is(err, ErrPasswordIncorrect) {
-		t.Fatalf("a wrong old password: %v, want ErrPasswordIncorrect", err)
-	}
-
-	if _, err := s.SignInWithPassword(t.Context(), changeUser, lanPassword); err != nil {
-		t.Fatalf("a refused change replaced the password: %v", err)
-	}
+	checkChangeRefusals(ctx, t, s)
 
 	if err := s.ChangePassword(ctx, lanPassword, newPassword); err != nil {
 		t.Fatal(err)
@@ -84,6 +66,32 @@ func TestChangePassword(t *testing.T) {
 	byEmail := signedIn(t, s, "no.password."+uuid.NewString()[:8]+"@example.com")
 	if err := s.ChangePassword(callerCtx(t, byEmail), lanPassword, newPassword); !errors.Is(err, ErrNoPassword) {
 		t.Errorf("changing the password of an email account: %v, want ErrNoPassword", err)
+	}
+}
+
+// checkChangeRefusals checks what a change refuses and that a refusal changes nothing: a new password that breaks
+// the rules is refused before a try is spent, and a wrong old one is refused and leaves the password as it was.
+func checkChangeRefusals(ctx context.Context, t *testing.T, s *Service) {
+	t.Helper()
+
+	// A new password that breaks the rules is refused before a try is spent:
+	// six of them, with a wrong old password, leave the limit unreached.
+	for range 6 {
+		if err := s.ChangePassword(ctx, wrongPassword, shortNewPass); !errors.Is(err, ErrPasswordInvalid) {
+			t.Fatalf("a short new password: %v, want ErrPasswordInvalid", err)
+		}
+	}
+
+	if err := s.ChangePassword(ctx, lanPassword, changeUser); !errors.Is(err, ErrPasswordInvalid) {
+		t.Errorf("the username as the new password: %v, want ErrPasswordInvalid", err)
+	}
+
+	if err := s.ChangePassword(ctx, wrongPassword, newPassword); !errors.Is(err, ErrPasswordIncorrect) {
+		t.Fatalf("a wrong old password: %v, want ErrPasswordIncorrect", err)
+	}
+
+	if _, err := s.SignInWithPassword(t.Context(), changeUser, lanPassword); err != nil {
+		t.Fatalf("a refused change replaced the password: %v", err)
 	}
 }
 
