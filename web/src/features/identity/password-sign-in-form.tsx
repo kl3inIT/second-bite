@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { z } from "zod";
 
-import { refuse, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
@@ -82,7 +82,7 @@ export function PasswordSignInForm({
   const emailHref = { pathname: "/sign-in/email", query: { returnTo } } as const;
 
   return (
-    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
+    <form id={form.formId} noValidate action={submitAction(form)}>
       <FieldGroup>
         <h1 className="text-page-title text-foreground">{t("heading")}</h1>
         {needsCode !== undefined && (

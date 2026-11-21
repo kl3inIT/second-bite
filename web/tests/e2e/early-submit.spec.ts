@@ -154,7 +154,10 @@ test.describe("a form with a secret pressed before the page has hydrated", () =>
   });
 
   test("saving the email settings with the SMTP password", async ({ page }, testInfo) => {
-    await signIn(page, `admin.email.unset.${testInfo.project.name}.early@example.com`);
+    await signIn(
+      page,
+      `admin.email.unset.${testInfo.project.name}.${Date.now().toString(36)}@example.com`,
+    );
     const { release, documents, sent } = await beforeHydration(page);
     await page.goto("/vi/admin/settings/email", { waitUntil: "domcontentloaded" });
 
@@ -175,7 +178,7 @@ test.describe("a form with a secret pressed before the page has hydrated", () =>
   });
 
   test("asking for the code that deletes an account", async ({ page }, testInfo) => {
-    await signIn(page, `xoa.early.${testInfo.project.name}@example.com`);
+    await signIn(page, `xoa.early.${testInfo.project.name}.${Date.now().toString(36)}@example.com`);
     const { release, sent } = await beforeHydration(page);
     await page.goto("/vi/delete-account", { waitUntil: "domcontentloaded" });
 
@@ -194,7 +197,10 @@ test.describe("a form with a secret pressed before the page has hydrated", () =>
   test("a test email pressed after changing the settings is not sent", async ({
     page,
   }, testInfo) => {
-    await signIn(page, `admin.email.set.${testInfo.project.name}.early@example.com`);
+    await signIn(
+      page,
+      `admin.email.set.${testInfo.project.name}.${Date.now().toString(36)}@example.com`,
+    );
     const { release, sent } = await beforeHydration(page);
     await page.goto("/vi/admin/settings/email", { waitUntil: "domcontentloaded" });
 

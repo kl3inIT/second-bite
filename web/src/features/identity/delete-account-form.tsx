@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 
-import { refuse, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
@@ -64,7 +64,7 @@ function ConfirmStep({ email, onSent }: { email: string; onSent: (challengeId: s
   });
 
   return (
-    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
+    <form id={form.formId} noValidate action={submitAction(form)}>
       <FieldGroup>
         <p className="text-body-sm">
           {t.rich("confirmBody", {
@@ -145,7 +145,7 @@ function CodeStep({
   }
 
   return (
-    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
+    <form id={form.formId} noValidate action={submitAction(form)}>
       <FieldGroup>
         <header className="flex flex-col gap-1">
           <h2 className="text-title">{t("codeHeading")}</h2>
@@ -224,7 +224,7 @@ export function DeleteAccountWithPasswordForm({ username }: { username: string }
   });
 
   return (
-    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
+    <form id={form.formId} noValidate action={submitAction(form)}>
       <FieldGroup>
         <p className="text-body-sm">
           {t.rich("passwordBody", {

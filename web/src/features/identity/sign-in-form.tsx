@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 
-import { refuse, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -97,7 +97,7 @@ function EmailStep({
   });
 
   return (
-    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
+    <form id={form.formId} noValidate action={submitAction(form)}>
       <FieldGroup>
         <h1 className="text-page-title text-foreground">{t("emailHeading")}</h1>
         <form.AppField name="email">
@@ -202,7 +202,7 @@ function CodeStep({
   }
 
   return (
-    <form id={form.formId} noValidate action={() => form.handleSubmit()}>
+    <form id={form.formId} noValidate action={submitAction(form)}>
       <FieldGroup>
         <header className="flex flex-col gap-1">
           <h1 className="text-page-title text-foreground">{t("codeHeading")}</h1>
