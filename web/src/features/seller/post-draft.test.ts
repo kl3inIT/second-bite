@@ -54,6 +54,11 @@ describe("the price of a post", () => {
     expect(priceProblem(95_000, 0)).toBeUndefined();
     expect(priceProblem(95_000, 999)).toBe("missing");
     expect(priceProblem(Number.NaN, 0)).toBe("missing");
+    // The contract takes any original price above 0 for a free dish, as the server does.
+    expect(priceProblem(1, 0)).toBeUndefined();
+    expect(priceProblem(999, 0)).toBeUndefined();
+    expect(priceProblem(0, 0)).toBe("missing");
+    expect(priceProblem(999, 500)).toBe("missing");
     expect(discountPercent(95_000, 0)).toBe(100);
   });
 
