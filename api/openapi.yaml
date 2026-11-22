@@ -4427,6 +4427,22 @@ paths:
             description: Keep the offers posted before this time
             format: date-time
             type: string
+        - description: Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep those whose window starts before this time of each day, HH:MM or 24:00
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep those whose window starts before this time of each day, HH:MM or 24:00
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
+            type: string
       responses:
         "200":
           content:
@@ -4511,6 +4527,22 @@ paths:
           schema:
             description: Keep the offers posted before this time
             format: date-time
+            type: string
+        - description: Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep those whose window starts before this time of each day, HH:MM or 24:00
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep those whose window starts before this time of each day, HH:MM or 24:00
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
             type: string
       responses:
         "200":
@@ -4670,6 +4702,22 @@ paths:
           schema:
             description: Keep the orders whose window starts before this time
             format: date-time
+            type: string
+        - description: Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep those whose window starts before this time of each day, HH:MM or 24:00
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep those whose window starts before this time of each day, HH:MM or 24:00
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
             type: string
       responses:
         "200":
@@ -4951,6 +4999,22 @@ paths:
           schema:
             description: Keep one store's numbers; the views are then its page's and its dishes'
             type: string
+        - description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
+            type: string
       responses:
         "200":
           content:
@@ -4998,6 +5062,22 @@ paths:
           schema:
             description: Keep one store's numbers; the views are then its page's and its dishes'
             type: string
+        - description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
+            type: string
       responses:
         "200":
           content:
@@ -5044,6 +5124,22 @@ paths:
           name: sellerId
           schema:
             description: Keep one store's numbers; the views are then its page's and its dishes'
+            type: string
+        - description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
             type: string
       responses:
         "200":
@@ -5099,6 +5195,22 @@ paths:
           name: sellerId
           schema:
             description: Keep one store's numbers; the views are then its page's and its dishes'
+            type: string
+        - description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
             type: string
       responses:
         "200":

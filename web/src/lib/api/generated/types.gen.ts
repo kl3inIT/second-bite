@@ -2544,6 +2544,14 @@ export type GetOfferUnitsForAdminsData = {
          * Keep the offers posted before this time
          */
         postedUntil?: string;
+        /**
+         * Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep those whose window starts before this time of each day, HH:MM or 24:00
+         */
+        timeUntil?: string;
     };
     url: '/admin/offer-units';
 };
@@ -2592,6 +2600,14 @@ export type ListOffersForAdminsData = {
          * Keep the offers posted before this time
          */
         postedUntil?: string;
+        /**
+         * Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep those whose window starts before this time of each day, HH:MM or 24:00
+         */
+        timeUntil?: string;
     };
     url: '/admin/offers';
 };
@@ -2696,6 +2712,14 @@ export type ListOrdersForAdminsData = {
          * Keep the orders whose window starts before this time
          */
         collectUntil?: string;
+        /**
+         * Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep those whose window starts before this time of each day, HH:MM or 24:00
+         */
+        timeUntil?: string;
     };
     url: '/admin/orders';
 };
@@ -2915,6 +2939,14 @@ export type GetReportData = {
          * Keep one store's numbers; the views are then its page's and its dishes'
          */
         sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
     };
     url: '/admin/reports';
 };
@@ -2953,6 +2985,14 @@ export type GetReportAnalysisData = {
          * Keep one store's numbers; the views are then its page's and its dishes'
          */
         sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
     };
     url: '/admin/reports/analysis';
 };
@@ -2991,6 +3031,14 @@ export type ExportReportData = {
          * Keep one store's numbers; the views are then its page's and its dishes'
          */
         sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
     };
     url: '/admin/reports/export';
 };
@@ -3027,6 +3075,14 @@ export type ExportReportWorkbookData = {
          * Keep one store's numbers; the views are then its page's and its dishes'
          */
         sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
     };
     url: '/admin/reports/workbook';
 };
