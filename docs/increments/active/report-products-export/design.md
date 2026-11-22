@@ -1,27 +1,33 @@
-# The report's products, analysis and export
+# The posts' portions, the report's products, impact, analysis and export
 
-Status: started on 22 November 2026. Not yet tracked in Linear; the issue is opened when the user asks. It changes the admin's report of [SEC-80](../../completed/sec-80-prototype-numbers/design.md) and [SEC-192](../../completed/sec-192-report-three-numbers/design.md), owned by `stats` ([spec](../../../specs/stats.md)).
+Status: started on 22 November 2026. Not yet tracked in Linear; the issue is opened when the user asks. It changes the admins' posts page of [SEC-134](../../completed/sec-134-admin-posts/design.md) and the admin's report of [SEC-80](../../completed/sec-80-prototype-numbers/design.md) and [SEC-192](../../completed/sec-192-report-three-numbers/design.md), owned by `offer`, `order` and `stats` ([offer](../../../specs/offer.md), [order](../../../specs/order.md), [stats](../../../specs/stats.md)).
 
 ## What an admin can do
 
-An admin reads, beside the three numbers, what became of the portions posted: how many were posted, ordered and collected, how many were left over, and the share that reached a customer. The chart gains a tab with the portions collected and left over each day, and the stores' table gains the portions posted, left over and the share sold for each store. Under the chart, an analysis follows the visitors to the orders held and collected, gives what one collected order holds on average, and shows the customers' ratings of the same days.
-
-"Xuất CSV" becomes "Xuất báo cáo": a dialog chooses a PDF or the CSV. The PDF is a page of the report laid out for paper, holding the parts the admin ticked, which the browser saves as a PDF; the CSV is the server's file as before.
+- **Posts page.** "Xem số suất", at the end of the "Bài đăng" title row, opens a "Sản phẩm" box over the list: the portions posted (from how many posts), sold (how many customers collected), waiting (how many have yet to collect), not collected (how many did not) and left (and of them, left over on posts that ended). It follows the list's filters and is kept in the address; closed, nothing is read.
+- **Report.** Beside the three numbers: a products block (portions posted, ordered, collected, left over, share sold), an impact block (food rescued in kilograms, the original value of what was collected, what customers saved, the discounts Second Bite paid back), a "Sản phẩm" tab on the chart, three store columns (portions posted, left over, share sold), and an analysis in four groups: customers (funnel, per-order averages, visits, sources), products and prices (kinds, discount bands, dishes sold and left most), time (weekday by hour, hours collected, time to sell out, how early customers order) and quality (failures, ratings, praise, problems).
+- **Export.** "Xuất CSV" becomes "Xuất báo cáo": a PDF of the parts ticked (the browser's print of a page laid out for A4), an Excel workbook, or the CSV.
 
 ## Decisions
 
-- **Only what the API already gives.** The report's `counts` hold `unitsPosted`, `unitsHeld` and `unitsCollected`, which no screen showed; the ratings come from `GET /admin/reviews` (SEC-145) with the same days and store. No endpoint or field is added, so the contract and the CSV stay as they are.
-- **Left over** is the portions posted less those collected: what did not reach a customer, whether nobody ordered it or the customer did not come. It is not split further, because `unitsHeld` counts the portions of every order placed, cancelled ones included, so a portion cancelled and ordered again counts twice.
-- **The share sold** is the portions collected over those posted, in whole percent, none without posts.
-- **The funnel** stops at the orders collected. The customers and returning customers are the site's whatever store is chosen (SEC-200), so they stay on their own card rather than under a store's orders.
-- **Ratings** are those given in the range's days in Vietnam, of the store chosen, as the reviews page reads them; the average is of the reviews shown, as the API gives it.
-- **"Phần đã lấy"** moves from the cards under the three numbers to the products block, which holds every portion figure; four cards remain under the three numbers.
-- **The PDF is the browser's.** The print page (`/admin/reports/print`) reads the same report and draws the parts chosen without the sidebar or the controls; "Lưu PDF" opens the browser's print dialog. No PDF library and no server code are added. A workbook (`.xlsx`) would need a library on the server and waits for the tech lead.
-- **Left for later, each needing an API agreed with the tech lead:** the posts page's portions by outcome; the original value, what customers saved, the discounts Second Bite paid back and the kilograms rescued; the kinds of dish, discount levels, hours, weekdays, time to sell out, how long before the window customers order, reasons orders fail, praise tags and problem reports; the workbook.
+- **Units by outcome** (`GET /admin/offer-units`) live in `order`, which already depends on `offer`: `offer` answers the offers matching the list's filters and their units, `order` judges the lines of their orders. Missed units are those that never came back: orders expired, and refusals for anything but no answer, no show or late, whose units return to the offer. So posted is left plus collected, held and missed. Orders stand for customers.
+- **Left over** on the report is the portions posted less those collected; it is not split further, because `unitsHeld` counts every order placed, cancelled ones included.
+- **Impact.** `order.OrderDays` adds the original price of the dishes collected and the discounts paid back; the grams are the units collected times their offer's weight, which `offer.WeightsOf` gives for the dishes that have one, so the screen says how many units were weighed. What customers saved is the original price less what they paid: the total less the discount.
+- **Analysis** (`GET /admin/reports/analysis`) is assembled by `stats` from `offer.PostsBetween`, `order.OfferOutcomes` and `order.Analysis`, as the report already is, each module reading only its tables. A post sold out at the latest order not cancelled that took from it; one still on sale with units left is counted neither as sold out nor as not. Only ended posts rank among those left over. The views' sources are the site's whatever store is chosen, as new users are.
+- **The PDF is the browser's**: the print page (`/admin/reports/print`) draws the parts ticked without the sidebar or the controls. No PDF library is added.
+- **The workbook** uses `github.com/xuri/excelize/v2` (BSD-3-Clause), approved by the tech lead on 22 November 2026. Its sheets are in Vietnamese, as the CSV is; figures are numbers, names text.
+- **The CSV** keeps its columns in place and adds the impact columns at the end, so the sponsor's sheet keeps its places.
 
-The user approved HTML previews of the posts page and the report on 22 November 2026; they are kept outside the repository.
+The user approved HTML previews of the posts page and the report on 22 November 2026, and the tech lead the contract the same day; the previews are kept outside the repository.
+
+## Contract
+
+- `GET /admin/offer-units?status=&q=&sellerId=&postedSince=&postedUntil=` (order).
+- `GET /admin/reports` and its CSV: `counts` gain `originalVnd`, `discountVnd`, `discountOrders`, `gramsCollected` and `unitsWeighed`.
+- `GET /admin/reports/analysis?since=&until=&sellerId=` (stats).
+- `GET /admin/reports/workbook?since=&until=&sellerId=` (stats).
 
 ## Verification
 
-- `report-numbers.test.ts` for the portions left over and the share sold.
-- `admin-reports.spec.ts` for the products block, the chart's new tab, the stores' new columns, the analysis, the export dialog, the CSV download and the print page, each page checked with axe.
+- Go: `TestOrder` › admins count what became of posts' units, the report counts the days (worth, outcomes, analysis reads); `TestAnalyse`, `TestDiscountBandAndMedian`, `TestReportCSVImpact`, `TestReportWorkbook`; `TestService` › the report counts a store's views, posts and orders, through the API.
+- Web: `report-numbers.test.ts`; `admin-offers.spec.ts` and `admin-reports.spec.ts`, each page checked with axe.
