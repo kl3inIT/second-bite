@@ -27,6 +27,7 @@ import { photoUrl } from "@/lib/api/photo";
 import { cn } from "@/lib/utils";
 
 import { OfferActions } from "./offer-actions";
+import { UnitsBox, type OfferUnits } from "./offer-units";
 import { OfferStatusBadge, statusLook } from "./offer-status";
 import {
   cardStatuses,
@@ -56,7 +57,7 @@ const countOf: Record<OfferStatus, keyof OfferCountsBody> = {
 
 /**
  * Every store's posts (Figma AD-BD1, SEC-134): a card per status with its count, which filters the list
- * when pressed; words, a store, the days posted and the page size in the address; a page of posts the server
+ * when pressed; under them, while "Xem số suất" holds it open, what became of the posts' units; words, a store, the days posted and the page size in the address; a page of posts the server
  * read for them, newest first; a post opens in a panel beside the list (AD-BD2). Admins read posts and never
  * change them: removing one is not offered until an admin may.
  */
@@ -64,11 +65,14 @@ export function OffersList({
   offers,
   total,
   counts,
+  units,
   stores,
 }: {
   offers: AdminOfferBody[];
   total: number;
   counts: OfferCountsBody;
+  /** The "Sản phẩm" box's numbers; none while it is closed. */
+  units: OfferUnits | null;
   stores: Array<{ id: string; name: string }>;
 }) {
   const t = useTranslations("Admin.offers");
@@ -112,14 +116,18 @@ export function OffersList({
                 <span className="text-body-sm-strong text-muted-foreground">
                   {t(`status.${status}`)}
                 </span>
-                <span className="font-display text-display text-foreground">
-                  {counts[countOf[status]]}
+                <span className="flex items-baseline gap-1">
+                  <span className="font-display text-display text-foreground">
+                    {counts[countOf[status]]}
+                  </span>
+                  <span className="text-body-sm text-muted-foreground">{t("posts")}</span>
                 </span>
               </span>
             </button>
           );
         })}
       </fieldset>
+      {units && <UnitsBox units={units} />}
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox
           label={t("search")}

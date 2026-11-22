@@ -1803,6 +1803,24 @@
         "actions": "Actions"
       },
       "unitsLeft": "{left}/{units} {unit}",
+      "posts": "posts",
+      "units": {
+        "show": "Show units",
+        "hide": "Hide units",
+        "title": "Products",
+        "unit": "units",
+        "posted": "Posted",
+        "postedNote": "from {posts, plural, one {# post} other {# posts}}",
+        "collected": "Sold",
+        "collectedNote": "{customers, plural, one {# customer} other {# customers}} collected",
+        "held": "Waiting",
+        "heldNote": "{customers, plural, one {# customer} other {# customers}} yet to collect",
+        "missed": "Not collected",
+        "missedNote": "{customers, plural, one {# customer} other {# customers}} did not collect",
+        "left": "Left",
+        "leftNote": "not ordered yet",
+        "leftoverNote": "{leftover} left over (ended posts)"
+      },
       "window": "{from}–{until}",
       "empty": {
         "title": "No posts yet"

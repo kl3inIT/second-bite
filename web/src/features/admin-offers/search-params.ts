@@ -1,6 +1,7 @@
 import {
   createLoader,
   createSerializer,
+  parseAsBoolean,
   parseAsInteger,
   parseAsIsoDate,
   parseAsNumberLiteral,
@@ -36,6 +37,8 @@ export const offerSearchParams = {
   to: parseAsIsoDate,
   page: parseAsInteger.withDefault(1),
   size: parseAsNumberLiteral(offerPageSizes).withDefault(10),
+  // The "Sản phẩm" box over the list, closed unless asked: its numbers are read only while it is open.
+  units: parseAsBoolean.withDefault(false),
 };
 
 export const loadOfferSearchParams = createLoader(offerSearchParams);

@@ -1803,6 +1803,24 @@
         "actions": "Thao tác"
       },
       "unitsLeft": "{left}/{units} {unit}",
+      "posts": "bài",
+      "units": {
+        "show": "Xem số suất",
+        "hide": "Ẩn số suất",
+        "title": "Sản phẩm",
+        "unit": "suất",
+        "posted": "Đã đăng",
+        "postedNote": "từ {posts} bài",
+        "collected": "Đã bán",
+        "collectedNote": "{customers} khách đã nhận",
+        "held": "Đang chờ",
+        "heldNote": "{customers} khách chưa đến lấy",
+        "missed": "Không nhận",
+        "missedNote": "{customers} khách không nhận",
+        "left": "Còn lại",
+        "leftNote": "chưa ai đặt",
+        "leftoverNote": "dư {leftover} (bài đã đóng)"
+      },
       "window": "{from}–{until}",
       "empty": {
         "title": "Chưa có bài đăng nào"
