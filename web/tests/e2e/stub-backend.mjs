@@ -2957,6 +2957,11 @@ const reportCountKeys = [
   "collectedVnd",
   "newAccounts",
   "newCustomers",
+  "originalVnd",
+  "discountVnd",
+  "discountOrders",
+  "gramsCollected",
+  "unitsWeighed",
 ];
 
 function reportCounts(values = {}) {
@@ -2980,6 +2985,11 @@ const reportStoreNumbers = [
     unitsCollected: 11,
     cancelled: 1,
     collectedVnd: 264000,
+    originalVnd: 528000,
+    discountVnd: 20000,
+    discountOrders: 2,
+    gramsCollected: 1600,
+    unitsWeighed: 8,
   },
   {
     views: 25,
@@ -2993,9 +3003,83 @@ const reportStoreNumbers = [
     unitsCollected: 2,
     expired: 2,
     collectedVnd: 70000,
+    originalVnd: 140000,
   },
   { views: 7, people: 4, offers: 1, unitsPosted: 5 },
 ];
+
+// GET /admin/reports/analysis (report-products-export): fixed numbers on the stub's first store's dishes, the
+// same whatever days or store are asked.
+function adminReportAnalysis(url, stores) {
+  const report = adminReport(url, stores);
+  const store = stores.find((s) => s.status === "active")?.name ?? "";
+  return {
+    since: report.since,
+    until: report.until,
+    kinds: [
+      { kind: "bakery", posted: 15, collected: 11 },
+      { kind: "prepared_food", posted: 8, collected: 2 },
+      { kind: "drinks", posted: 5, collected: 0 },
+    ],
+    discounts: [
+      { band: "free", posted: 0, collected: 0 },
+      { band: "from70", posted: 5, collected: 0 },
+      { band: "from50", posted: 15, collected: 11 },
+      { band: "from30", posted: 8, collected: 2 },
+      { band: "under30", posted: 0, collected: 0 },
+    ],
+    slots: [
+      { weekday: 1, hour: 18, held: 3, collected: 2 },
+      { weekday: 5, hour: 19, held: 6, collected: 5 },
+      { weekday: 6, hour: 20, held: 4, collected: 3 },
+    ],
+    leadTimes: { underHalfHour: 2, underHour: 4, underThreeHours: 5, overThreeHours: 2 },
+    sellOut: {
+      underHalfHour: 1,
+      underHour: 2,
+      underTwoHours: 0,
+      overTwoHours: 0,
+      notSoldOut: 3,
+      medianMinutes: 40,
+    },
+    failures: [
+      { key: "expired", count: 2 },
+      { key: "cancelled", count: 1 },
+    ],
+    visits: [
+      { key: "1", count: 6 },
+      { key: "2", count: 3 },
+      { key: "3", count: 1 },
+    ],
+    topSold: [
+      {
+        offerId: "11111111-1111-4111-8111-111111111111",
+        name: "Bánh mì bơ tỏi",
+        sellerName: store,
+        unit: "cái",
+        posted: 10,
+        collected: 9,
+      },
+    ],
+    topLeftover: [
+      {
+        offerId: "22222222-2222-4222-8222-222222222222",
+        name: "Cơm rang dưa bò",
+        sellerName: store,
+        unit: "suất",
+        posted: 8,
+        collected: 2,
+      },
+    ],
+    sources: [
+      { key: "", count: 60 },
+      { key: "qr", count: 8 },
+      { key: "facebook", count: 36 },
+    ],
+    tags: [{ key: "good_quality", count: 4 }],
+    problems: [],
+  };
+}
 
 function vietnamToday() {
   return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -3275,6 +3359,40 @@ async function adminRoutes(request, response, url) {
     listAdminOffers(response, url, adminStoresOf(account));
     return true;
   }
+  // GET /admin/offer-units: fixed numbers for the 80 posts, a quarter of them for one status; posted is left
+  // plus collected, held and missed, as the order module counts them.
+  if (request.method === "GET" && url.pathname === "/admin/offer-units") {
+    json(
+      response,
+      200,
+      url.searchParams.get("status")
+        ? {
+            posts: 20,
+            posted: 150,
+            left: 35,
+            leftover: 15,
+            collected: 95,
+            collectedOrders: 70,
+            held: 12,
+            heldOrders: 10,
+            missed: 8,
+            missedOrders: 6,
+          }
+        : {
+            posts: 80,
+            posted: 600,
+            left: 140,
+            leftover: 60,
+            collected: 380,
+            collectedOrders: 290,
+            held: 50,
+            heldOrders: 40,
+            missed: 30,
+            missedOrders: 24,
+          },
+    );
+    return true;
+  }
   if (request.method === "GET" && url.pathname === "/admin/orders") {
     listAdminOrders(response, url, adminStoresOf(account));
     return true;
@@ -3314,6 +3432,20 @@ async function adminRoutes(request, response, url) {
   }
   if (request.method === "GET" && url.pathname === "/admin/reports") {
     json(response, 200, adminReport(url, adminStoresOf(account)));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reports/analysis") {
+    json(response, 200, adminReportAnalysis(url, adminStoresOf(account)));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reports/workbook") {
+    const report = adminReport(url, adminStoresOf(account));
+    response.writeHead(200, {
+      "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "content-disposition": `attachment; filename=bao-cao-${report.since}-den-${report.until}.xlsx`,
+    });
+    // The stub sends no real workbook: only its name and type are checked.
+    response.end("PK");
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/reports/export") {

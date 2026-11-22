@@ -5,6 +5,7 @@ import {
   periodBefore,
   presetOf,
   presetRange,
+  savedOf,
   sellThroughOf,
   signed,
   vietnamToday,
@@ -72,5 +73,17 @@ describe("the report's portions", () => {
     expect(sellThroughOf({ unitsPosted: 0, unitsCollected: 0 })).toBeNull();
     // The two are counted apart, so the leftover is held at zero whatever they read.
     expect(leftoverOf({ unitsPosted: 2, unitsCollected: 3 })).toBe(0);
+  });
+});
+
+describe("what customers saved", () => {
+  it("is the original price less what they paid: the total less the discount", () => {
+    expect(savedOf({ originalVnd: 668_000, collectedVnd: 334_000, discountVnd: 20_000 })).toBe(
+      354_000,
+    );
+  });
+
+  it("is never below zero", () => {
+    expect(savedOf({ originalVnd: 0, collectedVnd: 10_000, discountVnd: 0 })).toBe(0);
   });
 });
