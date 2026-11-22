@@ -2103,6 +2103,7 @@
         "part": {
           "kpi": "Ba chỉ số chính",
           "products": "Sản phẩm",
+          "impact": "Tác động",
           "days": "Biểu đồ theo ngày",
           "analysis": "Phân tích",
           "stores": "Theo cửa hàng",
@@ -2119,6 +2120,19 @@
         "anyStore": "Tất cả cửa hàng",
         "save": "Lưu PDF",
         "back": "Quay lại báo cáo"
+      },
+      "impact": {
+        "title": "Tác động",
+        "rescued": "Thực phẩm được cứu",
+        "kilograms": "{kg} kg",
+        "rescuedNote": "{weighed}/{collected} phần có ghi cân nặng",
+        "original": "Giá trị gốc",
+        "originalNote": "của {units} phần đã lấy",
+        "saved": "Khách tiết kiệm",
+        "savedNote": "{share}% so với giá gốc",
+        "discount": "Second Bite bù giảm giá",
+        "discountNote": "{orders} đơn dùng mã giảm giá",
+        "none": "–"
       },
       "analysis": {
         "title": "Phân tích",
@@ -2149,6 +2163,7 @@
         "orders": "- Giao dịch: {held} đơn{change}, {collected} đơn đã lấy",
         "people": "- Người truy cập: {people}{change}, {views} lượt mở trang",
         "products": "- Sản phẩm: {posted} phần đăng, {collected} phần đã lấy ({share}%), dư {leftover}",
+        "impact": "- Tác động: {kg} kg thực phẩm được cứu, khách tiết kiệm {saved}",
         "change": " ({change})",
         "compared": "Số trong ngoặc là chênh lệch so với {days, plural, =1 {hôm trước} other {# ngày trước đó}}."
       }

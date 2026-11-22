@@ -65,3 +65,15 @@ export function leftoverOf(c: { unitsPosted: number; unitsCollected: number }): 
 export function sellThroughOf(c: { unitsPosted: number; unitsCollected: number }): number | null {
   return c.unitsPosted > 0 ? Math.round((c.unitsCollected * 100) / c.unitsPosted) : null;
 }
+
+/**
+ * What the customers of the collected orders saved against the original price: they paid the total less the
+ * discount Second Bite paid back. Never below zero.
+ */
+export function savedOf(c: {
+  originalVnd: number;
+  collectedVnd: number;
+  discountVnd: number;
+}): number {
+  return Math.max(c.originalVnd - (c.collectedVnd - c.discountVnd), 0);
+}

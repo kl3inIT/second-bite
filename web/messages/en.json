@@ -2103,6 +2103,7 @@
         "part": {
           "kpi": "The three main numbers",
           "products": "Products",
+          "impact": "Impact",
           "days": "Charts by day",
           "analysis": "Analysis",
           "stores": "By store",
@@ -2119,6 +2120,19 @@
         "anyStore": "All stores",
         "save": "Save as PDF",
         "back": "Back to the report"
+      },
+      "impact": {
+        "title": "Impact",
+        "rescued": "Food rescued",
+        "kilograms": "{kg} kg",
+        "rescuedNote": "{weighed} of {collected} units give a weight",
+        "original": "Original value",
+        "originalNote": "of {units} units collected",
+        "saved": "Customers saved",
+        "savedNote": "{share}% of the original price",
+        "discount": "Discounts Second Bite paid",
+        "discountNote": "{orders, plural, one {# order} other {# orders}} with a discount",
+        "none": "–"
       },
       "analysis": {
         "title": "Analysis",
@@ -2149,6 +2163,7 @@
         "orders": "- Orders: {held}{change}, {collected} collected",
         "people": "- Visitors: {people}{change}, {views} page views",
         "products": "- Products: {posted} units posted, {collected} collected ({share}%), {leftover} left over",
+        "impact": "- Impact: {kg} kg of food rescued, customers saved {saved}",
         "change": " ({change})",
         "compared": "The figures in brackets are the change on {days, plural, =1 {the day before} other {the # days before}}."
       }

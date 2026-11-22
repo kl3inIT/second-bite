@@ -17,6 +17,7 @@ import { Link } from "@/i18n/navigation";
 import type { CountsBody, ReportOutputBody, ReportStoreBody } from "@/lib/api/generated";
 
 import { ReportAnalysis, type Ratings } from "./report-analysis";
+import { ImpactBlock } from "./report-impact";
 import { leftoverOf, periodBefore, sellThroughOf } from "./report-numbers";
 import { ProductsBlock } from "./report-products";
 import { Cards, DayBars, rangeOf, shareOf } from "./report-view";
@@ -77,9 +78,18 @@ export function ReportPrint({
         </p>
       </header>
       {has("kpi") ? (
-        <Cards report={report} previous={previous} days={days} withProducts={has("products")} />
+        <Cards
+          report={report}
+          previous={previous}
+          days={days}
+          withProducts={has("products")}
+          withImpact={has("impact")}
+        />
       ) : (
-        has("products") && <ProductsBlock totals={report.totals} />
+        <>
+          {has("products") && <ProductsBlock totals={report.totals} />}
+          {has("impact") && <ImpactBlock totals={report.totals} />}
+        </>
       )}
       {has("days") && (
         <>

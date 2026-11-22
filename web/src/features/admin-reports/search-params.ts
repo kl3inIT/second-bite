@@ -47,7 +47,15 @@ export const reportSearchParams = {
 export const loadReportSearchParams = createLoader(reportSearchParams);
 
 /** The parts of the report a PDF may hold, in the order the print page draws them. */
-export const reportParts = ["kpi", "products", "days", "analysis", "stores", "feedback"] as const;
+export const reportParts = [
+  "kpi",
+  "products",
+  "impact",
+  "days",
+  "analysis",
+  "stores",
+  "feedback",
+] as const;
 
 export type ReportPart = (typeof reportParts)[number];
 

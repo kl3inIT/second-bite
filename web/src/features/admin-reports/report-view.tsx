@@ -44,12 +44,14 @@ import {
   presetOf,
   presetRange,
   presets,
+  savedOf,
   sellThroughOf,
   signed,
   vietnamToday,
 } from "./report-numbers";
 import { ExportDialog } from "./export-dialog";
 import { ReportAnalysis, type Ratings } from "./report-analysis";
+import { ImpactBlock } from "./report-impact";
 import { ProductsBlock } from "./report-products";
 import { reportSearchParams, type ReportSort } from "./search-params";
 
@@ -253,12 +255,14 @@ export function Cards({
   previous,
   days,
   withProducts = true,
+  withImpact = true,
 }: {
   report: ReportOutputBody;
   previous: CountsBody | null;
   days: number;
-  /** The print page leaves the products block out when its part is not ticked. */
+  /** The print page leaves the products and impact blocks out when their parts are not ticked. */
   withProducts?: boolean;
+  withImpact?: boolean;
 }) {
   const t = useTranslations("Admin.reports");
   const card = useTranslations("Admin.reports.card");
@@ -358,6 +362,7 @@ export function Cards({
           </div>
         ))}
       </dl>
+      {withImpact && <ImpactBlock totals={totals} />}
     </>
   );
 }
@@ -491,6 +496,10 @@ function useCopyReport(
       collected: totals.unitsCollected,
       share: sellThroughOf(totals) ?? 0,
       leftover: leftoverOf(totals),
+    }),
+    t("impact", {
+      kg: format.number(totals.gramsCollected / 1000, "oneDecimal"),
+      saved: formatPrice(savedOf(totals)),
     }),
     ...(previous ? [t("compared", { days })] : []),
   ].join("\n");
