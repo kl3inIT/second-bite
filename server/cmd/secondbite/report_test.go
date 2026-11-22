@@ -94,6 +94,8 @@ func checkReport(t *testing.T, svc service) {
 
 	checkReportNewUsers(t, svc, admin)
 	checkReportExport(t, svc, admin, sellerID)
+	checkReportAnalysis(t, svc, admin, sellerID)
+	checkOfferUnits(t, svc, admin, sellerID)
 	checkReportRangeRefused(t, svc, admin)
 }
 
@@ -135,6 +137,54 @@ func checkReportExport(t *testing.T, svc service, admin http.Header, sellerID st
 		!strings.HasPrefix(csv.header.Get("Content-Disposition"), "attachment; filename=bao-cao-") ||
 		!bytes.HasPrefix(csv.body, []byte("\xEF\xBB\xBF")) || !bytes.Contains(csv.body, []byte("Bếp Báo Cáo")) {
 		t.Errorf("the export: %d %v %q", csv.status, csv.header, csv.body)
+	}
+}
+
+// checkReportAnalysis reads the store's analysis, its one dish sold most, and
+// its workbook (report-products-export).
+func checkReportAnalysis(t *testing.T, svc service, admin http.Header, sellerID string) {
+	t.Helper()
+
+	var a struct {
+		Kinds   []struct{ Posted, Collected int } `json:"kinds"`
+		TopSold []struct {
+			Name      string `json:"name"`
+			Collected int    `json:"collected"`
+		} `json:"topSold"`
+		Visits []struct {
+			Key   string `json:"key"`
+			Count int    `json:"count"`
+		} `json:"visits"`
+	}
+
+	send(t, http.MethodGet, svc.base+"/admin/reports/analysis?sellerId="+sellerID, admin, nil).decode(t, http.StatusOK, &a)
+
+	if len(a.Kinds) != 1 || a.Kinds[0].Posted != 5 || a.Kinds[0].Collected != 2 || len(a.TopSold) != 1 ||
+		a.TopSold[0].Collected != 2 || len(a.Visits) != 3 || a.Visits[0].Key != "1" || a.Visits[0].Count != 1 {
+		t.Errorf("the store's analysis %+v", a)
+	}
+
+	book := send(t, http.MethodGet, svc.base+"/admin/reports/workbook?sellerId="+sellerID, admin, nil)
+	if book.status != http.StatusOK ||
+		book.header.Get("Content-Type") != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+		!strings.HasSuffix(book.header.Get("Content-Disposition"), ".xlsx") || !bytes.HasPrefix(book.body, []byte("PK")) {
+		t.Errorf("the workbook: %d %v", book.status, book.header)
+	}
+}
+
+// checkOfferUnits reads what became of the store's post's units: two of five
+// collected by one order, three left.
+func checkOfferUnits(t *testing.T, svc service, admin http.Header, sellerID string) {
+	t.Helper()
+
+	var u struct {
+		Posts, Posted, Left, Collected, CollectedOrders, Held, Missed int
+	}
+
+	send(t, http.MethodGet, svc.base+"/admin/offer-units?sellerId="+sellerID, admin, nil).decode(t, http.StatusOK, &u)
+
+	if u.Posts != 1 || u.Posted != 5 || u.Left != 3 || u.Collected != 2 || u.CollectedOrders != 1 || u.Held != 0 || u.Missed != 0 {
+		t.Errorf("the store's units %+v", u)
 	}
 }
 
