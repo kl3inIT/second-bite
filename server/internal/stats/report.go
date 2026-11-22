@@ -45,6 +45,14 @@ type Counts struct {
 	// day, and the customers whose first order, by phone number, is collected
 	// on it.
 	NewAccounts, NewCustomers int
+	// OriginalVND is what the collected orders' dishes cost at their original
+	// price, and DiscountVND the discounts Second Bite paid back on them,
+	// taken by DiscountOrders of them.
+	OriginalVND, DiscountVND int64
+	DiscountOrders           int
+	// GramsCollected are the grams of the units collected whose offer gives a
+	// weight, and UnitsWeighed how many units those are.
+	GramsCollected, UnitsWeighed int
 }
 
 func (c *Counts) addViews(o Counts) {
@@ -70,6 +78,11 @@ func (c *Counts) addTrade(o Counts) {
 	c.Refused += o.Refused
 	c.Expired += o.Expired
 	c.CollectedVND += o.CollectedVND
+	c.OriginalVND += o.OriginalVND
+	c.DiscountVND += o.DiscountVND
+	c.DiscountOrders += o.DiscountOrders
+	c.GramsCollected += o.GramsCollected
+	c.UnitsWeighed += o.UnitsWeighed
 }
 
 // ReportFilter is what an admin reads the report by: days in Vietnam, both
@@ -266,7 +279,12 @@ func (s *Service) storeDays(ctx context.Context, f ReportFilter) (map[storeDay]*
 		cell(o.Day, o.SellerID).addTrade(Counts{
 			Held: o.Held, UnitsHeld: o.UnitsHeld, Collected: o.Collected, UnitsCollected: o.UnitsCollected,
 			Cancelled: o.Cancelled, Refused: o.Refused, Expired: o.Expired, CollectedVND: o.CollectedVND,
+			OriginalVND: o.OriginalVND, DiscountVND: o.DiscountVND, DiscountOrders: o.DiscountOrders,
 		})
+	}
+
+	if err := s.weighCollected(ctx, since, until, f.SellerID, cell); err != nil {
+		return nil, err
 	}
 
 	views, err := s.storeViewDays(ctx, f)
@@ -281,6 +299,39 @@ func (s *Service) storeDays(ctx context.Context, f ReportFilter) (map[storeDay]*
 	}
 
 	return cells, nil
+}
+
+// weighCollected adds to each store and day the grams of the units collected
+// whose offer gives a weight per unit, asked of offer.
+func (s *Service) weighCollected(ctx context.Context, since, until time.Time, sellerID *uuid.UUID, cell func(time.Time, uuid.UUID) *Counts) error {
+	outcomes, err := s.orders.OfferOutcomes(ctx, since, until, sellerID)
+	if err != nil {
+		return err
+	}
+
+	ids := make([]uuid.UUID, 0, len(outcomes))
+	for _, o := range outcomes {
+		if o.UnitsCollected > 0 {
+			ids = append(ids, o.OfferID)
+		}
+	}
+
+	if len(ids) == 0 {
+		return nil
+	}
+
+	weights, err := s.offers.WeightsOf(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	for _, o := range outcomes {
+		if grams, ok := weights[o.OfferID]; ok && o.UnitsCollected > 0 {
+			cell(o.Day, o.SellerID).addTrade(Counts{GramsCollected: grams * o.UnitsCollected, UnitsWeighed: o.UnitsCollected})
+		}
+	}
+
+	return nil
 }
 
 // storeViewDays counts the views of stores' pages and of their dishes', the

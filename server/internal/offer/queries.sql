@@ -258,3 +258,7 @@ ORDER BY 1, 2;
 
 -- name: SellersOfOffers :many
 SELECT id, seller_id FROM offer_offers WHERE id = ANY(@ids::uuid[]);
+
+-- name: WeightsOfOffers :many
+-- The weight of a unit of each offer among ids that gives one.
+SELECT id, weight_grams::int AS weight_grams FROM offer_offers WHERE id = ANY(@ids::uuid[]) AND weight_grams IS NOT NULL;

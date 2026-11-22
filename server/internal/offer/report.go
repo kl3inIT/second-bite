@@ -57,3 +57,19 @@ func (s *Service) SellersOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 
 	return sellers, nil
 }
+
+// WeightsOf answers the weight in grams of a unit of each offer among ids
+// that gives one; an offer without a weight, or unknown, is left out.
+func (s *Service) WeightsOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]int, error) {
+	rows, err := s.queries.WeightsOfOffers(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("reading the offers' weights: %w", err)
+	}
+
+	weights := make(map[uuid.UUID]int, len(rows))
+	for _, r := range rows {
+		weights[r.ID] = int(r.WeightGrams)
+	}
+
+	return weights, nil
+}

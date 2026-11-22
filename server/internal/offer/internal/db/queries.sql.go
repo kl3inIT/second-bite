@@ -1353,6 +1353,36 @@ func (q *Queries) UpdateOffer(ctx context.Context, arg UpdateOfferParams) error 
 	return err
 }
 
+const weightsOfOffers = `-- name: WeightsOfOffers :many
+SELECT id, weight_grams::int AS weight_grams FROM offer_offers WHERE id = ANY($1::uuid[]) AND weight_grams IS NOT NULL
+`
+
+type WeightsOfOffersRow struct {
+	ID          uuid.UUID
+	WeightGrams int32
+}
+
+// The weight of a unit of each offer among ids that gives one.
+func (q *Queries) WeightsOfOffers(ctx context.Context, ids []uuid.UUID) ([]WeightsOfOffersRow, error) {
+	rows, err := q.db.Query(ctx, weightsOfOffers, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []WeightsOfOffersRow
+	for rows.Next() {
+		var i WeightsOfOffersRow
+		if err := rows.Scan(&i.ID, &i.WeightGrams); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const windowsOf = `-- name: WindowsOf :many
 SELECT id, window_start, window_end FROM offer_offers WHERE id = ANY ($1::uuid[])
 `

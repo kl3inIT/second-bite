@@ -1655,6 +1655,64 @@ func (q *Queries) NthRecentMessageTime(ctx context.Context, arg NthRecentMessage
 	return sent_at, err
 }
 
+const offerOutcomes = `-- name: OfferOutcomes :many
+SELECT (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, o.seller_id, l.offer_id,
+       sum(l.units)::bigint AS units_held,
+       coalesce(sum(l.units) FILTER (WHERE o.state = 'collected'), 0)::bigint AS units_collected,
+       coalesce(max(o.created_at) FILTER (WHERE o.state <> 'cancelled'), max(o.created_at))::timestamptz AS last_placed_at
+FROM order_lines AS l
+JOIN order_orders AS o ON o.id = l.order_id
+WHERE o.window_start >= $1 AND o.window_start < $2
+  AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3
+`
+
+type OfferOutcomesParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type OfferOutcomesRow struct {
+	Day            pgtype.Date
+	SellerID       uuid.UUID
+	OfferID        uuid.UUID
+	UnitsHeld      int64
+	UnitsCollected int64
+	LastPlacedAt   time.Time
+}
+
+// The units ordered and collected of each offer, per collection day in Vietnam and seller of the orders whose window
+// starts in [since, until), for the admin's report: the kilograms rescued and the analysis. last_placed_at is when
+// the latest order not cancelled was placed, which tells when an offer sold out.
+func (q *Queries) OfferOutcomes(ctx context.Context, arg OfferOutcomesParams) ([]OfferOutcomesRow, error) {
+	rows, err := q.db.Query(ctx, offerOutcomes, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OfferOutcomesRow
+	for rows.Next() {
+		var i OfferOutcomesRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.SellerID,
+			&i.OfferID,
+			&i.UnitsHeld,
+			&i.UnitsCollected,
+			&i.LastPlacedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const openOfPhoneAtSeller = `-- name: OpenOfPhoneAtSeller :one
 SELECT count(*) FROM order_orders
 WHERE seller_id = $1 AND customer_phone = $2 AND state IN ('confirmed', 'ready') AND window_end > now()
@@ -1703,7 +1761,8 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 
 const orderDays = `-- name: OrderDays :many
 WITH placed AS (
-    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units,
+           (SELECT sum(l.original_price_vnd * l.units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS original_vnd
     FROM order_orders o
     WHERE o.window_start >= $1 AND o.window_start < $2
       AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
@@ -1714,6 +1773,9 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) FILTER (WHERE state = 'collected') AS collected,
        coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
        coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
+       coalesce(sum(original_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS original_vnd,
+       coalesce(sum(discount_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS discount_vnd,
+       count(*) FILTER (WHERE state = 'collected' AND discount_vnd > 0) AS discount_orders,
        count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
        count(*) FILTER (WHERE state = 'refused') AS refused,
        count(*) FILTER (WHERE state = 'expired'
@@ -1737,13 +1799,17 @@ type OrderDaysRow struct {
 	Collected      int64
 	UnitsCollected int64
 	CollectedVnd   int64
+	OriginalVnd    int64
+	DiscountVnd    int64
+	DiscountOrders int64
 	Cancelled      int64
 	Refused        int64
 	Expired        int64
 }
 
 // The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
-// confirmed or ready whose window is over counts as expired, as every read of an order reads it.
+// confirmed or ready whose window is over counts as expired, as every read of an order reads it. For the orders
+// collected, also what their dishes cost at the original price and the discounts Second Bite paid back.
 func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDaysRow, error) {
 	rows, err := q.db.Query(ctx, orderDays, arg.Since, arg.Until, arg.SellerID)
 	if err != nil {
@@ -1761,6 +1827,9 @@ func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDa
 			&i.Collected,
 			&i.UnitsCollected,
 			&i.CollectedVnd,
+			&i.OriginalVnd,
+			&i.DiscountVnd,
+			&i.DiscountOrders,
 			&i.Cancelled,
 			&i.Refused,
 			&i.Expired,

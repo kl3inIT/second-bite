@@ -74,16 +74,56 @@ func testReportCounts(t *testing.T, f fixture) {
 		got.Collected += d.Collected
 		got.UnitsCollected += d.UnitsCollected
 		got.CollectedVND += d.CollectedVND
+		got.OriginalVND += d.OriginalVND
+		got.DiscountVND += d.DiscountVND
+		got.DiscountOrders += d.DiscountOrders
 		got.Cancelled += d.Cancelled
 		got.Expired += d.Expired
 	}
 
-	want := order.DayCounts{Held: 4, UnitsHeld: 5, Collected: 1, UnitsCollected: 2, CollectedVND: 40_000, Cancelled: 1, Expired: 1}
+	// The two units collected cost 40.000đ each at the original price; no promotion ran.
+	want := order.DayCounts{
+		Held: 4, UnitsHeld: 5, Collected: 1, UnitsCollected: 2, CollectedVND: 40_000, OriginalVND: 80_000,
+		Cancelled: 1, Expired: 1,
+	}
 	if got != want {
 		t.Errorf("counted %+v, want %+v", got, want)
 	}
 
+	checkOfferOutcomes(t, f, since.AddDate(0, 0, -1), until, shop, bread.ID)
+
 	checkReportReads(t, f, since, until, bread.ID, shop, other)
+}
+
+// checkOfferOutcomes reads what the orders took of the bread: five units in
+// four orders, two of them collected, the latest placed after the first.
+func checkOfferOutcomes(t *testing.T, f fixture, since, until time.Time, shop, bread uuid.UUID) {
+	t.Helper()
+
+	outcomes, err := f.orders.OfferOutcomes(t.Context(), since, until, &shop)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	held, collected := 0, 0
+
+	for _, o := range outcomes {
+		if o.OfferID != bread || o.SellerID != shop || o.LastPlacedAt.IsZero() {
+			t.Errorf("an outcome %+v", o)
+		}
+
+		held += o.UnitsHeld
+		collected += o.UnitsCollected
+	}
+
+	if held != 5 || collected != 2 {
+		t.Errorf("the bread's units: %d held, %d collected, want 5 and 2", held, collected)
+	}
+
+	weights, err := f.offers.WeightsOf(t.Context(), []uuid.UUID{bread})
+	if err != nil || len(weights) != 0 {
+		t.Errorf("a bread without a weight has none: %v, %v", weights, err)
+	}
 }
 
 // checkReportReads reads what the report asks of offer and seller: the

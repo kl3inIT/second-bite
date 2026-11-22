@@ -18,6 +18,7 @@ var csvHeader = []string{
 	"Đơn giữ", "Phần giữ", "Đơn đã lấy", "Phần đã lấy", "Đơn huỷ", "Quán từ chối", "Khách không đến",
 	"Tỉ lệ lấy (%)", "Tiền thu tại quầy (đồng)", "Tài khoản mới", "Khách đặt lần đầu",
 	"Ngày có đăng", "Ngày đăng đủ 7 phần", "Khách nhận đơn", "Khách mua lại",
+	"Giá gốc phần đã lấy (đồng)", "Khách tiết kiệm (đồng)", "Bù giảm giá (đồng)", "Thực phẩm được cứu (gam)",
 }
 
 const (
@@ -44,12 +45,12 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 		day := d.Day.Format(time.DateOnly)
 
 		if !oneStore {
-			rows = append(rows, append(csvRow(day, csvSite, d.Counts, true), "", "", "", ""))
+			rows = append(rows, withImpact(append(csvRow(day, csvSite, d.Counts, true), "", "", "", ""), d.Counts))
 		}
 
 		for _, sd := range r.StoreDays {
 			if sd.Day.Equal(d.Day) {
-				rows = append(rows, append(csvRow(day, safe(sd.Name), sd.Counts, false), "", "", "", ""))
+				rows = append(rows, withImpact(append(csvRow(day, safe(sd.Name), sd.Counts, false), "", "", "", ""), sd.Counts))
 			}
 		}
 	}
@@ -59,11 +60,11 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 		customers, returning = strconv.Itoa(r.Customers), strconv.Itoa(r.Returning)
 	}
 
-	rows = append(rows, append(csvRow(csvTotal, "", r.Totals, !oneStore), "", "", customers, returning))
+	rows = append(rows, withImpact(append(csvRow(csvTotal, "", r.Totals, !oneStore), "", "", customers, returning), r.Totals))
 
 	for _, st := range r.Stores {
-		rows = append(rows, append(csvRow(csvTotal, safe(st.Name), st.Counts, false),
-			strconv.Itoa(st.DaysPosted), strconv.Itoa(st.FullDays), "", ""))
+		rows = append(rows, withImpact(append(csvRow(csvTotal, safe(st.Name), st.Counts, false),
+			strconv.Itoa(st.DaysPosted), strconv.Itoa(st.FullDays), "", ""), st.Counts))
 	}
 
 	if err := w.WriteAll(rows); err != nil { // WriteAll flushes and reports the writer's error
@@ -95,6 +96,22 @@ func csvRow(day, name string, c Counts, site bool) []string {
 		share, strconv.FormatInt(c.CollectedVND, 10),
 		accounts, customers,
 	}
+}
+
+// withImpact ends a row with what the collected orders were worth at the
+// original price, what the customers saved (the original price less what they
+// paid at the counter: the total less the discount), the discounts paid back
+// and the grams rescued.
+func withImpact(row []string, c Counts) []string {
+	return append(row,
+		strconv.FormatInt(c.OriginalVND, 10), strconv.FormatInt(savedVND(c), 10),
+		strconv.FormatInt(c.DiscountVND, 10), strconv.Itoa(c.GramsCollected))
+}
+
+// savedVND is what the customers of the collected orders saved against the
+// original price: they paid the total less the discount.
+func savedVND(c Counts) int64 {
+	return max(c.OriginalVND-(c.CollectedVND-c.DiscountVND), 0)
 }
 
 // safe writes text a spreadsheet would read as a formula, starting with =, +,

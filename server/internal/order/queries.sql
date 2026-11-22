@@ -400,9 +400,11 @@ RETURNING id, created_at, window_start;
 
 -- name: OrderDays :many
 -- The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
--- confirmed or ready whose window is over counts as expired, as every read of an order reads it.
+-- confirmed or ready whose window is over counts as expired, as every read of an order reads it. For the orders
+-- collected, also what their dishes cost at the original price and the discounts Second Bite paid back.
 WITH placed AS (
-    SELECT o.*, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    SELECT o.*, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units,
+           (SELECT sum(l.original_price_vnd * l.units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS original_vnd
     FROM order_orders o
     WHERE o.window_start >= @since AND o.window_start < @until
       AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
@@ -413,6 +415,9 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) FILTER (WHERE state = 'collected') AS collected,
        coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
        coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
+       coalesce(sum(original_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS original_vnd,
+       coalesce(sum(discount_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS discount_vnd,
+       count(*) FILTER (WHERE state = 'collected' AND discount_vnd > 0) AS discount_orders,
        count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
        count(*) FILTER (WHERE state = 'refused') AS refused,
        count(*) FILTER (WHERE state = 'expired'
@@ -448,6 +453,21 @@ SELECT coalesce(sum(units) FILTER (WHERE outcome = 'collected'), 0)::bigint AS c
        coalesce(sum(units) FILTER (WHERE outcome = 'missed'), 0)::bigint AS missed,
        count(DISTINCT order_id) FILTER (WHERE outcome = 'missed') AS missed_orders
 FROM lines;
+
+-- name: OfferOutcomes :many
+-- The units ordered and collected of each offer, per collection day in Vietnam and seller of the orders whose window
+-- starts in [since, until), for the admin's report: the kilograms rescued and the analysis. last_placed_at is when
+-- the latest order not cancelled was placed, which tells when an offer sold out.
+SELECT (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, o.seller_id, l.offer_id,
+       sum(l.units)::bigint AS units_held,
+       coalesce(sum(l.units) FILTER (WHERE o.state = 'collected'), 0)::bigint AS units_collected,
+       coalesce(max(o.created_at) FILTER (WHERE o.state <> 'cancelled'), max(o.created_at))::timestamptz AS last_placed_at
+FROM order_lines AS l
+JOIN order_orders AS o ON o.id = l.order_id
+WHERE o.window_start >= @since AND o.window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3;
 
 -- name: InsertProblem :execrows
 -- Nothing is inserted when the order was already reported (SEC-84).

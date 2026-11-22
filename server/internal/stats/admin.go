@@ -37,6 +37,11 @@ type countsBody struct {
 	CollectedVND   int64 `json:"collectedVnd"   doc:"What the collected orders came to at the counter"`
 	NewAccounts    int   `json:"newAccounts"    doc:"Accounts created, the site's whatever store is chosen; none on a store's numbers"`
 	NewCustomers   int   `json:"newCustomers"   doc:"Customers whose first order, by phone number, is collected then; the site's, as newAccounts"`
+	OriginalVND    int64 `json:"originalVnd"    doc:"What the collected orders' dishes cost at their original price"`
+	DiscountVND    int64 `json:"discountVnd"    doc:"The discounts Second Bite paid back on the collected orders"`
+	DiscountOrders int   `json:"discountOrders" doc:"Collected orders that took a discount"`
+	GramsCollected int   `json:"gramsCollected" doc:"Grams of the units collected whose dish gives a weight"`
+	UnitsWeighed   int   `json:"unitsWeighed"   doc:"The units collected whose dish gives a weight"`
 }
 
 type reportDayBody struct {

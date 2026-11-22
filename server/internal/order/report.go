@@ -19,7 +19,12 @@ type DayCounts struct {
 	Held, UnitsHeld           int
 	Collected, UnitsCollected int
 	// CollectedVND is what the collected orders came to at the counter.
-	CollectedVND                int64
+	CollectedVND int64
+	// OriginalVND is what the collected orders' dishes cost at their original
+	// price; DiscountVND the discounts Second Bite paid back on them, taken by
+	// DiscountOrders of them.
+	OriginalVND, DiscountVND    int64
+	DiscountOrders              int
 	Cancelled, Refused, Expired int
 }
 
@@ -43,6 +48,7 @@ func (s *Service) OrderDays(ctx context.Context, since, until time.Time, sellerI
 			Day: r.Day.Time, SellerID: r.SellerID,
 			Held: int(r.Held), UnitsHeld: int(r.UnitsHeld),
 			Collected: int(r.Collected), UnitsCollected: int(r.UnitsCollected), CollectedVND: r.CollectedVnd,
+			OriginalVND: r.OriginalVnd, DiscountVND: r.DiscountVnd, DiscountOrders: int(r.DiscountOrders),
 			Cancelled: int(r.Cancelled), Refused: int(r.Refused), Expired: int(r.Expired),
 		}
 	}
@@ -98,4 +104,43 @@ func (s *Service) CollectedCustomers(ctx context.Context, since, until time.Time
 	}
 
 	return Customers{Customers: int(row.Customers), Returning: int(row.ReturningCustomers)}, nil
+}
+
+// OfferOutcome is what the orders of one collection day and seller took of
+// one offer, for the admin's report: the kilograms rescued and the analysis.
+type OfferOutcome struct {
+	// Day is the collection day in Vietnam, as midnight UTC of that date.
+	Day      time.Time
+	SellerID uuid.UUID
+	OfferID  uuid.UUID
+	// UnitsHeld are the units of every order, however it ended;
+	// UnitsCollected those handed over.
+	UnitsHeld, UnitsCollected int
+	// LastPlacedAt is when the latest order not cancelled was placed.
+	LastPlacedAt time.Time
+}
+
+// OfferOutcomes answers what the orders whose window starts in [since, until)
+// took of each offer, per collection day and seller; one seller's only when
+// sellerID is set.
+func (s *Service) OfferOutcomes(ctx context.Context, since, until time.Time, sellerID *uuid.UUID) ([]OfferOutcome, error) {
+	params := db.OfferOutcomesParams{Since: since, Until: until}
+	if sellerID != nil {
+		params.SellerID = uuid.NullUUID{UUID: *sellerID, Valid: true}
+	}
+
+	rows, err := s.queries.OfferOutcomes(ctx, params)
+	if err != nil {
+		return nil, fmt.Errorf("counting the offers' outcomes: %w", err)
+	}
+
+	outcomes := make([]OfferOutcome, len(rows))
+	for i, r := range rows {
+		outcomes[i] = OfferOutcome{
+			Day: r.Day.Time, SellerID: r.SellerID, OfferID: r.OfferID,
+			UnitsHeld: int(r.UnitsHeld), UnitsCollected: int(r.UnitsCollected), LastPlacedAt: r.LastPlacedAt,
+		}
+	}
+
+	return outcomes, nil
 }

@@ -117,6 +117,31 @@ func TestReportCSVProgrammeFigures(t *testing.T) {
 	}
 }
 
+// TestReportCSVImpact reads what the collected orders were worth: 90.000đ at the
+// original price, 45.000đ at the counter less a 5.000đ discount, so 50.000đ
+// saved, and 600 g rescued.
+func TestReportCSVImpact(t *testing.T) {
+	t.Parallel()
+
+	r := twoDays()
+	r.Totals.OriginalVND, r.Totals.DiscountVND, r.Totals.DiscountOrders = 90_000, 5_000, 1
+	r.Totals.GramsCollected, r.Totals.UnitsWeighed = 600, 3
+
+	body, err := reportCSV(r, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rows := readCSV(t, body)
+	if total := rows[5]; total[22] != "90000" || total[23] != "50000" || total[24] != "5000" || total[25] != "600" {
+		t.Errorf("the site's total %q", total)
+	}
+
+	if quiet := rows[1]; quiet[22] != "0" || quiet[23] != "0" || quiet[25] != "0" {
+		t.Errorf("a day without orders %q", quiet)
+	}
+}
+
 func TestReportCSVOfOneStore(t *testing.T) {
 	t.Parallel()
 
