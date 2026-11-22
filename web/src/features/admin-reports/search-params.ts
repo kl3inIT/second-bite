@@ -1,4 +1,12 @@
-import { createLoader, parseAsIsoDate, parseAsString, parseAsStringLiteral } from "nuqs/server";
+import {
+  createLoader,
+  createSerializer,
+  parseAsArrayOf,
+  parseAsBoolean,
+  parseAsIsoDate,
+  parseAsString,
+  parseAsStringLiteral,
+} from "nuqs/server";
 
 /** The columns the stores' table may be sorted by; the server's order, the most orders first, by default. */
 export const reportSorts = [
@@ -37,6 +45,27 @@ export const reportSearchParams = {
 };
 
 export const loadReportSearchParams = createLoader(reportSearchParams);
+
+/** The parts of the report a PDF may hold, in the order the print page draws them. */
+export const reportParts = ["kpi", "products", "days", "analysis", "stores", "feedback"] as const;
+
+export type ReportPart = (typeof reportParts)[number];
+
+/**
+ * What the print page reads (report-products-export increment): the report's days and store, the parts ticked
+ * in the export dialog, every one by default, and whether the three numbers show their change.
+ */
+export const reportPrintSearchParams = {
+  from: parseAsIsoDate,
+  to: parseAsIsoDate,
+  store: parseAsString,
+  parts: parseAsArrayOf(parseAsStringLiteral(reportParts)).withDefault([...reportParts]),
+  compare: parseAsBoolean.withDefault(true),
+};
+
+export const loadReportPrintSearchParams = createLoader(reportPrintSearchParams);
+
+export const serializeReportPrint = createSerializer(reportPrintSearchParams);
 
 const day = (d: Date) => d.toISOString().slice(0, 10);
 

@@ -1980,7 +1980,6 @@
       "lastWeek": "7 ngày gần nhất",
       "store": "Cửa hàng",
       "anyStore": "Tất cả",
-      "export": "Xuất CSV",
       "card": {
         "share": "Tỉ lệ lấy",
         "shareNote": "{collected}/{held} đơn",
@@ -2071,6 +2070,37 @@
         "leftoverNote": "không đến tay khách",
         "sellThrough": "Tỉ lệ bán hết",
         "sellThroughNote": "{collected}/{posted} phần đến tay khách"
+      },
+      "exportDialog": {
+        "action": "Xuất báo cáo",
+        "title": "Xuất báo cáo",
+        "scope": "{range} · {store}",
+        "anyStore": "Tất cả cửa hàng",
+        "format": "Định dạng",
+        "pdf": "PDF",
+        "pdfHint": "Bản trình bày có biểu đồ, để gửi nhà tài trợ",
+        "csv": "CSV",
+        "csvHint": "Số theo ngày và theo cửa hàng",
+        "parts": "Nội dung",
+        "part": {
+          "kpi": "Ba chỉ số chính",
+          "products": "Sản phẩm",
+          "days": "Biểu đồ theo ngày",
+          "analysis": "Phân tích",
+          "stores": "Theo cửa hàng",
+          "feedback": "Góp ý của quán"
+        },
+        "noParts": "Chọn ít nhất một phần để xuất.",
+        "compare": "Kèm so sánh với kỳ trước",
+        "cancel": "Huỷ",
+        "go": "Xuất"
+      },
+      "print": {
+        "title": "Báo cáo Second Bite",
+        "scope": "{range} · {store}",
+        "anyStore": "Tất cả cửa hàng",
+        "save": "Lưu PDF",
+        "back": "Quay lại báo cáo"
       },
       "analysis": {
         "title": "Phân tích",

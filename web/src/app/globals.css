@@ -205,3 +205,19 @@
     transform: translateX(-50%);
   }
 }
+
+/* The report's print page (report-products-export increment) is saved as a PDF on A4: the admin's sidebar and
+   its gap stay off the paper, and the page's white is printed as it is. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  [data-slot="sidebar"] {
+    display: none;
+  }
+  body {
+    @apply bg-card;
+    print-color-adjust: exact;
+  }
+}

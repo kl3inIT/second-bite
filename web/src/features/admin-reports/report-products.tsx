@@ -63,7 +63,7 @@ export function ProductsBlock({ totals }: { totals: CountsBody }) {
         {t("title")}
       </h2>
       <Progress value={share ?? 0} aria-label={t("bar")} />
-      <dl className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5 lg:gap-0 lg:divide-x lg:divide-border">
+      <dl className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5 lg:gap-0 lg:divide-x lg:divide-border print:grid-cols-5">
         {figures.map((f) => (
           <div key={f.key} className="flex min-w-0 flex-col gap-1 lg:px-5 lg:first:ps-0">
             <dt className="text-body-sm-strong text-muted-foreground">{t(f.key)}</dt>
