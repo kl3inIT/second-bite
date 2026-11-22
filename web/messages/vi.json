@@ -1263,14 +1263,6 @@
     "timeRange": {
       "label": "Khung giờ",
       "anytime": "Cả ngày",
-      "presets": "Chọn nhanh khung giờ",
-      "preset": {
-        "morning": "Sáng {from}–{until}",
-        "noon": "Trưa {from}–{until}",
-        "afternoon": "Chiều {from}–{until}",
-        "evening": "Tối {from}–{until}"
-      },
-      "custom": "Hoặc chọn giờ",
       "from": "Từ",
       "until": "Đến",
       "midnight": "Đến 00:00 là tới hết ngày.",

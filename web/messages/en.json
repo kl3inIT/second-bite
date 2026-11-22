@@ -1263,14 +1263,6 @@
     "timeRange": {
       "label": "Hours",
       "anytime": "All day",
-      "presets": "Quick hours",
-      "preset": {
-        "morning": "Morning {from}–{until}",
-        "noon": "Midday {from}–{until}",
-        "afternoon": "Afternoon {from}–{until}",
-        "evening": "Evening {from}–{until}"
-      },
-      "custom": "Or choose the hours",
       "from": "From",
       "until": "Until",
       "midnight": "Until 00:00 runs to the end of the day.",
