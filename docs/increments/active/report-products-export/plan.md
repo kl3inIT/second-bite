@@ -13,4 +13,5 @@ Design: [design.md](design.md). Not yet tracked in Linear.
 | 7 | `order`, `offer`, `stats`: `GET /admin/reports/analysis`; web: the analysis in four groups | Done, 22 November 2026 |
 | 8 | `stats`: `GET /admin/reports/workbook` on excelize; web: "Excel" in the export dialog | Done, 22 November 2026 |
 | 9 | Tests: Go unit and PostgreSQL tests, the API test, the stub backend, `admin-offers.spec.ts`, `admin-reports.spec.ts` | Written, 22 November 2026; `pnpm check`, golangci-lint, govulncheck and the Go unit tests pass locally; the PostgreSQL and browser tests run on CI |
-| 10 | Pull request, CI, staging, then move this increment to `completed/` | To do |
+| 10 | `platform.Clock`; `offer`, `order`, `stats` keep a part of the day; web: "Khung giờ" on the posts, the orders and the report | Done, 22 November 2026; browser tests run on CI |
+| 11 | Pull request, CI, staging, then move this increment to `completed/` | To do |
