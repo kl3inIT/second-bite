@@ -105,6 +105,7 @@ test.describe("the admin's report", () => {
     );
     expect(text).toContain("- Giao dịch: 13 đơn (+4), 10 đơn đã lấy");
     expect(text).toContain("- Người truy cập: 33 (+12), 104 lượt mở trang");
+    expect(text).toContain("- Sản phẩm: 28 phần đăng, 13 phần đã lấy (46%), dư 15");
     expect(text).toContain("so với 7 ngày trước đó");
   });
 
@@ -139,9 +140,54 @@ test.describe("the admin's report", () => {
     await expect(table.getByRole("row").nth(1)).toContainText("Panda Chef");
   });
 
-  test("Xuất CSV downloads the report from the server", async ({ page }) => {
+  // report-products-export: the portions posted, ordered, collected and left over, on the stub's 28 posted
+  // (15, 8 and 5), 16 ordered and 13 collected (11 and 2).
+  test("shows what became of the portions, by day and by store", async ({ page }) => {
     await page.goto("/vi/admin/reports");
-    const link = page.getByRole("link", { name: "Xuất CSV" });
+    const products = page.getByRole("region", { name: "Sản phẩm" });
+    await expect(products.getByText("6 món đăng")).toBeVisible();
+    await expect(products.getByText("trong 13 đơn")).toBeVisible();
+    await expect(products.getByText("10 đơn đã lấy")).toBeVisible();
+    await expect(products.getByText("không đến tay khách")).toBeVisible();
+    await expect(products.getByText("46%")).toBeVisible();
+    await expect(products.getByText("13/28 phần đến tay khách")).toBeVisible();
+    await expect(products.getByRole("progressbar", { name: "Tỉ lệ bán hết" })).toBeVisible();
+
+    await (await hydrated(page.getByRole("tab", { name: "Sản phẩm" }))).click();
+    await expect(
+      page.getByRole("figure", { name: "Phần đã lấy và phần dư theo ngày" }),
+    ).toBeVisible();
+
+    const table = page.getByRole("table", { name: "Số liệu theo cửa hàng" });
+    for (const column of ["Phần đăng", "Phần dư", "Tỉ lệ bán hết"])
+      await expect(table.getByRole("columnheader", { name: column })).toBeVisible();
+    // La Paris posted 15 and had 11 collected: 4 left over, 73% sold.
+    await expect(table.getByRole("row").nth(1)).toContainText("73%");
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("analyses the visitors, the orders and the ratings", async ({ page }) => {
+    await page.goto("/vi/admin/reports");
+    const analysis = page.getByRole("region", { name: "Phân tích" });
+    // 13 orders held for 33 visitors, 10 of them collected, for 334.000đ and 13 portions.
+    await expect(analysis.getByText("39 đơn / 100 người")).toBeVisible();
+    await expect(analysis.getByText("77% đơn giữ")).toBeVisible();
+    await expect(analysis.getByText("33.400đ")).toBeVisible();
+    await expect(analysis.getByText("1,3")).toBeVisible();
+    // The stub's six reviews, one hidden: the five shown average 3.8 stars.
+    const ratings = analysis.getByRole("region", { name: "Đánh giá · 6 lượt" });
+    await expect(ratings.getByText("3,8")).toBeVisible();
+    await expect(ratings.getByRole("progressbar", { name: "5 sao" })).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+  });
+
+  test("Xuất báo cáo downloads the CSV from the server", async ({ page }) => {
+    await page.goto("/vi/admin/reports");
+    await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
+    const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
+    await dialog.getByRole("radio", { name: /^CSV/ }).click();
+    await expect(dialog.getByRole("checkbox", { name: "Sản phẩm" })).toBeHidden();
+    const link = dialog.getByRole("link", { name: "Xuất" });
     await expect(link).toHaveAttribute("href", /^\/api\/admin\/reports\/export\?/);
 
     const download = page.waitForEvent("download");
@@ -149,5 +195,36 @@ test.describe("the admin's report", () => {
     expect((await download).suggestedFilename()).toMatch(
       /^bao-cao-\d{4}-\d{2}-\d{2}-den-\d{4}-\d{2}-\d{2}\.csv$/,
     );
+  });
+
+  test("Xuất báo cáo opens the print page with the parts ticked", async ({ page }) => {
+    await page.goto("/vi/admin/reports");
+    await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
+    const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
+    await expect(dialog.getByRole("radio", { name: /^PDF/ })).toBeChecked();
+    await expectNoSeriousA11yViolations(page);
+    await dialog.getByRole("checkbox", { name: "Góp ý của quán" }).click();
+    await dialog.getByRole("link", { name: "Xuất" }).click();
+
+    await expect(page).toHaveURL(/\/vi\/admin\/reports\/print\?parts=/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Báo cáo Second Bite" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Lưu PDF" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Sản phẩm" })).toBeVisible();
+    await expect(
+      page.getByRole("figure", { name: "Đơn giữ và đơn đã lấy theo ngày" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("figure", { name: "Phần đã lấy và phần dư theo ngày" }),
+    ).toBeVisible();
+    await expect(page.getByRole("table", { name: "Số liệu theo cửa hàng" })).toContainText(
+      "La Paris",
+    );
+    await expect(page.getByRole("region", { name: /^Góp ý của quán/ })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+
+    await page.getByRole("link", { name: "Quay lại báo cáo" }).click();
+    await expect(page).toHaveURL(/\/vi\/admin\/reports$/);
   });
 });
