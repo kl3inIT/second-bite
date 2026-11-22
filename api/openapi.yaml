@@ -357,16 +357,34 @@ components:
             - from30
             - under30
           type: string
+        collected:
+          description: Units of them collected
+          format: int64
+          type: integer
+        posted:
+          description: Units posted
+          format: int64
+          type: integer
       required:
         - band
+        - posted
+        - collected
       type: object
     AnalysisDishBody:
       additionalProperties: false
       properties:
+        collected:
+          description: Units of them collected
+          format: int64
+          type: integer
         name:
           type: string
         offerId:
           type: string
+        posted:
+          description: Units posted
+          format: int64
+          type: integer
         sellerName:
           type: string
         unit:
@@ -376,10 +394,16 @@ components:
         - name
         - sellerName
         - unit
+        - posted
+        - collected
       type: object
     AnalysisKindBody:
       additionalProperties: false
       properties:
+        collected:
+          description: Units of them collected
+          format: int64
+          type: integer
         kind:
           enum:
             - bakery
@@ -392,8 +416,14 @@ components:
             - produce
             - other
           type: string
+        posted:
+          description: Units posted
+          format: int64
+          type: integer
       required:
         - kind
+        - posted
+        - collected
       type: object
     AnalysisOutputBody:
       additionalProperties: false
@@ -402,23 +432,17 @@ components:
           description: The same by discount band, from food given away to the smallest discount
           items:
             $ref: "#/components/schemas/AnalysisDiscountBody"
-          type:
-            - array
-            - "null"
+          type: array
         failures:
           description: "The orders not collected by ending: cancelled, expired, or refused_ and the reason; the most first"
           items:
             $ref: "#/components/schemas/AnalysisCountBody"
-          type:
-            - array
-            - "null"
+          type: array
         kinds:
           description: The portions posted and collected by kind of dish, the most posted first
           items:
             $ref: "#/components/schemas/AnalysisKindBody"
-          type:
-            - array
-            - "null"
+          type: array
         leadTimes:
           $ref: "#/components/schemas/LeadTimesStruct"
           description: How long before the window opened the orders were placed
@@ -426,9 +450,7 @@ components:
           description: The orders reported for each kind of problem
           items:
             $ref: "#/components/schemas/AnalysisCountBody"
-          type:
-            - array
-            - "null"
+          type: array
         sellOut:
           $ref: "#/components/schemas/SellOutStruct"
           description: How long the posts took from posting to their last unit ordered
@@ -439,37 +461,27 @@ components:
           description: The orders by weekday and hour of their window's start
           items:
             $ref: "#/components/schemas/AnalysisSlotBody"
-          type:
-            - array
-            - "null"
+          type: array
         sources:
           description: The views by utm_source, empty for none; the site's whatever store is chosen
           items:
             $ref: "#/components/schemas/AnalysisCountBody"
-          type:
-            - array
-            - "null"
+          type: array
         tags:
           description: The reviews praising each tag
           items:
             $ref: "#/components/schemas/AnalysisCountBody"
-          type:
-            - array
-            - "null"
+          type: array
         topLeftover:
           description: The five ended dishes with the most portions not collected
           items:
             $ref: "#/components/schemas/AnalysisDishBody"
-          type:
-            - array
-            - "null"
+          type: array
         topSold:
           description: The five dishes most collected
           items:
             $ref: "#/components/schemas/AnalysisDishBody"
-          type:
-            - array
-            - "null"
+          type: array
         until:
           format: date
           type: string
@@ -477,9 +489,7 @@ components:
           description: "The customers by orders handed over: 1, 2, and 3 for three or more"
           items:
             $ref: "#/components/schemas/AnalysisCountBody"
-          type:
-            - array
-            - "null"
+          type: array
       required:
         - since
         - until

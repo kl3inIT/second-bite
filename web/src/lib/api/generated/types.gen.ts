@@ -188,32 +188,56 @@ export type AnalysisDiscountBody = {
      * The discount against the original price
      */
     band: 'free' | 'from70' | 'from50' | 'from30' | 'under30';
+    /**
+     * Units of them collected
+     */
+    collected: number;
+    /**
+     * Units posted
+     */
+    posted: number;
 };
 
 export type AnalysisDishBody = {
+    /**
+     * Units of them collected
+     */
+    collected: number;
     name: string;
     offerId: string;
+    /**
+     * Units posted
+     */
+    posted: number;
     sellerName: string;
     unit: string;
 };
 
 export type AnalysisKindBody = {
+    /**
+     * Units of them collected
+     */
+    collected: number;
     kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * Units posted
+     */
+    posted: number;
 };
 
 export type AnalysisOutputBody = {
     /**
      * The same by discount band, from food given away to the smallest discount
      */
-    discounts: Array<AnalysisDiscountBody> | null;
+    discounts: Array<AnalysisDiscountBody>;
     /**
      * The orders not collected by ending: cancelled, expired, or refused_ and the reason; the most first
      */
-    failures: Array<AnalysisCountBody> | null;
+    failures: Array<AnalysisCountBody>;
     /**
      * The portions posted and collected by kind of dish, the most posted first
      */
-    kinds: Array<AnalysisKindBody> | null;
+    kinds: Array<AnalysisKindBody>;
     /**
      * How long before the window opened the orders were placed
      */
@@ -221,7 +245,7 @@ export type AnalysisOutputBody = {
     /**
      * The orders reported for each kind of problem
      */
-    problems: Array<AnalysisCountBody> | null;
+    problems: Array<AnalysisCountBody>;
     /**
      * How long the posts took from posting to their last unit ordered
      */
@@ -230,28 +254,28 @@ export type AnalysisOutputBody = {
     /**
      * The orders by weekday and hour of their window's start
      */
-    slots: Array<AnalysisSlotBody> | null;
+    slots: Array<AnalysisSlotBody>;
     /**
      * The views by utm_source, empty for none; the site's whatever store is chosen
      */
-    sources: Array<AnalysisCountBody> | null;
+    sources: Array<AnalysisCountBody>;
     /**
      * The reviews praising each tag
      */
-    tags: Array<AnalysisCountBody> | null;
+    tags: Array<AnalysisCountBody>;
     /**
      * The five ended dishes with the most portions not collected
      */
-    topLeftover: Array<AnalysisDishBody> | null;
+    topLeftover: Array<AnalysisDishBody>;
     /**
      * The five dishes most collected
      */
-    topSold: Array<AnalysisDishBody> | null;
+    topSold: Array<AnalysisDishBody>;
     until: string;
     /**
      * The customers by orders handed over: 1, 2, and 3 for three or more
      */
-    visits: Array<AnalysisCountBody> | null;
+    visits: Array<AnalysisCountBody>;
 };
 
 export type AnalysisSlotBody = {
