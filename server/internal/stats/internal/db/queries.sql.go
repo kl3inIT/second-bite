@@ -89,16 +89,25 @@ func (q *Queries) InsertView(ctx context.Context, arg InsertViewParams) error {
 const offerSubjects = `-- name: OfferSubjects :many
 SELECT DISTINCT subject_id::uuid FROM stats_views
 WHERE kind = 'offer' AND day BETWEEN $1 AND $2
+  AND ($3::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $3::text::time)
+  AND ($4::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $4::text::time)
 `
 
 type OfferSubjectsParams struct {
-	Since pgtype.Date
-	Until pgtype.Date
+	Since     pgtype.Date
+	Until     pgtype.Date
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
 }
 
 // The dishes whose pages were opened, whose store the report asks offer for.
 func (q *Queries) OfferSubjects(ctx context.Context, arg OfferSubjectsParams) ([]uuid.UUID, error) {
-	rows, err := q.db.Query(ctx, offerSubjects, arg.Since, arg.Until)
+	rows, err := q.db.Query(ctx, offerSubjects,
+		arg.Since,
+		arg.Until,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +136,8 @@ WITH owner AS (
     FROM stats_views v
     LEFT JOIN owner ON v.kind = 'offer' AND owner.offer_id = v.subject_id
     WHERE v.day BETWEEN $3 AND $4 AND v.kind IN ('seller', 'offer')
+      AND ($5::text IS NULL OR (v.viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $5::text::time)
+      AND ($6::text IS NULL OR (v.viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $6::text::time)
 )
 SELECT day, seller_id::uuid AS seller_id, count(*) AS views, count(DISTINCT visitor) AS people,
        count(*) FILTER (WHERE source = 'qr') AS qr_views
@@ -141,6 +152,8 @@ type StoreViewDaysParams struct {
 	OfferSellers []uuid.UUID
 	Since        pgtype.Date
 	Until        pgtype.Date
+	TimeFrom     pgtype.Text
+	TimeUntil    pgtype.Text
 }
 
 type StoreViewDaysRow struct {
@@ -158,6 +171,8 @@ func (q *Queries) StoreViewDays(ctx context.Context, arg StoreViewDaysParams) ([
 		arg.OfferSellers,
 		arg.Since,
 		arg.Until,
+		arg.TimeFrom,
+		arg.TimeUntil,
 	)
 	if err != nil {
 		return nil, err
@@ -189,13 +204,17 @@ SELECT day, count(*) AS views, count(DISTINCT visitor) AS people,
        count(*) FILTER (WHERE source = 'qr') AS qr_views
 FROM stats_views
 WHERE day BETWEEN $1 AND $2
+  AND ($3::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $3::text::time)
+  AND ($4::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $4::text::time)
 GROUP BY day
 ORDER BY day
 `
 
 type ViewDaysParams struct {
-	Since pgtype.Date
-	Until pgtype.Date
+	Since     pgtype.Date
+	Until     pgtype.Date
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
 }
 
 type ViewDaysRow struct {
@@ -208,7 +227,12 @@ type ViewDaysRow struct {
 
 // Every view of each day, for the site's cards and bars.
 func (q *Queries) ViewDays(ctx context.Context, arg ViewDaysParams) ([]ViewDaysRow, error) {
-	rows, err := q.db.Query(ctx, viewDays, arg.Since, arg.Until)
+	rows, err := q.db.Query(ctx, viewDays,
+		arg.Since,
+		arg.Until,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -223,6 +247,55 @@ func (q *Queries) ViewDays(ctx context.Context, arg ViewDaysParams) ([]ViewDaysR
 			&i.HomeViews,
 			&i.QrViews,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const viewSources = `-- name: ViewSources :many
+SELECT source, count(*) AS views
+FROM stats_views
+WHERE day BETWEEN $1 AND $2
+  AND ($3::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $3::text::time)
+  AND ($4::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $4::text::time)
+GROUP BY source
+ORDER BY views DESC, source
+`
+
+type ViewSourcesParams struct {
+	Since     pgtype.Date
+	Until     pgtype.Date
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type ViewSourcesRow struct {
+	Source string
+	Views  int64
+}
+
+// The views of the days given by where they came from (utm_source, empty for none), the most first, for the admin's
+// analysis.
+func (q *Queries) ViewSources(ctx context.Context, arg ViewSourcesParams) ([]ViewSourcesRow, error) {
+	rows, err := q.db.Query(ctx, viewSources,
+		arg.Since,
+		arg.Until,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ViewSourcesRow
+	for rows.Next() {
+		var i ViewSourcesRow
+		if err := rows.Scan(&i.Source, &i.Views); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

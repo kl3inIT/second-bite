@@ -16,8 +16,17 @@ abstract class CountsBody with _$CountsBody {
     /// What the collected orders came to at the counter
     required int collectedVnd,
 
+    /// Collected orders that took a discount
+    required int discountOrders,
+
+    /// The discounts Second Bite paid back on the collected orders
+    required int discountVnd,
+
     /// Orders the customer did not come for
     required int expired,
+
+    /// Grams of the units collected whose dish gives a weight
+    required int gramsCollected,
 
     /// Orders, however they ended
     required int held,
@@ -34,6 +43,9 @@ abstract class CountsBody with _$CountsBody {
     /// Offers posted for the day
     required int offers,
 
+    /// What the collected orders' dishes cost at their original price
+    required int originalVnd,
+
     /// Browsers that opened them, each counted once a day
     required int people,
 
@@ -43,6 +55,9 @@ abstract class CountsBody with _$CountsBody {
     required int unitsCollected,
     required int unitsHeld,
     required int unitsPosted,
+
+    /// The units collected whose dish gives a weight
+    required int unitsWeighed,
 
     /// Pages opened
     required int views,

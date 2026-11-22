@@ -409,6 +409,50 @@ class _AdminClient implements AdminClient {
   }
 
   @override
+  Future<OfferUnitsOutputBody> getOfferUnitsForAdmins({
+    Status? status,
+    String? q,
+    String? sellerId,
+    DateTime? postedSince,
+    DateTime? postedUntil,
+    String? timeFrom,
+    String? timeUntil,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'status': status,
+      r'q': q,
+      r'sellerId': sellerId,
+      r'postedSince': postedSince?.toIso8601String(),
+      r'postedUntil': postedUntil?.toIso8601String(),
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<OfferUnitsOutputBody>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/offer-units',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late OfferUnitsOutputBody _value;
+    try {
+      _value = OfferUnitsOutputBody.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<AdminOffersOutputBody> listOffersForAdmins({
     int? page = 1,
     int? size = 25,
@@ -417,6 +461,8 @@ class _AdminClient implements AdminClient {
     String? sellerId,
     DateTime? postedSince,
     DateTime? postedUntil,
+    String? timeFrom,
+    String? timeUntil,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -427,6 +473,8 @@ class _AdminClient implements AdminClient {
       r'sellerId': sellerId,
       r'postedSince': postedSince?.toIso8601String(),
       r'postedUntil': postedUntil?.toIso8601String(),
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -520,6 +568,8 @@ class _AdminClient implements AdminClient {
     String? sellerId,
     DateTime? collectSince,
     DateTime? collectUntil,
+    String? timeFrom,
+    String? timeUntil,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -530,6 +580,8 @@ class _AdminClient implements AdminClient {
       r'sellerId': sellerId,
       r'collectSince': collectSince?.toIso8601String(),
       r'collectUntil': collectUntil?.toIso8601String(),
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -752,12 +804,16 @@ class _AdminClient implements AdminClient {
     String? since,
     String? until,
     String? sellerId,
+    String? timeFrom,
+    String? timeUntil,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'since': since,
       r'until': until,
       r'sellerId': sellerId,
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -784,16 +840,60 @@ class _AdminClient implements AdminClient {
   }
 
   @override
-  Future<void> exportReport({
+  Future<AnalysisOutputBody> getReportAnalysis({
     String? since,
     String? until,
     String? sellerId,
+    String? timeFrom,
+    String? timeUntil,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'since': since,
       r'until': until,
       r'sellerId': sellerId,
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<AnalysisOutputBody>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/reports/analysis',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late AnalysisOutputBody _value;
+    try {
+      _value = AnalysisOutputBody.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<void> exportReport({
+    String? since,
+    String? until,
+    String? sellerId,
+    String? timeFrom,
+    String? timeUntil,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'since': since,
+      r'until': until,
+      r'sellerId': sellerId,
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -803,6 +903,38 @@ class _AdminClient implements AdminClient {
           .compose(
             _dio.options,
             '/admin/reports/export',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    await _dio.fetch<void>(_options);
+  }
+
+  @override
+  Future<void> exportReportWorkbook({
+    String? since,
+    String? until,
+    String? sellerId,
+    String? timeFrom,
+    String? timeUntil,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'since': since,
+      r'until': until,
+      r'sellerId': sellerId,
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<void>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/reports/workbook',
             queryParameters: queryParameters,
             data: _data,
           )

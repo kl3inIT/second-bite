@@ -22,13 +22,28 @@ SELECT day, count(*) AS views, count(DISTINCT visitor) AS people,
        count(*) FILTER (WHERE source = 'qr') AS qr_views
 FROM stats_views
 WHERE day BETWEEN @since AND @until
+  AND (sqlc.narg(time_from)::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 GROUP BY day
 ORDER BY day;
+
+-- name: ViewSources :many
+-- The views of the days given by where they came from (utm_source, empty for none), the most first, for the admin's
+-- analysis.
+SELECT source, count(*) AS views
+FROM stats_views
+WHERE day BETWEEN @since AND @until
+  AND (sqlc.narg(time_from)::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+GROUP BY source
+ORDER BY views DESC, source;
 
 -- name: OfferSubjects :many
 -- The dishes whose pages were opened, whose store the report asks offer for.
 SELECT DISTINCT subject_id::uuid FROM stats_views
-WHERE kind = 'offer' AND day BETWEEN @since AND @until;
+WHERE kind = 'offer' AND day BETWEEN @since AND @until
+  AND (sqlc.narg(time_from)::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time);
 
 -- name: StoreViewDays :many
 -- The views of a store's page and of its dishes' pages, per day and store; a visitor who opened both counts once.
@@ -41,6 +56,8 @@ WITH owner AS (
     FROM stats_views v
     LEFT JOIN owner ON v.kind = 'offer' AND owner.offer_id = v.subject_id
     WHERE v.day BETWEEN @since AND @until AND v.kind IN ('seller', 'offer')
+      AND (sqlc.narg(time_from)::text IS NULL OR (v.viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+      AND (sqlc.narg(time_until)::text IS NULL OR (v.viewed_at AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 )
 SELECT day, seller_id::uuid AS seller_id, count(*) AS views, count(DISTINCT visitor) AS people,
        count(*) FILTER (WHERE source = 'qr') AS qr_views

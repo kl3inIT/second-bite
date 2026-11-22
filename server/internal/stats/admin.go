@@ -8,6 +8,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
+
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // defaultReportDays is the range a report reads when none is asked: the last
@@ -15,9 +17,11 @@ import (
 const defaultReportDays = 7
 
 type reportInput struct {
-	Since    string    `query:"since"    doc:"The first day in Vietnam, YYYY-MM-DD; six days before until when empty" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
-	Until    string    `query:"until"    doc:"The last day in Vietnam, YYYY-MM-DD, included; today when empty"         pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
-	SellerID uuid.UUID `query:"sellerId" doc:"Keep one store's numbers; the views are then its page's and its dishes'"`
+	Since     string    `query:"since"    doc:"The first day in Vietnam, YYYY-MM-DD; six days before until when empty" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
+	Until     string    `query:"until"    doc:"The last day in Vietnam, YYYY-MM-DD, included; today when empty"         pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
+	SellerID  uuid.UUID `query:"sellerId" doc:"Keep one store's numbers; the views are then its page's and its dishes'"`
+	TimeFrom  string    `query:"timeFrom"  doc:"Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil" pattern:"^([01][0-9]|2[0-3]):[0-5][0-9]$"`
+	TimeUntil string    `query:"timeUntil" doc:"Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's" pattern:"^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$"`
 }
 
 type countsBody struct {
@@ -37,6 +41,11 @@ type countsBody struct {
 	CollectedVND   int64 `json:"collectedVnd"   doc:"What the collected orders came to at the counter"`
 	NewAccounts    int   `json:"newAccounts"    doc:"Accounts created, the site's whatever store is chosen; none on a store's numbers"`
 	NewCustomers   int   `json:"newCustomers"   doc:"Customers whose first order, by phone number, is collected then; the site's, as newAccounts"`
+	OriginalVND    int64 `json:"originalVnd"    doc:"What the collected orders' dishes cost at their original price"`
+	DiscountVND    int64 `json:"discountVnd"    doc:"The discounts Second Bite paid back on the collected orders"`
+	DiscountOrders int   `json:"discountOrders" doc:"Collected orders that took a discount"`
+	GramsCollected int   `json:"gramsCollected" doc:"Grams of the units collected whose dish gives a weight"`
+	UnitsWeighed   int   `json:"unitsWeighed"   doc:"The units collected whose dish gives a weight"`
 }
 
 type reportDayBody struct {
@@ -93,6 +102,45 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		}
 
 		return reportOf(r), nil
+	})
+
+	registerAnalysisOperation(admin, s)
+
+	huma.Register(admin, huma.Operation{
+		OperationID: "exportReportWorkbook", Method: http.MethodGet, Path: "/reports/workbook",
+		Summary: "The report and its analysis as an Excel workbook",
+		Description: "The same days and store as getReport, in Vietnamese: a summary, the CSV's rows, then a sheet per " +
+			"part of the analysis (kinds, discounts, dishes, orders not collected, weekday and hour). Figures are numbers.",
+		Responses: map[string]*huma.Response{
+			"200": {Description: "The workbook", Content: map[string]*huma.MediaType{contentTypeXLSX: {}}},
+		},
+	}, func(ctx context.Context, in *reportInput) (*csvOutput, error) {
+		f, err := reportFilter(in, dayOf(s.now()))
+		if err != nil {
+			return nil, err
+		}
+
+		r, err := s.Report(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		a, err := s.Analysis(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := reportWorkbook(r, a, f.SellerID != nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return &csvOutput{
+			ContentType:        contentTypeXLSX,
+			ContentDisposition: mime.FormatMediaType("attachment", map[string]string{"filename": workbookName(r)}),
+			CacheControl:       "no-store",
+			Body:               body,
+		}, nil
 	})
 
 	huma.Register(admin, huma.Operation{
@@ -164,6 +212,13 @@ func reportFilter(in *reportInput, today time.Time) (ReportFilter, error) {
 	if in.SellerID != uuid.Nil {
 		f.SellerID = &in.SellerID
 	}
+
+	clock, ok := platform.ParseClock(in.TimeFrom, in.TimeUntil)
+	if !ok {
+		return ReportFilter{}, ErrReportRangeInvalid
+	}
+
+	f.Clock = clock
 
 	return f, nil
 }

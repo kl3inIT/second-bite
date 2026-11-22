@@ -45,6 +45,14 @@ type Counts struct {
 	// day, and the customers whose first order, by phone number, is collected
 	// on it.
 	NewAccounts, NewCustomers int
+	// OriginalVND is what the collected orders' dishes cost at their original
+	// price, and DiscountVND the discounts Second Bite paid back on them,
+	// taken by DiscountOrders of them.
+	OriginalVND, DiscountVND int64
+	DiscountOrders           int
+	// GramsCollected are the grams of the units collected whose offer gives a
+	// weight, and UnitsWeighed how many units those are.
+	GramsCollected, UnitsWeighed int
 }
 
 func (c *Counts) addViews(o Counts) {
@@ -70,6 +78,11 @@ func (c *Counts) addTrade(o Counts) {
 	c.Refused += o.Refused
 	c.Expired += o.Expired
 	c.CollectedVND += o.CollectedVND
+	c.OriginalVND += o.OriginalVND
+	c.DiscountVND += o.DiscountVND
+	c.DiscountOrders += o.DiscountOrders
+	c.GramsCollected += o.GramsCollected
+	c.UnitsWeighed += o.UnitsWeighed
 }
 
 // ReportFilter is what an admin reads the report by: days in Vietnam, both
@@ -77,6 +90,10 @@ func (c *Counts) addTrade(o Counts) {
 type ReportFilter struct {
 	Since, Until time.Time
 	SellerID     *uuid.UUID
+	// Clock keeps the posts and orders whose window starts, and the views
+	// opened, in that part of each day; the zero Clock is the whole day. New
+	// users and customers are counted on the whole day whatever it is.
+	Clock platform.Clock
 }
 
 // DayCounts are a day's numbers.
@@ -109,8 +126,10 @@ type StoreDayCounts struct {
 // are those there are at the end of the range (SEC-192).
 type Report struct {
 	Since, Until time.Time
-	Totals       Counts
-	Accounts     int
+	// Clock is the part of each day the report keeps.
+	Clock    platform.Clock
+	Totals   Counts
+	Accounts int
 	// Customers had an order handed over in the range, and Returning of them
 	// had one on another day too, up to its end; the site's, whatever store is
 	// chosen (SEC-200).
@@ -181,7 +200,9 @@ func (s *Service) Report(ctx context.Context, f ReportFilter) (Report, error) {
 
 // siteViews adds every view of the site to days, for a report of every store.
 func (s *Service) siteViews(ctx context.Context, f ReportFilter, days map[time.Time]*Counts) error {
-	views, err := s.queries.ViewDays(ctx, db.ViewDaysParams{Since: date(f.Since), Until: date(f.Until)})
+	from, until := f.Clock.Bounds()
+
+	views, err := s.queries.ViewDays(ctx, db.ViewDaysParams{Since: date(f.Since), Until: date(f.Until), TimeFrom: from, TimeUntil: until})
 	if err != nil {
 		return fmt.Errorf("counting the views: %w", err)
 	}
@@ -248,7 +269,7 @@ func (s *Service) storeDays(ctx context.Context, f ReportFilter) (map[storeDay]*
 		return cells[key]
 	}
 
-	posts, err := s.offers.PostDays(ctx, since, until, f.SellerID)
+	posts, err := s.offers.PostDays(ctx, since, until, f.SellerID, f.Clock)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +278,7 @@ func (s *Service) storeDays(ctx context.Context, f ReportFilter) (map[storeDay]*
 		cell(p.Day, p.SellerID).addTrade(Counts{Offers: p.Offers, UnitsPosted: p.Units})
 	}
 
-	orders, err := s.orders.OrderDays(ctx, since, until, f.SellerID)
+	orders, err := s.orders.OrderDays(ctx, since, until, f.SellerID, f.Clock)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +287,12 @@ func (s *Service) storeDays(ctx context.Context, f ReportFilter) (map[storeDay]*
 		cell(o.Day, o.SellerID).addTrade(Counts{
 			Held: o.Held, UnitsHeld: o.UnitsHeld, Collected: o.Collected, UnitsCollected: o.UnitsCollected,
 			Cancelled: o.Cancelled, Refused: o.Refused, Expired: o.Expired, CollectedVND: o.CollectedVND,
+			OriginalVND: o.OriginalVND, DiscountVND: o.DiscountVND, DiscountOrders: o.DiscountOrders,
 		})
+	}
+
+	if err := s.weighCollected(ctx, since, until, f, cell); err != nil {
+		return nil, err
 	}
 
 	views, err := s.storeViewDays(ctx, f)
@@ -283,10 +309,47 @@ func (s *Service) storeDays(ctx context.Context, f ReportFilter) (map[storeDay]*
 	return cells, nil
 }
 
+// weighCollected adds to each store and day the grams of the units collected
+// whose offer gives a weight per unit, asked of offer.
+func (s *Service) weighCollected(ctx context.Context, since, until time.Time, f ReportFilter, cell func(time.Time, uuid.UUID) *Counts) error {
+	outcomes, err := s.orders.OfferOutcomes(ctx, since, until, f.SellerID, f.Clock)
+	if err != nil {
+		return err
+	}
+
+	ids := make([]uuid.UUID, 0, len(outcomes))
+	for _, o := range outcomes {
+		if o.UnitsCollected > 0 {
+			ids = append(ids, o.OfferID)
+		}
+	}
+
+	if len(ids) == 0 {
+		return nil
+	}
+
+	weights, err := s.offers.WeightsOf(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	for _, o := range outcomes {
+		if grams, ok := weights[o.OfferID]; ok && o.UnitsCollected > 0 {
+			cell(o.Day, o.SellerID).addTrade(Counts{GramsCollected: grams * o.UnitsCollected, UnitsWeighed: o.UnitsCollected})
+		}
+	}
+
+	return nil
+}
+
 // storeViewDays counts the views of stores' pages and of their dishes', the
 // dishes' stores asked of offer.
 func (s *Service) storeViewDays(ctx context.Context, f ReportFilter) ([]db.StoreViewDaysRow, error) {
-	dishes, err := s.queries.OfferSubjects(ctx, db.OfferSubjectsParams{Since: date(f.Since), Until: date(f.Until)})
+	from, until := f.Clock.Bounds()
+
+	dishes, err := s.queries.OfferSubjects(ctx, db.OfferSubjectsParams{
+		Since: date(f.Since), Until: date(f.Until), TimeFrom: from, TimeUntil: until,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("reading the dishes viewed: %w", err)
 	}
@@ -296,7 +359,7 @@ func (s *Service) storeViewDays(ctx context.Context, f ReportFilter) ([]db.Store
 		return nil, err
 	}
 
-	params := db.StoreViewDaysParams{Since: date(f.Since), Until: date(f.Until)}
+	params := db.StoreViewDaysParams{Since: date(f.Since), Until: date(f.Until), TimeFrom: from, TimeUntil: until}
 	for dish, seller := range owners {
 		params.OfferIds = append(params.OfferIds, dish)
 		params.OfferSellers = append(params.OfferSellers, seller)
@@ -313,7 +376,7 @@ func (s *Service) storeViewDays(ctx context.Context, f ReportFilter) ([]db.Store
 // assemble names the stores and orders the report: the days in order, the
 // stores by orders held then name, a store's days by day then name.
 func (s *Service) assemble(ctx context.Context, f ReportFilter, days map[time.Time]*Counts, cells map[storeDay]*Counts) (Report, error) {
-	r := Report{Since: f.Since, Until: f.Until}
+	r := Report{Since: f.Since, Until: f.Until, Clock: f.Clock}
 
 	for day, c := range days {
 		r.Days = append(r.Days, DayCounts{Day: day, Counts: *c})

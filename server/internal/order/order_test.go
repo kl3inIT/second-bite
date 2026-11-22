@@ -76,6 +76,7 @@ func TestOrder(t *testing.T) {
 		"every change of an order notifies":        testEveryChangeNotifies,
 		"old chats are forgotten":                  testOldChatsAreForgotten,
 		"admins list every seller's orders":        testAdminsListOrders,
+		"admins count what became of posts' units": testAdminsCountOfferUnits,
 		"admins hide a review and show it again":   testAdminsHideReviews,
 		"sellers read the reviews of their store":  testSellerReadsReviews,
 		"the report counts the days":               testReportCounts,

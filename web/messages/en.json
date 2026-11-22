@@ -1260,6 +1260,23 @@
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
   },
   "Admin": {
+    "timeRange": {
+      "label": "Hours",
+      "anytime": "All day",
+      "presets": "Quick hours",
+      "preset": {
+        "morning": "Morning {from}–{until}",
+        "noon": "Midday {from}–{until}",
+        "afternoon": "Afternoon {from}–{until}",
+        "evening": "Evening {from}–{until}"
+      },
+      "custom": "Or choose the hours",
+      "from": "From",
+      "until": "Until",
+      "midnight": "Until 00:00 runs to the end of the day.",
+      "invalid": "The start must come before the end.",
+      "apply": "Apply"
+    },
     "home": "Second Bite, admin",
     "tag": "Admin",
     "collapse": "Collapse the sidebar",
@@ -1803,6 +1820,24 @@
         "actions": "Actions"
       },
       "unitsLeft": "{left}/{units} {unit}",
+      "posts": "posts",
+      "units": {
+        "show": "Show units",
+        "hide": "Hide units",
+        "title": "Products",
+        "unit": "units",
+        "posted": "Posted",
+        "postedNote": "from {posts, plural, one {# post} other {# posts}}",
+        "collected": "Sold",
+        "collectedNote": "{customers, plural, one {# customer} other {# customers}} collected",
+        "held": "Waiting",
+        "heldNote": "{customers, plural, one {# customer} other {# customers}} yet to collect",
+        "missed": "Not collected",
+        "missedNote": "{customers, plural, one {# customer} other {# customers}} did not collect",
+        "left": "Left",
+        "leftNote": "not ordered yet",
+        "leftoverNote": "{leftover} left over (ended posts)"
+      },
       "window": "{from}–{until}",
       "empty": {
         "title": "No posts yet"
@@ -1980,10 +2015,7 @@
       "lastWeek": "Last 7 days",
       "store": "Store",
       "anyStore": "All",
-      "export": "Export CSV",
       "card": {
-        "collected": "Units collected",
-        "collectedNote": "{orders} orders",
         "share": "Collected",
         "shareNote": "{collected}/{held} orders",
         "expired": "No-shows",
@@ -2006,8 +2038,10 @@
         "orders": "Orders held and collected by day",
         "people": "Visitors by day",
         "users": "New users by day",
+        "units": "Units collected and left over by day",
         "tab": {
           "orders": "Orders",
+          "units": "Products",
           "people": "Visitors",
           "users": "New users"
         }
@@ -2017,7 +2051,9 @@
         "collected": "Collected",
         "people": "Visitors",
         "newAccounts": "New accounts",
-        "newCustomers": "First-time customers"
+        "newCustomers": "First-time customers",
+        "unitsCollected": "Units collected",
+        "leftover": "Left over"
       },
       "table": "Numbers by store",
       "column": {
@@ -2032,7 +2068,10 @@
         "people": "Visitors",
         "unitsCollected": "Units collected",
         "daysPosted": "Days posted",
-        "fullDays": "Days with 7+"
+        "fullDays": "Days with 7+",
+        "unitsPosted": "Units posted",
+        "leftover": "Left over",
+        "sellThrough": "Sold %"
       },
       "none": "–",
       "empty": {
@@ -2052,6 +2091,190 @@
       },
       "headline": "The three main numbers",
       "detail": "How the orders ended",
+      "products": {
+        "title": "Products",
+        "bar": "Share sold",
+        "unit": "units",
+        "posted": "Units posted",
+        "postedNote": "{offers, plural, one {# post} other {# posts}}",
+        "held": "Units ordered",
+        "heldNote": "in {orders, plural, one {# order} other {# orders}}",
+        "collected": "Units collected",
+        "collectedNote": "{orders, plural, one {# order} other {# orders}} collected",
+        "leftover": "Left over",
+        "leftoverNote": "reached no customer",
+        "sellThrough": "Share sold",
+        "sellThroughNote": "{collected} of {posted} units reached a customer"
+      },
+      "exportDialog": {
+        "action": "Export report",
+        "title": "Export report",
+        "scope": "{range} · {store}",
+        "anyStore": "All stores",
+        "format": "Format",
+        "pdf": "PDF",
+        "pdfHint": "A layout with charts, to send to the sponsor",
+        "xlsx": "Excel",
+        "xlsxHint": "A summary, the numbers by day and store, and the analysis, a sheet each",
+        "csv": "CSV",
+        "csvHint": "Numbers by day and by store",
+        "parts": "Contents",
+        "part": {
+          "kpi": "The three main numbers",
+          "products": "Products",
+          "impact": "Impact",
+          "days": "Charts by day",
+          "analysis": "Analysis",
+          "stores": "By store",
+          "feedback": "The stores' feedback"
+        },
+        "noParts": "Choose at least one part to export.",
+        "compare": "Compare with the period before",
+        "cancel": "Cancel",
+        "go": "Export"
+      },
+      "print": {
+        "title": "Second Bite report",
+        "scope": "{range} · {store}",
+        "anyStore": "All stores",
+        "save": "Save as PDF",
+        "back": "Back to the report"
+      },
+      "impact": {
+        "title": "Impact",
+        "rescued": "Food rescued",
+        "kilograms": "{kg} kg",
+        "rescuedNote": "{weighed} of {collected} units give a weight",
+        "original": "Original value",
+        "originalNote": "of {units} units collected",
+        "saved": "Customers saved",
+        "savedNote": "{share}% of the original price",
+        "discount": "Discounts Second Bite paid",
+        "discountNote": "{orders, plural, one {# order} other {# orders}} with a discount",
+        "none": "–"
+      },
+      "deep": {
+        "empty": "No numbers for these days yet.",
+        "customers": "{count, plural, one {# customer} other {# customers}} · {share}%",
+        "visits": "Customers by orders collected · {customers}",
+        "visitsTimes": "{times, plural, one {# time} other {# times}}",
+        "visitsMany": "3 times or more",
+        "sources": "Where views came from · {views}",
+        "source": {
+          "none": "Direct or other",
+          "qr": "QR at the counter"
+        },
+        "views": "{count} views",
+        "kinds": "By kind of dish",
+        "kind": {
+          "bakery": "Bakery",
+          "prepared_food": "Cooked food",
+          "ingredients": "Ingredients",
+          "drinks": "Drinks",
+          "mixed_box": "Mixed box",
+          "dessert": "Dessert",
+          "snacks": "Snacks",
+          "produce": "Produce",
+          "other": "Other"
+        },
+        "discounts": "Discount and share sold",
+        "band": {
+          "free": "Free",
+          "from70": "70% off or more",
+          "from50": "50–69% off",
+          "from30": "30–49% off",
+          "under30": "Under 30% off"
+        },
+        "portions": "{collected} of {posted} units · {share}%",
+        "noPosts": "No posts",
+        "dishes": "Dishes",
+        "topSold": "Sold most",
+        "topLeftover": "Left most",
+        "sold": "{collected} of {posted} {unit} collected",
+        "left": "{left} of {posted} {unit} left",
+        "slots": "Orders held by weekday and hour",
+        "weekdayHead": "Day",
+        "weekday": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
+        },
+        "hour": "{hour}:00",
+        "hours": "Hours customers collect",
+        "orders": "{count, plural, one {# order} other {# orders}}",
+        "posts": "{count, plural, one {# post} other {# posts}}",
+        "reviews": "{count, plural, one {# review} other {# reviews}}",
+        "sellOut": "Time to sell out · {posts, plural, one {# post} other {# posts}}",
+        "sellOutBand": {
+          "underHalfHour": "Under 30 minutes",
+          "underHour": "30–60 minutes",
+          "underTwoHours": "1–2 hours",
+          "overTwoHours": "Over 2 hours",
+          "notSoldOut": "Did not sell out"
+        },
+        "median": "Median {minutes} minutes from posting to the last unit ordered.",
+        "leadTimes": "How early customers order · {orders, plural, one {# order} other {# orders}}",
+        "leadBand": {
+          "underHalfHour": "Under 30 minutes",
+          "underHour": "30 minutes – 1 hour",
+          "underThreeHours": "1–3 hours",
+          "overThreeHours": "Over 3 hours"
+        },
+        "failures": "Orders not collected · {orders}",
+        "failure": {
+          "cancelled": "Cancelled by the customer",
+          "expired": "Window ended, customer did not come",
+          "refused_no_answer": "Refused · no answer",
+          "refused_no_show": "Refused · did not come",
+          "refused_late": "Refused · too late",
+          "refused_sold_out": "Refused · out of food",
+          "refused_other": "Refused · another reason",
+          "refused_not_suitable": "Refused · food no longer suitable",
+          "refused_wrong_items": "Refused · wrong dish",
+          "refused_withdrawn": "Post withdrawn"
+        },
+        "tags": "What customers praise",
+        "tag": {
+          "fast_pickup": "Quick pickup",
+          "good_quality": "Good quality",
+          "good_variety": "Good variety",
+          "fair_portions": "Fair portions"
+        },
+        "problems": "Problems reported",
+        "problem": {
+          "missing_item": "A missing item",
+          "wrong_item": "A wrong item",
+          "poor_quality": "Poor quality",
+          "store_closed": "The store was closed"
+        }
+      },
+      "analysis": {
+        "customers": "Customers",
+        "products": "Products and prices",
+        "time": "Time",
+        "quality": "Quality",
+        "title": "Analysis",
+        "funnel": "Customer funnel",
+        "people": "Visitors",
+        "held": "Orders held",
+        "collected": "Orders collected",
+        "perHundred": "{orders} orders per 100 visitors",
+        "ofHeld": "{share}% of orders held",
+        "average": "Per order collected",
+        "pay": "Customer paid",
+        "payNote": "over {orders, plural, one {# order} other {# orders}} collected",
+        "units": "Units",
+        "unitsNote": "{units} units / {orders, plural, one {# order} other {# orders}}",
+        "ratings": "Ratings · {count, plural, one {# review} other {# reviews}}",
+        "outOf": "/ 5 stars",
+        "stars": "{stars, plural, one {# star} other {# stars}}",
+        "noRatings": "No ratings in these days.",
+        "none": "–"
+      },
       "copy": {
         "action": "Copy report",
         "done": "Report copied; paste it in a message to send it.",
@@ -2061,6 +2284,8 @@
         "users": "- New users: {accounts} accounts{change}, {customers} first-time customers; {total} accounts in all",
         "orders": "- Orders: {held}{change}, {collected} collected",
         "people": "- Visitors: {people}{change}, {views} page views",
+        "products": "- Products: {posted} units posted, {collected} collected ({share}%), {leftover} left over",
+        "impact": "- Impact: {kg} kg of food rescued, customers saved {saved}",
         "change": " ({change})",
         "compared": "The figures in brackets are the change on {days, plural, =1 {the day before} other {the # days before}}."
       }

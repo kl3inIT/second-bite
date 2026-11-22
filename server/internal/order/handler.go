@@ -720,9 +720,20 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 
 		CollectSince time.Time `query:"collectSince" doc:"Keep the orders whose window starts at or after this time"`
 		CollectUntil time.Time `query:"collectUntil" doc:"Keep the orders whose window starts before this time"`
+
+		TimeFrom  string `query:"timeFrom"  doc:"Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil" pattern:"^([01][0-9]|2[0-3]):[0-5][0-9]$"`
+		TimeUntil string `query:"timeUntil" doc:"Keep those whose window starts before this time of each day, HH:MM or 24:00" pattern:"^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$"`
 	},
 	) (*adminOrdersOutput, error) {
 		f := AdminFilter{Statuses: in.Status, Query: in.Q, SellerID: in.SellerID, Page: in.Page, Size: in.Size}
+
+		clock, ok := platform.ParseClock(in.TimeFrom, in.TimeUntil)
+		if !ok {
+			return nil, ErrAdminListInvalid
+		}
+
+		f.Clock = clock
+
 		if !in.CollectSince.IsZero() {
 			f.CollectSince = &in.CollectSince
 		}
@@ -753,6 +764,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	})
 
 	registerAdminReviewOperations(admin, s)
+	registerAdminUnitsOperations(admin, s)
 	registerAdminPromotionOperations(admin, s)
 	registerAdminSettingsOperations(admin, s)
 }

@@ -91,13 +91,17 @@ FROM order_orders
 WHERE true
   AND ($1::text = '' OR search_text LIKE '%' || order_fold($1::text) || '%' ESCAPE '\')
   AND ($2::uuid IS NULL OR seller_id = $2::uuid)
-  AND ($3::timestamptz IS NULL OR window_start >= $3::timestamptz)
-  AND ($4::timestamptz IS NULL OR window_start < $4::timestamptz)
+  AND ($3::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $3::text::time)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $4::text::time)
+  AND ($5::timestamptz IS NULL OR window_start >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR window_start < $6::timestamptz)
 `
 
 type CountOrdersByStatusParams struct {
 	Query        string
 	SellerID     uuid.NullUUID
+	TimeFrom     pgtype.Text
+	TimeUntil    pgtype.Text
 	CollectSince *time.Time
 	CollectUntil *time.Time
 }
@@ -118,6 +122,8 @@ func (q *Queries) CountOrdersByStatus(ctx context.Context, arg CountOrdersByStat
 	row := q.db.QueryRow(ctx, countOrdersByStatus,
 		arg.Query,
 		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
 		arg.CollectSince,
 		arg.CollectUntil,
 	)
@@ -140,14 +146,18 @@ WHERE (cardinality($1::text[]) = 0
           = ANY ($1::text[]))
   AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
-  AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
-  AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+  AND ($6::timestamptz IS NULL OR window_start >= $6::timestamptz)
+  AND ($7::timestamptz IS NULL OR window_start < $7::timestamptz)
 `
 
 type CountOrdersForAdminsParams struct {
 	Statuses     []string
 	Query        string
 	SellerID     uuid.NullUUID
+	TimeFrom     pgtype.Text
+	TimeUntil    pgtype.Text
 	CollectSince *time.Time
 	CollectUntil *time.Time
 }
@@ -157,6 +167,8 @@ func (q *Queries) CountOrdersForAdmins(ctx context.Context, arg CountOrdersForAd
 		arg.Statuses,
 		arg.Query,
 		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
 		arg.CollectSince,
 		arg.CollectUntil,
 	)
@@ -405,6 +417,63 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 			&i.PromotionNew,
 			&i.DiscountVnd,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const customerVisits = `-- name: CustomerVisits :many
+SELECT least(visits, 3)::int AS visits, count(*) AS customers
+FROM (
+    SELECT count(*) AS visits
+    FROM order_orders
+    WHERE customer_phone <> '' AND state = 'collected'
+      AND window_start >= $1 AND window_start < $2
+      AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+      AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+      AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+    GROUP BY customer_phone
+) AS c
+GROUP BY 1
+ORDER BY 1
+`
+
+type CustomerVisitsParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type CustomerVisitsRow struct {
+	Visits    int32
+	Customers int64
+}
+
+// The customers, told apart by phone number, with orders handed over in [since, until), by how many of those orders
+// each had: 1, 2, or 3 and more (counted as 3). An order whose contact was forgotten counts for nobody.
+func (q *Queries) CustomerVisits(ctx context.Context, arg CustomerVisitsParams) ([]CustomerVisitsRow, error) {
+	rows, err := q.db.Query(ctx, customerVisits,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CustomerVisitsRow
+	for rows.Next() {
+		var i CustomerVisitsRow
+		if err := rows.Scan(&i.Visits, &i.Customers); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -1655,6 +1724,74 @@ func (q *Queries) NthRecentMessageTime(ctx context.Context, arg NthRecentMessage
 	return sent_at, err
 }
 
+const offerOutcomes = `-- name: OfferOutcomes :many
+SELECT (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, o.seller_id, l.offer_id,
+       sum(l.units)::bigint AS units_held,
+       coalesce(sum(l.units) FILTER (WHERE o.state = 'collected'), 0)::bigint AS units_collected,
+       coalesce(max(o.created_at) FILTER (WHERE o.state <> 'cancelled'), max(o.created_at))::timestamptz AS last_placed_at
+FROM order_lines AS l
+JOIN order_orders AS o ON o.id = l.order_id
+WHERE o.window_start >= $1 AND o.window_start < $2
+  AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3
+`
+
+type OfferOutcomesParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type OfferOutcomesRow struct {
+	Day            pgtype.Date
+	SellerID       uuid.UUID
+	OfferID        uuid.UUID
+	UnitsHeld      int64
+	UnitsCollected int64
+	LastPlacedAt   time.Time
+}
+
+// The units ordered and collected of each offer, per collection day in Vietnam and seller of the orders whose window
+// starts in [since, until), for the admin's report: the kilograms rescued and the analysis. last_placed_at is when
+// the latest order not cancelled was placed, which tells when an offer sold out.
+func (q *Queries) OfferOutcomes(ctx context.Context, arg OfferOutcomesParams) ([]OfferOutcomesRow, error) {
+	rows, err := q.db.Query(ctx, offerOutcomes,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OfferOutcomesRow
+	for rows.Next() {
+		var i OfferOutcomesRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.SellerID,
+			&i.OfferID,
+			&i.UnitsHeld,
+			&i.UnitsCollected,
+			&i.LastPlacedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const openOfPhoneAtSeller = `-- name: OpenOfPhoneAtSeller :one
 SELECT count(*) FROM order_orders
 WHERE seller_id = $1 AND customer_phone = $2 AND state IN ('confirmed', 'ready') AND window_end > now()
@@ -1703,10 +1840,13 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 
 const orderDays = `-- name: OrderDays :many
 WITH placed AS (
-    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units,
+           (SELECT sum(l.original_price_vnd * l.units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS original_vnd
     FROM order_orders o
     WHERE o.window_start >= $1 AND o.window_start < $2
       AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+      AND ($4::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+      AND ($5::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
 )
 SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) AS held,
@@ -1714,6 +1854,9 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) FILTER (WHERE state = 'collected') AS collected,
        coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
        coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
+       coalesce(sum(original_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS original_vnd,
+       coalesce(sum(discount_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS discount_vnd,
+       count(*) FILTER (WHERE state = 'collected' AND discount_vnd > 0) AS discount_orders,
        count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
        count(*) FILTER (WHERE state = 'refused') AS refused,
        count(*) FILTER (WHERE state = 'expired'
@@ -1724,9 +1867,11 @@ ORDER BY 1, 2
 `
 
 type OrderDaysParams struct {
-	Since    time.Time
-	Until    time.Time
-	SellerID uuid.NullUUID
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
 }
 
 type OrderDaysRow struct {
@@ -1737,15 +1882,25 @@ type OrderDaysRow struct {
 	Collected      int64
 	UnitsCollected int64
 	CollectedVnd   int64
+	OriginalVnd    int64
+	DiscountVnd    int64
+	DiscountOrders int64
 	Cancelled      int64
 	Refused        int64
 	Expired        int64
 }
 
 // The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
-// confirmed or ready whose window is over counts as expired, as every read of an order reads it.
+// confirmed or ready whose window is over counts as expired, as every read of an order reads it. For the orders
+// collected, also what their dishes cost at the original price and the discounts Second Bite paid back.
 func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDaysRow, error) {
-	rows, err := q.db.Query(ctx, orderDays, arg.Since, arg.Until, arg.SellerID)
+	rows, err := q.db.Query(ctx, orderDays,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1761,6 +1916,9 @@ func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDa
 			&i.Collected,
 			&i.UnitsCollected,
 			&i.CollectedVnd,
+			&i.OriginalVnd,
+			&i.DiscountVnd,
+			&i.DiscountOrders,
 			&i.Cancelled,
 			&i.Refused,
 			&i.Expired,
@@ -1773,6 +1931,112 @@ func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDa
 		return nil, err
 	}
 	return items, nil
+}
+
+const orderFailures = `-- name: OrderFailures :many
+SELECT CASE
+           WHEN state = 'refused' THEN 'refused_' || refuse_reason
+           WHEN state = 'cancelled' THEN 'cancelled'
+           ELSE 'expired'
+       END::text AS ending,
+       count(*) AS orders
+FROM order_orders
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+  AND (state IN ('cancelled', 'refused', 'expired') OR (state IN ('confirmed', 'ready') AND window_end <= now()))
+GROUP BY 1
+ORDER BY 1
+`
+
+type OrderFailuresParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type OrderFailuresRow struct {
+	Ending string
+	Orders int64
+}
+
+// How the orders of [since, until) that were not collected ended: cancelled, expired (an order still to collect whose
+// window is over too), or refused for each reason; the open ones are left out.
+func (q *Queries) OrderFailures(ctx context.Context, arg OrderFailuresParams) ([]OrderFailuresRow, error) {
+	rows, err := q.db.Query(ctx, orderFailures,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderFailuresRow
+	for rows.Next() {
+		var i OrderFailuresRow
+		if err := rows.Scan(&i.Ending, &i.Orders); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const orderLeadTimes = `-- name: OrderLeadTimes :one
+SELECT count(*) FILTER (WHERE window_start - created_at < interval '30 minutes') AS under_half_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '30 minutes'
+                          AND window_start - created_at < interval '1 hour') AS under_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '1 hour'
+                          AND window_start - created_at < interval '3 hours') AS under_three_hours,
+       count(*) FILTER (WHERE window_start - created_at >= interval '3 hours') AS over_three_hours
+FROM order_orders
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+`
+
+type OrderLeadTimesParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type OrderLeadTimesRow struct {
+	UnderHalfHour   int64
+	UnderHour       int64
+	UnderThreeHours int64
+	OverThreeHours  int64
+}
+
+// How long before its window opened each order of [since, until) was placed, in four bands, for the admin's analysis.
+func (q *Queries) OrderLeadTimes(ctx context.Context, arg OrderLeadTimesParams) (OrderLeadTimesRow, error) {
+	row := q.db.QueryRow(ctx, orderLeadTimes,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	var i OrderLeadTimesRow
+	err := row.Scan(
+		&i.UnderHalfHour,
+		&i.UnderHour,
+		&i.UnderThreeHours,
+		&i.OverThreeHours,
+	)
+	return i, err
 }
 
 const orderOfKey = `-- name: OrderOfKey :one
@@ -1796,6 +2060,68 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 	return id, err
 }
 
+const orderSlots = `-- name: OrderSlots :many
+SELECT extract(isodow FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS weekday,
+       extract(hour FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS hour,
+       count(*) AS held,
+       count(*) FILTER (WHERE state = 'collected') AS collected
+FROM order_orders
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+GROUP BY 1, 2
+ORDER BY 1, 2
+`
+
+type OrderSlotsParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type OrderSlotsRow struct {
+	Weekday   int32
+	Hour      int32
+	Held      int64
+	Collected int64
+}
+
+// The orders whose window starts in [since, until), per weekday (1 Monday to 7 Sunday) and hour in Vietnam of the
+// window's start, and how many of them were collected, for the admin's analysis.
+func (q *Queries) OrderSlots(ctx context.Context, arg OrderSlotsParams) ([]OrderSlotsRow, error) {
+	rows, err := q.db.Query(ctx, orderSlots,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderSlotsRow
+	for rows.Next() {
+		var i OrderSlotsRow
+		if err := rows.Scan(
+			&i.Weekday,
+			&i.Hour,
+			&i.Held,
+			&i.Collected,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const ordersForAdmins = `-- name: OrdersForAdmins :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
@@ -1807,16 +2133,20 @@ WHERE (cardinality($1::text[]) = 0
           = ANY ($1::text[]))
   AND ($2::text = '' OR search_text LIKE '%' || order_fold($2::text) || '%' ESCAPE '\')
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
-  AND ($4::timestamptz IS NULL OR window_start >= $4::timestamptz)
-  AND ($5::timestamptz IS NULL OR window_start < $5::timestamptz)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+  AND ($6::timestamptz IS NULL OR window_start >= $6::timestamptz)
+  AND ($7::timestamptz IS NULL OR window_start < $7::timestamptz)
 ORDER BY window_start DESC, number DESC
-LIMIT $7 OFFSET $6
+LIMIT $9 OFFSET $8
 `
 
 type OrdersForAdminsParams struct {
 	Statuses     []string
 	Query        string
 	SellerID     uuid.NullUUID
+	TimeFrom     pgtype.Text
+	TimeUntil    pgtype.Text
 	CollectSince *time.Time
 	CollectUntil *time.Time
 	SkipRows     int32
@@ -1866,6 +2196,8 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 		arg.Statuses,
 		arg.Query,
 		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
 		arg.CollectSince,
 		arg.CollectUntil,
 		arg.SkipRows,
@@ -1917,6 +2249,58 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const outcomesOfOffers = `-- name: OutcomesOfOffers :one
+WITH lines AS (
+    SELECT l.order_id, l.units,
+           CASE
+               WHEN o.state = 'collected' THEN 'collected'
+               WHEN o.state IN ('confirmed', 'ready') AND o.window_end > now() THEN 'held'
+               WHEN o.state = 'expired' OR o.state IN ('confirmed', 'ready')
+                    OR (o.state = 'refused' AND o.refuse_reason NOT IN ('no_answer', 'no_show', 'late')) THEN 'missed'
+               ELSE 'returned'
+           END AS outcome
+    FROM order_lines AS l
+    JOIN order_orders AS o ON o.id = l.order_id
+    WHERE l.offer_id = ANY (COALESCE($1::uuid[], '{}'))
+)
+SELECT coalesce(sum(units) FILTER (WHERE outcome = 'collected'), 0)::bigint AS collected,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'collected') AS collected_orders,
+       coalesce(sum(units) FILTER (WHERE outcome = 'held'), 0)::bigint AS held,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'held') AS held_orders,
+       coalesce(sum(units) FILTER (WHERE outcome = 'missed'), 0)::bigint AS missed,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'missed') AS missed_orders
+FROM lines
+`
+
+type OutcomesOfOffersRow struct {
+	Collected       int64
+	CollectedOrders int64
+	Held            int64
+	HeldOrders      int64
+	Missed          int64
+	MissedOrders    int64
+}
+
+// What became of the units ordered from the offers given, for the portions
+// above the admins' list of posts: collected; held by orders still to
+// collect; and missed, the units of orders ended without a hand-over that
+// never came back to their offers (expired, or refused for anything but the
+// customer not coming). Each with how many orders hold them. An order
+// confirmed or ready whose window is over is expired, as every read reads it.
+func (q *Queries) OutcomesOfOffers(ctx context.Context, offerIds []uuid.UUID) (OutcomesOfOffersRow, error) {
+	row := q.db.QueryRow(ctx, outcomesOfOffers, offerIds)
+	var i OutcomesOfOffersRow
+	err := row.Scan(
+		&i.Collected,
+		&i.CollectedOrders,
+		&i.Held,
+		&i.HeldOrders,
+		&i.Missed,
+		&i.MissedOrders,
+	)
+	return i, err
 }
 
 const payoutsBetween = `-- name: PayoutsBetween :many
@@ -2037,6 +2421,58 @@ func (q *Queries) ProblemExists(ctx context.Context, orderID uuid.UUID) (bool, e
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const problemKindCounts = `-- name: ProblemKindCounts :many
+SELECT p.kind, count(*) AS orders
+FROM order_problems AS p
+JOIN order_orders AS o ON o.id = p.order_id
+WHERE o.window_start >= $1 AND o.window_start < $2
+  AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+GROUP BY 1
+ORDER BY 1
+`
+
+type ProblemKindCountsParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type ProblemKindCountsRow struct {
+	Kind   string
+	Orders int64
+}
+
+// How many orders of [since, until) their customers reported each kind of problem on (SEC-84).
+func (q *Queries) ProblemKindCounts(ctx context.Context, arg ProblemKindCountsParams) ([]ProblemKindCountsRow, error) {
+	rows, err := q.db.Query(ctx, problemKindCounts,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProblemKindCountsRow
+	for rows.Next() {
+		var i ProblemKindCountsRow
+		if err := rows.Scan(&i.Kind, &i.Orders); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const problemsOf = `-- name: ProblemsOf :many
@@ -2272,6 +2708,59 @@ func (q *Queries) RedeemLiveTicket(ctx context.Context, arg RedeemLiveTicketPara
 	var topic string
 	err := row.Scan(&topic)
 	return topic, err
+}
+
+const reviewTagCounts = `-- name: ReviewTagCounts :many
+SELECT tag::text AS tag, count(*) AS reviews
+FROM order_reviews AS r
+JOIN order_orders AS o ON o.id = r.order_id
+CROSS JOIN LATERAL unnest(r.tags) AS tag
+WHERE o.window_start >= $1 AND o.window_start < $2
+  AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+GROUP BY 1
+ORDER BY 1
+`
+
+type ReviewTagCountsParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type ReviewTagCountsRow struct {
+	Tag     string
+	Reviews int64
+}
+
+// How often each tag praises the orders of [since, until), hidden reviews included.
+func (q *Queries) ReviewTagCounts(ctx context.Context, arg ReviewTagCountsParams) ([]ReviewTagCountsRow, error) {
+	rows, err := q.db.Query(ctx, reviewTagCounts,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewTagCountsRow
+	for rows.Next() {
+		var i ReviewTagCountsRow
+		if err := rows.Scan(&i.Tag, &i.Reviews); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const reviewsForAdmins = `-- name: ReviewsForAdmins :many

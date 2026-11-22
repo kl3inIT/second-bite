@@ -1260,6 +1260,23 @@
     "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
   },
   "Admin": {
+    "timeRange": {
+      "label": "Khung giờ",
+      "anytime": "Cả ngày",
+      "presets": "Chọn nhanh khung giờ",
+      "preset": {
+        "morning": "Sáng {from}–{until}",
+        "noon": "Trưa {from}–{until}",
+        "afternoon": "Chiều {from}–{until}",
+        "evening": "Tối {from}–{until}"
+      },
+      "custom": "Hoặc chọn giờ",
+      "from": "Từ",
+      "until": "Đến",
+      "midnight": "Đến 00:00 là tới hết ngày.",
+      "invalid": "Giờ bắt đầu phải trước giờ kết thúc.",
+      "apply": "Áp dụng"
+    },
     "home": "Second Bite, trang quản trị",
     "tag": "Quản trị",
     "collapse": "Thu gọn thanh bên",
@@ -1803,6 +1820,24 @@
         "actions": "Thao tác"
       },
       "unitsLeft": "{left}/{units} {unit}",
+      "posts": "bài",
+      "units": {
+        "show": "Xem số suất",
+        "hide": "Ẩn số suất",
+        "title": "Sản phẩm",
+        "unit": "suất",
+        "posted": "Đã đăng",
+        "postedNote": "từ {posts} bài",
+        "collected": "Đã bán",
+        "collectedNote": "{customers} khách đã nhận",
+        "held": "Đang chờ",
+        "heldNote": "{customers} khách chưa đến lấy",
+        "missed": "Không nhận",
+        "missedNote": "{customers} khách không nhận",
+        "left": "Còn lại",
+        "leftNote": "chưa ai đặt",
+        "leftoverNote": "dư {leftover} (bài đã đóng)"
+      },
       "window": "{from}–{until}",
       "empty": {
         "title": "Chưa có bài đăng nào"
@@ -1980,10 +2015,7 @@
       "lastWeek": "7 ngày gần nhất",
       "store": "Cửa hàng",
       "anyStore": "Tất cả",
-      "export": "Xuất CSV",
       "card": {
-        "collected": "Phần đã lấy",
-        "collectedNote": "{orders} đơn",
         "share": "Tỉ lệ lấy",
         "shareNote": "{collected}/{held} đơn",
         "expired": "Khách không đến",
@@ -2006,8 +2038,10 @@
         "orders": "Đơn giữ và đơn đã lấy theo ngày",
         "people": "Người truy cập theo ngày",
         "users": "Người dùng mới theo ngày",
+        "units": "Phần đã lấy và phần dư theo ngày",
         "tab": {
           "orders": "Giao dịch",
+          "units": "Sản phẩm",
           "people": "Người truy cập",
           "users": "Người dùng mới"
         }
@@ -2017,7 +2051,9 @@
         "collected": "Đã lấy",
         "people": "Người truy cập",
         "newAccounts": "Tài khoản mới",
-        "newCustomers": "Khách đặt lần đầu"
+        "newCustomers": "Khách đặt lần đầu",
+        "unitsCollected": "Phần đã lấy",
+        "leftover": "Phần dư"
       },
       "table": "Số liệu theo cửa hàng",
       "column": {
@@ -2032,7 +2068,10 @@
         "people": "Người truy cập",
         "unitsCollected": "Phần đã lấy",
         "daysPosted": "Ngày đăng",
-        "fullDays": "Ngày đủ 7 phần"
+        "fullDays": "Ngày đủ 7 phần",
+        "unitsPosted": "Phần đăng",
+        "leftover": "Phần dư",
+        "sellThrough": "Tỉ lệ bán hết"
       },
       "none": "–",
       "empty": {
@@ -2052,6 +2091,190 @@
       },
       "headline": "Ba chỉ số chính",
       "detail": "Chi tiết đơn",
+      "products": {
+        "title": "Sản phẩm",
+        "bar": "Tỉ lệ bán hết",
+        "unit": "phần",
+        "posted": "Phần đăng",
+        "postedNote": "{offers} món đăng",
+        "held": "Phần được đặt",
+        "heldNote": "trong {orders} đơn",
+        "collected": "Phần đã lấy",
+        "collectedNote": "{orders} đơn đã lấy",
+        "leftover": "Phần dư",
+        "leftoverNote": "không đến tay khách",
+        "sellThrough": "Tỉ lệ bán hết",
+        "sellThroughNote": "{collected}/{posted} phần đến tay khách"
+      },
+      "exportDialog": {
+        "action": "Xuất báo cáo",
+        "title": "Xuất báo cáo",
+        "scope": "{range} · {store}",
+        "anyStore": "Tất cả cửa hàng",
+        "format": "Định dạng",
+        "pdf": "PDF",
+        "pdfHint": "Bản trình bày có biểu đồ, để gửi nhà tài trợ",
+        "xlsx": "Excel",
+        "xlsxHint": "Tổng quan, số theo ngày và cửa hàng, và các phần phân tích, mỗi phần một trang tính",
+        "csv": "CSV",
+        "csvHint": "Số theo ngày và theo cửa hàng",
+        "parts": "Nội dung",
+        "part": {
+          "kpi": "Ba chỉ số chính",
+          "products": "Sản phẩm",
+          "impact": "Tác động",
+          "days": "Biểu đồ theo ngày",
+          "analysis": "Phân tích",
+          "stores": "Theo cửa hàng",
+          "feedback": "Góp ý của quán"
+        },
+        "noParts": "Chọn ít nhất một phần để xuất.",
+        "compare": "Kèm so sánh với kỳ trước",
+        "cancel": "Huỷ",
+        "go": "Xuất"
+      },
+      "print": {
+        "title": "Báo cáo Second Bite",
+        "scope": "{range} · {store}",
+        "anyStore": "Tất cả cửa hàng",
+        "save": "Lưu PDF",
+        "back": "Quay lại báo cáo"
+      },
+      "impact": {
+        "title": "Tác động",
+        "rescued": "Thực phẩm được cứu",
+        "kilograms": "{kg} kg",
+        "rescuedNote": "{weighed}/{collected} phần có ghi cân nặng",
+        "original": "Giá trị gốc",
+        "originalNote": "của {units} phần đã lấy",
+        "saved": "Khách tiết kiệm",
+        "savedNote": "{share}% so với giá gốc",
+        "discount": "Second Bite bù giảm giá",
+        "discountNote": "{orders} đơn dùng mã giảm giá",
+        "none": "–"
+      },
+      "deep": {
+        "empty": "Chưa có số liệu trong khoảng ngày này.",
+        "customers": "{count} khách · {share}%",
+        "visits": "Khách theo số lần nhận đơn · {customers} khách",
+        "visitsTimes": "{times} lần",
+        "visitsMany": "3 lần trở lên",
+        "sources": "Nguồn truy cập · {views} lượt mở",
+        "source": {
+          "none": "Vào thẳng / khác",
+          "qr": "QR tại quầy"
+        },
+        "views": "{count} lượt",
+        "kinds": "Theo loại món",
+        "kind": {
+          "bakery": "Bánh",
+          "prepared_food": "Món chín",
+          "ingredients": "Nguyên liệu",
+          "drinks": "Đồ uống",
+          "mixed_box": "Hộp tổng hợp",
+          "dessert": "Tráng miệng",
+          "snacks": "Ăn vặt",
+          "produce": "Rau củ quả",
+          "other": "Khác"
+        },
+        "discounts": "Mức giảm giá và tỉ lệ bán hết",
+        "band": {
+          "free": "Miễn phí",
+          "from70": "Giảm từ 70%",
+          "from50": "Giảm 50–69%",
+          "from30": "Giảm 30–49%",
+          "under30": "Giảm dưới 30%"
+        },
+        "portions": "{collected}/{posted} phần · {share}%",
+        "noPosts": "Không có bài",
+        "dishes": "Món",
+        "topSold": "Bán chạy",
+        "topLeftover": "Dư nhiều",
+        "sold": "{collected}/{posted} {unit} đã lấy",
+        "left": "dư {left}/{posted} {unit}",
+        "slots": "Đơn giữ theo thứ và giờ nhận",
+        "weekdayHead": "Thứ",
+        "weekday": {
+          "mon": "T2",
+          "tue": "T3",
+          "wed": "T4",
+          "thu": "T5",
+          "fri": "T6",
+          "sat": "T7",
+          "sun": "CN"
+        },
+        "hour": "{hour}h",
+        "hours": "Giờ khách đến lấy",
+        "orders": "{count} đơn",
+        "posts": "{count} bài",
+        "reviews": "{count} lượt",
+        "sellOut": "Bài bán hết sau bao lâu · {posts} bài",
+        "sellOutBand": {
+          "underHalfHour": "Dưới 30 phút",
+          "underHour": "30–60 phút",
+          "underTwoHours": "1–2 giờ",
+          "overTwoHours": "Trên 2 giờ",
+          "notSoldOut": "Không bán hết"
+        },
+        "median": "Trung vị {minutes} phút từ lúc đăng tới phần cuối được đặt.",
+        "leadTimes": "Khách đặt trước giờ nhận bao lâu · {orders} đơn",
+        "leadBand": {
+          "underHalfHour": "Dưới 30 phút",
+          "underHour": "30 phút – 1 giờ",
+          "underThreeHours": "1–3 giờ",
+          "overThreeHours": "Trên 3 giờ"
+        },
+        "failures": "Đơn không thành · {orders} đơn",
+        "failure": {
+          "cancelled": "Khách huỷ",
+          "expired": "Hết giờ, khách không đến",
+          "refused_no_answer": "Quán từ chối · không nghe máy",
+          "refused_no_show": "Quán từ chối · khách không đến",
+          "refused_late": "Quán từ chối · quá giờ",
+          "refused_sold_out": "Quán từ chối · hết món",
+          "refused_other": "Quán từ chối · lý do khác",
+          "refused_not_suitable": "Quán từ chối · món không còn phù hợp",
+          "refused_wrong_items": "Quán từ chối · sai món",
+          "refused_withdrawn": "Quán đã rút bài"
+        },
+        "tags": "Khách khen gì",
+        "tag": {
+          "fast_pickup": "Nhận hàng nhanh",
+          "good_quality": "Chất lượng tốt",
+          "good_variety": "Đa dạng món",
+          "fair_portions": "Đủ số lượng"
+        },
+        "problems": "Phản ánh sau khi nhận",
+        "problem": {
+          "missing_item": "Thiếu món",
+          "wrong_item": "Sai món",
+          "poor_quality": "Món không đạt",
+          "store_closed": "Quán đóng cửa khi đến"
+        }
+      },
+      "analysis": {
+        "customers": "Khách hàng",
+        "products": "Sản phẩm và giá",
+        "time": "Thời gian",
+        "quality": "Chất lượng",
+        "title": "Phân tích",
+        "funnel": "Phễu khách",
+        "people": "Người truy cập",
+        "held": "Đơn giữ",
+        "collected": "Đơn đã lấy",
+        "perHundred": "{orders} đơn / 100 người",
+        "ofHeld": "{share}% đơn giữ",
+        "average": "Trung bình mỗi đơn đã lấy",
+        "pay": "Khách trả",
+        "payNote": "trên {orders} đơn đã lấy",
+        "units": "Số phần",
+        "unitsNote": "{units} phần / {orders} đơn",
+        "ratings": "Đánh giá · {count} lượt",
+        "outOf": "/ 5 sao",
+        "stars": "{stars} sao",
+        "noRatings": "Chưa có đánh giá trong khoảng ngày này.",
+        "none": "–"
+      },
       "copy": {
         "action": "Sao chép báo cáo",
         "done": "Đã sao chép báo cáo, dán vào tin nhắn để gửi.",
@@ -2061,6 +2284,8 @@
         "users": "- Người dùng mới: {accounts} tài khoản{change}, {customers} khách đặt món lần đầu; tổng {total} tài khoản",
         "orders": "- Giao dịch: {held} đơn{change}, {collected} đơn đã lấy",
         "people": "- Người truy cập: {people}{change}, {views} lượt mở trang",
+        "products": "- Sản phẩm: {posted} phần đăng, {collected} phần đã lấy ({share}%), dư {leftover}",
+        "impact": "- Tác động: {kg} kg thực phẩm được cứu, khách tiết kiệm {saved}",
         "change": " ({change})",
         "compared": "Số trong ngoặc là chênh lệch so với {days, plural, =1 {hôm trước} other {# ngày trước đó}}."
       }

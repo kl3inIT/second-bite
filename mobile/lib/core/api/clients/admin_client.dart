@@ -15,6 +15,7 @@ import '../models/admin_review_body.dart';
 import '../models/admin_reviews_output_body.dart';
 import '../models/admin_sellers_output_body.dart';
 import '../models/admins_output_body.dart';
+import '../models/analysis_output_body.dart';
 import '../models/audit_events_output_body.dart';
 import '../models/block_seller_request.dart';
 import '../models/change_seller_owner_request.dart';
@@ -28,6 +29,7 @@ import '../models/list_payouts_response.dart';
 import '../models/list_promotions_response.dart';
 import '../models/memberships_output_body.dart';
 import '../models/offer_settings_body.dart';
+import '../models/offer_units_output_body.dart';
 import '../models/order_settings_body.dart';
 import '../models/payout_body.dart';
 import '../models/promotion_body.dart';
@@ -170,6 +172,34 @@ abstract class AdminClient {
     @Body() required OfferSettingsBody body,
   });
 
+  /// What became of the units of every offer matching the posts list's filters.
+  ///
+  /// The filters are listOffersForAdmins's, without its page. Posted is left plus collected, held and missed: units an order gave back (cancelled, or the customer did not come) are left again.
+  ///
+  /// [status] - Keep this status; every status when absent.
+  ///
+  /// [q] - Words of the dish, the seller's name or the description.
+  ///
+  /// [sellerId] - Keep this seller's offers.
+  ///
+  /// [postedSince] - Keep the offers posted at or after this time.
+  ///
+  /// [postedUntil] - Keep the offers posted before this time.
+  ///
+  /// [timeFrom] - Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep those whose window starts before this time of each day, HH:MM or 24:00.
+  @GET('/admin/offer-units')
+  Future<OfferUnitsOutputBody> getOfferUnitsForAdmins({
+    @Query('status') Status? status,
+    @Query('q') String? q,
+    @Query('sellerId') String? sellerId,
+    @Query('postedSince') DateTime? postedSince,
+    @Query('postedUntil') DateTime? postedUntil,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
+  });
+
   /// Every seller's offers by status, words, seller and day posted, newest first.
   ///
   /// q matches the dish, the seller's name or the description, as customers search. counts holds the offers of each status matching the other filters. A page past the end is empty.
@@ -183,6 +213,10 @@ abstract class AdminClient {
   /// [postedSince] - Keep the offers posted at or after this time.
   ///
   /// [postedUntil] - Keep the offers posted before this time.
+  ///
+  /// [timeFrom] - Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep those whose window starts before this time of each day, HH:MM or 24:00.
   @GET('/admin/offers')
   Future<AdminOffersOutputBody> listOffersForAdmins({
     @Query('page') int? page = 1,
@@ -192,6 +226,8 @@ abstract class AdminClient {
     @Query('sellerId') String? sellerId,
     @Query('postedSince') DateTime? postedSince,
     @Query('postedUntil') DateTime? postedUntil,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
   });
 
   /// The limits on the orders one person holds
@@ -222,6 +258,10 @@ abstract class AdminClient {
   /// [collectSince] - Keep the orders whose window starts at or after this time.
   ///
   /// [collectUntil] - Keep the orders whose window starts before this time.
+  ///
+  /// [timeFrom] - Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep those whose window starts before this time of each day, HH:MM or 24:00.
   @GET('/admin/orders')
   Future<AdminOrdersOutputBody> listOrdersForAdmins({
     @Query('page') int? page = 1,
@@ -231,6 +271,8 @@ abstract class AdminClient {
     @Query('sellerId') String? sellerId,
     @Query('collectSince') DateTime? collectSince,
     @Query('collectUntil') DateTime? collectUntil,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
   });
 
   /// What Second Bite owes each seller for a week's discounts, the most owed first.
@@ -303,11 +345,39 @@ abstract class AdminClient {
   /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
   ///
   /// [sellerId] - Keep one store's numbers; the views are then its page's and its dishes'.
+  ///
+  /// [timeFrom] - Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's.
   @GET('/admin/reports')
   Future<ReportOutputBody> getReport({
     @Query('since') String? since,
     @Query('until') String? until,
     @Query('sellerId') String? sellerId,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
+  });
+
+  /// What the posts and orders of the report's days tell beyond its counts.
+  ///
+  /// The same days and store as getReport; posts and orders count on their collection day. The views' sources are the site's whatever store is chosen.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD; six days before until when empty.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
+  ///
+  /// [sellerId] - Keep one store's numbers; the views are then its page's and its dishes'.
+  ///
+  /// [timeFrom] - Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's.
+  @GET('/admin/reports/analysis')
+  Future<AnalysisOutputBody> getReportAnalysis({
+    @Query('since') String? since,
+    @Query('until') String? until,
+    @Query('sellerId') String? sellerId,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
   });
 
   /// The report as a CSV file, one row per day and store.
@@ -319,11 +389,39 @@ abstract class AdminClient {
   /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
   ///
   /// [sellerId] - Keep one store's numbers; the views are then its page's and its dishes'.
+  ///
+  /// [timeFrom] - Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's.
   @GET('/admin/reports/export')
   Future<void> exportReport({
     @Query('since') String? since,
     @Query('until') String? until,
     @Query('sellerId') String? sellerId,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
+  });
+
+  /// The report and its analysis as an Excel workbook.
+  ///
+  /// The same days and store as getReport, in Vietnamese: a summary, the CSV's rows, then a sheet per part of the analysis (kinds, discounts, dishes, orders not collected, weekday and hour). Figures are numbers.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD; six days before until when empty.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
+  ///
+  /// [sellerId] - Keep one store's numbers; the views are then its page's and its dishes'.
+  ///
+  /// [timeFrom] - Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's.
+  @GET('/admin/reports/workbook')
+  Future<void> exportReportWorkbook({
+    @Query('since') String? since,
+    @Query('until') String? until,
+    @Query('sellerId') String? sellerId,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
   });
 
   /// Every customer's review, hidden or not, by stars, words, seller, visibility and day, the latest first.

@@ -99,6 +99,8 @@ WHERE (cardinality(@statuses::text[]) = 0
           = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz)
 ORDER BY window_start DESC, number DESC
@@ -111,6 +113,8 @@ WHERE (cardinality(@statuses::text[]) = 0
           = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);
 
@@ -128,6 +132,8 @@ FROM order_orders
 WHERE true
   AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);
 
@@ -400,12 +406,16 @@ RETURNING id, created_at, window_start;
 
 -- name: OrderDays :many
 -- The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
--- confirmed or ready whose window is over counts as expired, as every read of an order reads it.
+-- confirmed or ready whose window is over counts as expired, as every read of an order reads it. For the orders
+-- collected, also what their dishes cost at the original price and the discounts Second Bite paid back.
 WITH placed AS (
-    SELECT o.*, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units
+    SELECT o.*, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units,
+           (SELECT sum(l.original_price_vnd * l.units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS original_vnd
     FROM order_orders o
     WHERE o.window_start >= @since AND o.window_start < @until
       AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+      AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+      AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 )
 SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) AS held,
@@ -413,6 +423,9 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) FILTER (WHERE state = 'collected') AS collected,
        coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
        coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
+       coalesce(sum(original_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS original_vnd,
+       coalesce(sum(discount_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS discount_vnd,
+       count(*) FILTER (WHERE state = 'collected' AND discount_vnd > 0) AS discount_orders,
        count(*) FILTER (WHERE state = 'cancelled') AS cancelled,
        count(*) FILTER (WHERE state = 'refused') AS refused,
        count(*) FILTER (WHERE state = 'expired'
@@ -420,6 +433,140 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
 FROM placed
 GROUP BY 1, 2
 ORDER BY 1, 2;
+
+-- name: OutcomesOfOffers :one
+-- What became of the units ordered from the offers given, for the portions
+-- above the admins' list of posts: collected; held by orders still to
+-- collect; and missed, the units of orders ended without a hand-over that
+-- never came back to their offers (expired, or refused for anything but the
+-- customer not coming). Each with how many orders hold them. An order
+-- confirmed or ready whose window is over is expired, as every read reads it.
+WITH lines AS (
+    SELECT l.order_id, l.units,
+           CASE
+               WHEN o.state = 'collected' THEN 'collected'
+               WHEN o.state IN ('confirmed', 'ready') AND o.window_end > now() THEN 'held'
+               WHEN o.state = 'expired' OR o.state IN ('confirmed', 'ready')
+                    OR (o.state = 'refused' AND o.refuse_reason NOT IN ('no_answer', 'no_show', 'late')) THEN 'missed'
+               ELSE 'returned'
+           END AS outcome
+    FROM order_lines AS l
+    JOIN order_orders AS o ON o.id = l.order_id
+    WHERE l.offer_id = ANY (COALESCE(@offer_ids::uuid[], '{}'))
+)
+SELECT coalesce(sum(units) FILTER (WHERE outcome = 'collected'), 0)::bigint AS collected,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'collected') AS collected_orders,
+       coalesce(sum(units) FILTER (WHERE outcome = 'held'), 0)::bigint AS held,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'held') AS held_orders,
+       coalesce(sum(units) FILTER (WHERE outcome = 'missed'), 0)::bigint AS missed,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'missed') AS missed_orders
+FROM lines;
+
+-- name: OfferOutcomes :many
+-- The units ordered and collected of each offer, per collection day in Vietnam and seller of the orders whose window
+-- starts in [since, until), for the admin's report: the kilograms rescued and the analysis. last_placed_at is when
+-- the latest order not cancelled was placed, which tells when an offer sold out.
+SELECT (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, o.seller_id, l.offer_id,
+       sum(l.units)::bigint AS units_held,
+       coalesce(sum(l.units) FILTER (WHERE o.state = 'collected'), 0)::bigint AS units_collected,
+       coalesce(max(o.created_at) FILTER (WHERE o.state <> 'cancelled'), max(o.created_at))::timestamptz AS last_placed_at
+FROM order_lines AS l
+JOIN order_orders AS o ON o.id = l.order_id
+WHERE o.window_start >= @since AND o.window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3;
+
+-- name: OrderSlots :many
+-- The orders whose window starts in [since, until), per weekday (1 Monday to 7 Sunday) and hour in Vietnam of the
+-- window's start, and how many of them were collected, for the admin's analysis.
+SELECT extract(isodow FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS weekday,
+       extract(hour FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS hour,
+       count(*) AS held,
+       count(*) FILTER (WHERE state = 'collected') AS collected
+FROM order_orders
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+GROUP BY 1, 2
+ORDER BY 1, 2;
+
+-- name: OrderLeadTimes :one
+-- How long before its window opened each order of [since, until) was placed, in four bands, for the admin's analysis.
+SELECT count(*) FILTER (WHERE window_start - created_at < interval '30 minutes') AS under_half_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '30 minutes'
+                          AND window_start - created_at < interval '1 hour') AS under_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '1 hour'
+                          AND window_start - created_at < interval '3 hours') AS under_three_hours,
+       count(*) FILTER (WHERE window_start - created_at >= interval '3 hours') AS over_three_hours
+FROM order_orders
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time);
+
+-- name: OrderFailures :many
+-- How the orders of [since, until) that were not collected ended: cancelled, expired (an order still to collect whose
+-- window is over too), or refused for each reason; the open ones are left out.
+SELECT CASE
+           WHEN state = 'refused' THEN 'refused_' || refuse_reason
+           WHEN state = 'cancelled' THEN 'cancelled'
+           ELSE 'expired'
+       END::text AS ending,
+       count(*) AS orders
+FROM order_orders
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+  AND (state IN ('cancelled', 'refused', 'expired') OR (state IN ('confirmed', 'ready') AND window_end <= now()))
+GROUP BY 1
+ORDER BY 1;
+
+-- name: CustomerVisits :many
+-- The customers, told apart by phone number, with orders handed over in [since, until), by how many of those orders
+-- each had: 1, 2, or 3 and more (counted as 3). An order whose contact was forgotten counts for nobody.
+SELECT least(visits, 3)::int AS visits, count(*) AS customers
+FROM (
+    SELECT count(*) AS visits
+    FROM order_orders
+    WHERE customer_phone <> '' AND state = 'collected'
+      AND window_start >= @since AND window_start < @until
+      AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+      AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+      AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+    GROUP BY customer_phone
+) AS c
+GROUP BY 1
+ORDER BY 1;
+
+-- name: ReviewTagCounts :many
+-- How often each tag praises the orders of [since, until), hidden reviews included.
+SELECT tag::text AS tag, count(*) AS reviews
+FROM order_reviews AS r
+JOIN order_orders AS o ON o.id = r.order_id
+CROSS JOIN LATERAL unnest(r.tags) AS tag
+WHERE o.window_start >= @since AND o.window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+GROUP BY 1
+ORDER BY 1;
+
+-- name: ProblemKindCounts :many
+-- How many orders of [since, until) their customers reported each kind of problem on (SEC-84).
+SELECT p.kind, count(*) AS orders
+FROM order_problems AS p
+JOIN order_orders AS o ON o.id = p.order_id
+WHERE o.window_start >= @since AND o.window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+GROUP BY 1
+ORDER BY 1;
 
 -- name: InsertProblem :execrows
 -- Nothing is inserted when the order was already reported (SEC-84).

@@ -1,4 +1,14 @@
-import { createLoader, parseAsIsoDate, parseAsString, parseAsStringLiteral } from "nuqs/server";
+import {
+  createLoader,
+  createSerializer,
+  parseAsArrayOf,
+  parseAsBoolean,
+  parseAsIsoDate,
+  parseAsString,
+  parseAsStringLiteral,
+} from "nuqs/server";
+
+import { timeQuery, timeSearchParams } from "@/features/admin/time-params";
 
 /** The columns the stores' table may be sorted by; the server's order, the most orders first, by default. */
 export const reportSorts = [
@@ -14,6 +24,9 @@ export const reportSorts = [
   "daysPosted",
   "fullDays",
   "unitsCollected",
+  "unitsPosted",
+  "leftover",
+  "sellThrough",
 ] as const;
 
 export type ReportSort = (typeof reportSorts)[number];
@@ -29,11 +42,42 @@ export const reportSearchParams = {
   from: parseAsIsoDate,
   to: parseAsIsoDate,
   store: parseAsString,
+  ...timeSearchParams,
   sort: parseAsStringLiteral(reportSorts),
   dir: parseAsStringLiteral(["ascending", "descending"] as const),
 };
 
 export const loadReportSearchParams = createLoader(reportSearchParams);
+
+/** The parts of the report a PDF may hold, in the order the print page draws them. */
+export const reportParts = [
+  "kpi",
+  "products",
+  "impact",
+  "days",
+  "analysis",
+  "stores",
+  "feedback",
+] as const;
+
+export type ReportPart = (typeof reportParts)[number];
+
+/**
+ * What the print page reads (report-products-export increment): the report's days and store, the parts ticked
+ * in the export dialog, every one by default, and whether the three numbers show their change.
+ */
+export const reportPrintSearchParams = {
+  from: parseAsIsoDate,
+  to: parseAsIsoDate,
+  store: parseAsString,
+  ...timeSearchParams,
+  parts: parseAsArrayOf(parseAsStringLiteral(reportParts)).withDefault([...reportParts]),
+  compare: parseAsBoolean.withDefault(true),
+};
+
+export const loadReportPrintSearchParams = createLoader(reportPrintSearchParams);
+
+export const serializeReportPrint = createSerializer(reportPrintSearchParams);
 
 const day = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -41,12 +85,26 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
  * The query the report and its CSV are read with: the days chosen, a range longer than the server allows cut
  * to its last 92 days, and the store.
  */
-export function reportQuery(filter: { from: Date | null; to: Date | null; store: string | null }): {
+export function reportQuery(filter: {
+  from: Date | null;
+  to: Date | null;
+  store: string | null;
+  timeFrom: string | null;
+  timeUntil: string | null;
+}): {
   since?: string;
   until?: string;
   sellerId?: string;
+  timeFrom?: string;
+  timeUntil?: string;
 } {
-  const query: { since?: string; until?: string; sellerId?: string } = {};
+  const query: {
+    since?: string;
+    until?: string;
+    sellerId?: string;
+    timeFrom?: string;
+    timeUntil?: string;
+  } = { ...timeQuery(filter) };
   if (filter.from) {
     const to = filter.to ?? filter.from;
     const earliest = new Date(to.getTime() - (maxReportDays - 1) * 86_400_000);

@@ -116,4 +116,16 @@ test.describe("the admin's orders", () => {
     await expect(page).toHaveURL(/\/vi\/admin\/orders$/);
     await expect(page.getByRole("table", { name: "Đơn hàng" }).getByRole("row")).toHaveCount(11);
   });
+
+  test("Khung giờ keeps the orders to a time of day", async ({ page }) => {
+    await page.goto("/vi/admin/orders");
+    const field = await hydrated(page.getByRole("button", { name: /^Khung giờ/ }));
+    await field.click();
+    await page.getByLabel("Từ", { exact: true }).fill("17:30");
+    await page.getByLabel("Đến", { exact: true }).fill("00:00");
+    await expect(page.getByText("Đến 00:00 là tới hết ngày.")).toBeVisible();
+    await page.getByRole("button", { name: "Áp dụng" }).click();
+    await expect(page).toHaveURL(/timeFrom=17(:|%3A)30&timeUntil=24(:|%3A)00/);
+    await expect(field).toContainText("17:30 – 24:00");
+  });
 });

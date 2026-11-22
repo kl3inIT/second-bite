@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { periodBefore, presetOf, presetRange, signed, vietnamToday } from "./report-numbers";
+import {
+  leftoverOf,
+  periodBefore,
+  presetOf,
+  presetRange,
+  savedOf,
+  sellThroughOf,
+  signed,
+  vietnamToday,
+} from "./report-numbers";
 
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`);
 
@@ -51,5 +60,30 @@ describe("the report's numbers (SEC-192)", () => {
     expect(signed(5, 3)).toBe("+2");
     expect(signed(3, 5)).toBe("−2");
     expect(signed(4, 4)).toBe("0");
+  });
+});
+
+describe("the report's portions", () => {
+  it("counts what was left over and the share sold", () => {
+    expect(leftoverOf({ unitsPosted: 28, unitsCollected: 13 })).toBe(15);
+    expect(sellThroughOf({ unitsPosted: 28, unitsCollected: 13 })).toBe(46);
+  });
+
+  it("reads nothing without posts, and never a negative leftover", () => {
+    expect(sellThroughOf({ unitsPosted: 0, unitsCollected: 0 })).toBeNull();
+    // The two are counted apart, so the leftover is held at zero whatever they read.
+    expect(leftoverOf({ unitsPosted: 2, unitsCollected: 3 })).toBe(0);
+  });
+});
+
+describe("what customers saved", () => {
+  it("is the original price less what they paid: the total less the discount", () => {
+    expect(savedOf({ originalVnd: 668_000, collectedVnd: 334_000, discountVnd: 20_000 })).toBe(
+      354_000,
+    );
+  });
+
+  it("is never below zero", () => {
+    expect(savedOf({ originalVnd: 0, collectedVnd: 10_000, discountVnd: 0 })).toBe(0);
   });
 });

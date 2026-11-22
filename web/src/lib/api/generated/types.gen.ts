@@ -178,6 +178,119 @@ export type AdminsOutputBody = {
     admins: Array<RecordBody> | null;
 };
 
+export type AnalysisCountBody = {
+    count: number;
+    key: string;
+};
+
+export type AnalysisDiscountBody = {
+    /**
+     * The discount against the original price
+     */
+    band: 'free' | 'from70' | 'from50' | 'from30' | 'under30';
+    /**
+     * Units of them collected
+     */
+    collected: number;
+    /**
+     * Units posted
+     */
+    posted: number;
+};
+
+export type AnalysisDishBody = {
+    /**
+     * Units of them collected
+     */
+    collected: number;
+    name: string;
+    offerId: string;
+    /**
+     * Units posted
+     */
+    posted: number;
+    sellerName: string;
+    unit: string;
+};
+
+export type AnalysisKindBody = {
+    /**
+     * Units of them collected
+     */
+    collected: number;
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+    /**
+     * Units posted
+     */
+    posted: number;
+};
+
+export type AnalysisOutputBody = {
+    /**
+     * The same by discount band, from food given away to the smallest discount
+     */
+    discounts: Array<AnalysisDiscountBody>;
+    /**
+     * The orders not collected by ending: cancelled, expired, or refused_ and the reason; the most first
+     */
+    failures: Array<AnalysisCountBody>;
+    /**
+     * The portions posted and collected by kind of dish, the most posted first
+     */
+    kinds: Array<AnalysisKindBody>;
+    /**
+     * How long before the window opened the orders were placed
+     */
+    leadTimes: LeadTimesStruct;
+    /**
+     * The orders reported for each kind of problem
+     */
+    problems: Array<AnalysisCountBody>;
+    /**
+     * How long the posts took from posting to their last unit ordered
+     */
+    sellOut: SellOutStruct;
+    since: string;
+    /**
+     * The orders by weekday and hour of their window's start
+     */
+    slots: Array<AnalysisSlotBody>;
+    /**
+     * The views by utm_source, empty for none; the site's whatever store is chosen
+     */
+    sources: Array<AnalysisCountBody>;
+    /**
+     * The reviews praising each tag
+     */
+    tags: Array<AnalysisCountBody>;
+    /**
+     * The five ended dishes with the most portions not collected
+     */
+    topLeftover: Array<AnalysisDishBody>;
+    /**
+     * The five dishes most collected
+     */
+    topSold: Array<AnalysisDishBody>;
+    until: string;
+    /**
+     * The customers by orders handed over: 1, 2, and 3 for three or more
+     */
+    visits: Array<AnalysisCountBody>;
+};
+
+export type AnalysisSlotBody = {
+    collected: number;
+    held: number;
+    /**
+     * The hour of the window's start in Vietnam
+     */
+    hour: number;
+    /**
+     * 1 Monday to 7 Sunday, of the window's start in Vietnam
+     */
+    weekday: number;
+};
+
 export type AnswerOrderProblemRequest = {
     /**
      * 1 to 500 characters, or ORDER_ANSWER_INVALID
@@ -324,9 +437,21 @@ export type CountsBody = {
      */
     collectedVnd: number;
     /**
+     * Collected orders that took a discount
+     */
+    discountOrders: number;
+    /**
+     * The discounts Second Bite paid back on the collected orders
+     */
+    discountVnd: number;
+    /**
      * Orders the customer did not come for
      */
     expired: number;
+    /**
+     * Grams of the units collected whose dish gives a weight
+     */
+    gramsCollected: number;
     /**
      * Orders, however they ended
      */
@@ -348,6 +473,10 @@ export type CountsBody = {
      */
     offers: number;
     /**
+     * What the collected orders' dishes cost at their original price
+     */
+    originalVnd: number;
+    /**
      * Browsers that opened them, each counted once a day
      */
     people: number;
@@ -359,6 +488,10 @@ export type CountsBody = {
     unitsCollected: number;
     unitsHeld: number;
     unitsPosted: number;
+    /**
+     * The units collected whose dish gives a weight
+     */
+    unitsWeighed: number;
     /**
      * Pages opened
      */
@@ -625,6 +758,13 @@ export type HistoryOutputBody = {
      * The latest five, newest first
      */
     recent: Array<OrderBody>;
+};
+
+export type LeadTimesStruct = {
+    overThreeHours: number;
+    underHalfHour: number;
+    underHour: number;
+    underThreeHours: number;
 };
 
 export type ListDishesResponse = {
@@ -900,6 +1040,49 @@ export type OfferSettingsBody = {
      * The shortest collection window
      */
     windowMinMinutes: number;
+};
+
+export type OfferUnitsOutputBody = {
+    /**
+     * Units handed over
+     */
+    collected: number;
+    /**
+     * Orders handed over that hold them
+     */
+    collectedOrders: number;
+    /**
+     * Units of orders still to collect, their window not over
+     */
+    held: number;
+    /**
+     * Orders still to collect that hold them
+     */
+    heldOrders: number;
+    /**
+     * Units nobody holds: units_left of the offers
+     */
+    left: number;
+    /**
+     * Of left, those on offers closed, withdrawn or whose window is over
+     */
+    leftover: number;
+    /**
+     * Units of orders ended without a hand-over that did not come back: expired, or refused for anything but the customer not coming
+     */
+    missed: number;
+    /**
+     * Orders that lost them
+     */
+    missedOrders: number;
+    /**
+     * Their units
+     */
+    posted: number;
+    /**
+     * Offers matching the filters
+     */
+    posts: number;
 };
 
 export type OffersOutputBody = {
@@ -1518,6 +1701,21 @@ export type SeenBody = {
      * The highest message the seller's people have read
      */
     seller: number;
+};
+
+export type SellOutStruct = {
+    /**
+     * The middle time to sell out; 0 when none did
+     */
+    medianMinutes: number;
+    /**
+     * Posts that ended with units left
+     */
+    notSoldOut: number;
+    overTwoHours: number;
+    underHalfHour: number;
+    underHour: number;
+    underTwoHours: number;
 };
 
 export type SellerBody = {
@@ -2322,6 +2520,60 @@ export type SaveOfferSettingsResponses = {
 
 export type SaveOfferSettingsResponse = SaveOfferSettingsResponses[keyof SaveOfferSettingsResponses];
 
+export type GetOfferUnitsForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep this status; every status when absent
+         */
+        status?: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+        /**
+         * Words of the dish, the seller's name or the description
+         */
+        q?: string;
+        /**
+         * Keep this seller's offers
+         */
+        sellerId?: string;
+        /**
+         * Keep the offers posted at or after this time
+         */
+        postedSince?: string;
+        /**
+         * Keep the offers posted before this time
+         */
+        postedUntil?: string;
+        /**
+         * Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep those whose window starts before this time of each day, HH:MM or 24:00
+         */
+        timeUntil?: string;
+    };
+    url: '/admin/offer-units';
+};
+
+export type GetOfferUnitsForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetOfferUnitsForAdminsError = GetOfferUnitsForAdminsErrors[keyof GetOfferUnitsForAdminsErrors];
+
+export type GetOfferUnitsForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: OfferUnitsOutputBody;
+};
+
+export type GetOfferUnitsForAdminsResponse = GetOfferUnitsForAdminsResponses[keyof GetOfferUnitsForAdminsResponses];
+
 export type ListOffersForAdminsData = {
     body?: never;
     path?: never;
@@ -2348,6 +2600,14 @@ export type ListOffersForAdminsData = {
          * Keep the offers posted before this time
          */
         postedUntil?: string;
+        /**
+         * Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep those whose window starts before this time of each day, HH:MM or 24:00
+         */
+        timeUntil?: string;
     };
     url: '/admin/offers';
 };
@@ -2452,6 +2712,14 @@ export type ListOrdersForAdminsData = {
          * Keep the orders whose window starts before this time
          */
         collectUntil?: string;
+        /**
+         * Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep those whose window starts before this time of each day, HH:MM or 24:00
+         */
+        timeUntil?: string;
     };
     url: '/admin/orders';
 };
@@ -2671,6 +2939,14 @@ export type GetReportData = {
          * Keep one store's numbers; the views are then its page's and its dishes'
          */
         sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
     };
     url: '/admin/reports';
 };
@@ -2693,6 +2969,52 @@ export type GetReportResponses = {
 
 export type GetReportResponse = GetReportResponses[keyof GetReportResponses];
 
+export type GetReportAnalysisData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
+    };
+    url: '/admin/reports/analysis';
+};
+
+export type GetReportAnalysisErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetReportAnalysisError = GetReportAnalysisErrors[keyof GetReportAnalysisErrors];
+
+export type GetReportAnalysisResponses = {
+    /**
+     * OK
+     */
+    200: AnalysisOutputBody;
+};
+
+export type GetReportAnalysisResponse = GetReportAnalysisResponses[keyof GetReportAnalysisResponses];
+
 export type ExportReportData = {
     body?: never;
     path?: never;
@@ -2709,6 +3031,14 @@ export type ExportReportData = {
          * Keep one store's numbers; the views are then its page's and its dishes'
          */
         sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
     };
     url: '/admin/reports/export';
 };
@@ -2725,6 +3055,50 @@ export type ExportReportError = ExportReportErrors[keyof ExportReportErrors];
 export type ExportReportResponses = {
     /**
      * The report as CSV
+     */
+    200: unknown;
+};
+
+export type ExportReportWorkbookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
+    };
+    url: '/admin/reports/workbook';
+};
+
+export type ExportReportWorkbookErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ExportReportWorkbookError = ExportReportWorkbookErrors[keyof ExportReportWorkbookErrors];
+
+export type ExportReportWorkbookResponses = {
+    /**
+     * The workbook
      */
     200: unknown;
 };

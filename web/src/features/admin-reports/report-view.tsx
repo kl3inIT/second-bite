@@ -1,12 +1,12 @@
 "use client";
 
-import { CopyIcon, DownloadIcon } from "lucide-react";
+import { CopyIcon } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import { useFormatter, useTranslations } from "next-intl";
 import { useId, useMemo, useState, useTransition } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   ChartContainer,
   ChartLegend,
@@ -33,19 +33,28 @@ import {
   type Sorted,
 } from "@/features/admin/data-table";
 import { DayRange } from "@/features/admin/day-range";
+import { TimeRange } from "@/features/admin/time-range";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import type { CountsBody, ReportOutputBody, ReportStoreBody } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
 
 import {
+  leftoverOf,
   periodBefore,
   presetOf,
   presetRange,
   presets,
+  savedOf,
+  sellThroughOf,
   signed,
   vietnamToday,
 } from "./report-numbers";
+import { ExportDialog } from "./export-dialog";
+import { ReportAnalysis, type Ratings } from "./report-analysis";
+import type { DeepAnalysis } from "./report-deep";
+import { ImpactBlock } from "./report-impact";
+import { ProductsBlock } from "./report-products";
 import { reportSearchParams, type ReportSort } from "./search-params";
 
 const anyStore = "all";
@@ -54,7 +63,7 @@ const linkLook =
   "hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none";
 
 /** The share of orders collected, in whole percent; none without orders. */
-function shareOf(c: CountsBody): number | null {
+export function shareOf(c: CountsBody): number | null {
   return c.held > 0 ? Math.round((c.collected * 100) / c.held) : null;
 }
 
@@ -62,7 +71,26 @@ function sortValue(store: ReportStoreBody, sort: ReportSort): number | string {
   if (sort === "name") return store.name;
   if (sort === "share") return shareOf(store.counts) ?? -1;
   if (sort === "daysPosted" || sort === "fullDays") return store[sort];
+  if (sort === "leftover") return leftoverOf(store.counts);
+  if (sort === "sellThrough") return sellThroughOf(store.counts) ?? -1;
   return store.counts[sort];
+}
+
+/** The report's days as "1/11 – 7/11", or the one day alone. */
+export function rangeOf(
+  report: { since: string; until: string },
+  format: ReturnType<typeof useFormatter>,
+): string {
+  const day = (iso: string) =>
+    format.dateTime(new Date(iso), { day: "numeric", month: "numeric", timeZone: "UTC" });
+  return report.since === report.until
+    ? day(report.since)
+    : `${day(report.since)} – ${day(report.until)}`;
+}
+
+/** The days followed by the part of the day kept, as "16/11 – 22/11 · 17:30–21:15"; the days alone for all day. */
+export function withHours(range: string, from: string | null, until: string | null): string {
+  return from && until ? `${range} · ${from}–${until}` : range;
 }
 
 /** The share of the customers who came back, in whole percent; none without customers (SEC-200). */
@@ -83,14 +111,21 @@ export function ReportView({
   report,
   previous,
   stores,
+  ratings,
+  deep,
   exportHref,
+  workbookHref,
 }: {
   report: ReportOutputBody;
   previous: CountsBody | null;
   stores: Array<{ id: string; name: string }>;
+  ratings: Ratings;
+  deep: DeepAnalysis;
   exportHref: string;
+  workbookHref: string;
 }) {
   const t = useTranslations("Admin.reports");
+  const format = useFormatter();
   const [pending, startTransition] = useTransition();
   const [params, setParams] = useQueryStates(reportSearchParams, {
     shallow: false,
@@ -117,6 +152,7 @@ export function ReportView({
     previous,
     days,
     stores.find((s) => s.id === params.store)?.name,
+    { from: params.timeFrom, until: params.timeUntil },
   );
 
   return (
@@ -144,6 +180,11 @@ export function ReportView({
           from={params.from}
           to={params.to}
           onChange={(from, to) => void setParams({ from, to })}
+        />
+        <TimeRange
+          from={params.timeFrom}
+          until={params.timeUntil}
+          onChange={(timeFrom, timeUntil) => void setParams({ timeFrom, timeUntil })}
         />
         <Select
           value={params.store ?? anyStore}
@@ -174,15 +215,24 @@ export function ReportView({
             <CopyIcon data-icon="inline-start" />
             {t("copy.action")}
           </Button>
-          {/* A plain download: the server answers the file and its name, under the session's cookie. */}
-          <a href={exportHref} download className={buttonVariants({ size: "lg" })}>
-            <DownloadIcon data-icon="inline-start" />
-            {t("export")}
-          </a>
+          <ExportDialog
+            range={withHours(rangeOf(report, format), params.timeFrom, params.timeUntil)}
+            storeName={stores.find((s) => s.id === params.store)?.name}
+            filter={{
+              from: params.from,
+              to: params.to,
+              store: params.store,
+              timeFrom: params.timeFrom,
+              timeUntil: params.timeUntil,
+            }}
+            csvHref={exportHref}
+            workbookHref={workbookHref}
+          />
         </div>
       </div>
       <Cards report={report} previous={previous} days={days} />
       <DayBars days={report.days ?? []} />
+      <ReportAnalysis totals={report.totals} ratings={ratings} deep={deep} />
       <DataTable
         label={t("table")}
         columns={columns}
@@ -224,14 +274,19 @@ function Change({ now, before, days }: { now: number; before: number | undefined
  * new users, for the whole site whatever store is chosen, with the customers who ordered for the first time;
  * orders held; and people. Under them, how the orders ended.
  */
-function Cards({
+export function Cards({
   report,
   previous,
   days,
+  withProducts = true,
+  withImpact = true,
 }: {
   report: ReportOutputBody;
   previous: CountsBody | null;
   days: number;
+  /** The print page leaves the products and impact blocks out when their parts are not ticked. */
+  withProducts?: boolean;
+  withImpact?: boolean;
 }) {
   const t = useTranslations("Admin.reports");
   const card = useTranslations("Admin.reports.card");
@@ -262,12 +317,8 @@ function Cards({
       site: false,
     },
   ] as const;
+  // "Phần đã lấy" moved to the products block, with every portion figure.
   const detail = [
-    {
-      key: "collected",
-      figure: format.number(totals.unitsCollected),
-      note: card("collectedNote", { orders: totals.collected }),
-    },
     {
       key: "share",
       figure: share === null ? "–" : `${share}%`,
@@ -295,7 +346,7 @@ function Cards({
 
   return (
     <>
-      <dl aria-label={t("headline")} className="grid gap-4 md:grid-cols-3">
+      <dl aria-label={t("headline")} className="grid gap-4 md:grid-cols-3 print:grid-cols-3">
         {headline.map((c) => (
           <div
             key={c.key}
@@ -319,9 +370,10 @@ function Cards({
           </div>
         ))}
       </dl>
+      {withProducts && <ProductsBlock totals={totals} />}
       <dl
         aria-label={t("detail")}
-        className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-5"
+        className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4 print:grid-cols-4"
       >
         {detail.map((c) => (
           <div
@@ -334,26 +386,40 @@ function Cards({
           </div>
         ))}
       </dl>
+      {withImpact && <ImpactBlock totals={totals} />}
     </>
   );
 }
 
-const charts = ["orders", "people", "users"] as const;
+const charts = ["orders", "units", "people", "users"] as const;
 type Chart = (typeof charts)[number];
 
 /**
- * The days of the range as bars (NN/g: length for quantities), one of three charts chosen by its tab: the
- * orders held and collected, the people, or the new accounts and first-time customers (SEC-192).
+ * The days of the range as bars (NN/g: length for quantities), one chart chosen by its tab: the orders held and
+ * collected, the portions collected and left over stacked to the portions posted, the people, or the new
+ * accounts and first-time customers (SEC-192).
  */
-function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
+export function DayBars({
+  days,
+  only,
+}: {
+  days: ReportOutputBody["days"] & object;
+  /** One chart without its tabs, as the print page draws each. */
+  only?: Chart;
+}) {
   const t = useTranslations("Admin.reports");
   const format = useFormatter();
-  const [chart, setChart] = useState<Chart>("orders");
+  const [chosen, setChart] = useState<Chart>("orders");
+  const chart = only ?? chosen;
   const caption = useId();
   const series = {
     orders: {
       held: { label: t("series.held"), color: "var(--primary)" },
       collected: { label: t("series.collected"), color: "var(--success)" },
+    },
+    units: {
+      unitsCollected: { label: t("series.unitsCollected"), color: "var(--success)" },
+      leftover: { label: t("series.leftover"), color: "var(--muted-foreground)" },
     },
     people: { people: { label: t("series.people"), color: "var(--primary)" } },
     users: {
@@ -365,27 +431,30 @@ function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
   const data = days.map((d) => ({
     day: format.dateTime(new Date(d.day), { day: "numeric", month: "numeric", timeZone: "UTC" }),
     ...d.counts,
+    leftover: leftoverOf(d.counts),
   }));
 
   return (
     // Named by its heading: the tabs share its row, so it cannot be the figure's caption.
     <figure
       aria-labelledby={caption}
-      className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4"
+      className="flex break-inside-avoid flex-col gap-3 rounded-2xl border border-border bg-card p-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id={caption} className="text-title-lg text-foreground">
           {t(`chart.${chart}`)}
         </h2>
-        <Tabs value={chart} onValueChange={(value) => setChart(value as Chart)}>
-          <TabsList variant="line" aria-label={t("chart.label")}>
-            {charts.map((c) => (
-              <TabsTrigger key={c} value={c}>
-                {t(`chart.tab.${c}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {!only && (
+          <Tabs value={chart} onValueChange={(value) => setChart(value as Chart)}>
+            <TabsList variant="line" aria-label={t("chart.label")}>
+              {charts.map((c) => (
+                <TabsTrigger key={c} value={c}>
+                  {t(`chart.tab.${c}`)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        )}
       </div>
       <ChartContainer config={config} className="aspect-auto h-60 w-full">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
@@ -399,7 +468,9 @@ function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
               key={key}
               dataKey={key}
               fill={`var(--color-${key})`}
-              radius={4}
+              // The portions are stacked, so the bar's height is what was posted.
+              stackId={chart === "units" ? "units" : undefined}
+              radius={chart === "units" ? 0 : 4}
               isAnimationActive={false}
             />
           ))}
@@ -418,18 +489,14 @@ function useCopyReport(
   previous: CountsBody | null,
   days: number,
   store: string | undefined,
+  hours: { from: string | null; until: string | null },
 ) {
   const t = useTranslations("Admin.reports.copy");
   const format = useFormatter();
   const { totals } = report;
   const change = (now: number, before: number | undefined) =>
     before === undefined ? "" : t("change", { change: signed(now, before) });
-  const day = (iso: string) =>
-    format.dateTime(new Date(iso), { day: "numeric", month: "numeric", timeZone: "UTC" });
-  const range =
-    report.since === report.until
-      ? day(report.since)
-      : `${day(report.since)} – ${day(report.until)}`;
+  const range = withHours(rangeOf(report, format), hours.from, hours.until);
 
   const text = [
     store ? t("titleStore", { range, store }) : t("title", { range }),
@@ -448,6 +515,16 @@ function useCopyReport(
       people: totals.people,
       change: change(totals.people, previous?.people),
       views: totals.views,
+    }),
+    t("products", {
+      posted: totals.unitsPosted,
+      collected: totals.unitsCollected,
+      share: sellThroughOf(totals) ?? 0,
+      leftover: leftoverOf(totals),
+    }),
+    t("impact", {
+      kg: format.number(totals.gramsCollected / 1000, "oneDecimal"),
+      saved: formatPrice(savedOf(totals)),
     }),
     ...(previous ? [t("compared", { days })] : []),
   ].join("\n");
@@ -479,7 +556,7 @@ function useColumns(
   // Each column as wide as its head in the wider of the two languages, measured with its sort arrow, so the
   // store's name keeps the rest. Cancellations are on the cards and in the CSV.
   const figure = (
-    column: "views" | "people" | "offers" | "held" | "collected" | "expired",
+    column: "views" | "people" | "offers" | "unitsPosted" | "held" | "collected" | "expired",
     width: `w-${number}`,
   ) => ({
     id: column,
@@ -505,6 +582,7 @@ function useColumns(
     figure("views", "w-26"),
     figure("people", "w-36"),
     figure("offers", "w-28"),
+    figure("unitsPosted", "w-28"),
     figure("held", "w-26"),
     figure("collected", "w-28"),
     {
@@ -512,6 +590,21 @@ function useColumns(
       header: head("unitsCollected"),
       meta: { width: "w-32" },
       cell: ({ row }) => format.number(row.original.counts.unitsCollected),
+    },
+    {
+      id: "leftover",
+      header: head("leftover"),
+      meta: { width: "w-26" },
+      cell: ({ row }) => format.number(leftoverOf(row.original.counts)),
+    },
+    {
+      id: "sellThrough",
+      header: head("sellThrough"),
+      meta: { width: "w-36" },
+      cell: ({ row }) => {
+        const share = sellThroughOf(row.original.counts);
+        return share === null ? t("none") : `${share}%`;
+      },
     },
     figure("expired", "w-30"),
     {
