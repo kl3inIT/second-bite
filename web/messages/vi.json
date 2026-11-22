@@ -1982,8 +1982,6 @@
       "anyStore": "Tất cả",
       "export": "Xuất CSV",
       "card": {
-        "collected": "Phần đã lấy",
-        "collectedNote": "{orders} đơn",
         "share": "Tỉ lệ lấy",
         "shareNote": "{collected}/{held} đơn",
         "expired": "Khách không đến",
@@ -2006,8 +2004,10 @@
         "orders": "Đơn giữ và đơn đã lấy theo ngày",
         "people": "Người truy cập theo ngày",
         "users": "Người dùng mới theo ngày",
+        "units": "Phần đã lấy và phần dư theo ngày",
         "tab": {
           "orders": "Giao dịch",
+          "units": "Sản phẩm",
           "people": "Người truy cập",
           "users": "Người dùng mới"
         }
@@ -2017,7 +2017,9 @@
         "collected": "Đã lấy",
         "people": "Người truy cập",
         "newAccounts": "Tài khoản mới",
-        "newCustomers": "Khách đặt lần đầu"
+        "newCustomers": "Khách đặt lần đầu",
+        "unitsCollected": "Phần đã lấy",
+        "leftover": "Phần dư"
       },
       "table": "Số liệu theo cửa hàng",
       "column": {
@@ -2032,7 +2034,10 @@
         "people": "Người truy cập",
         "unitsCollected": "Phần đã lấy",
         "daysPosted": "Ngày đăng",
-        "fullDays": "Ngày đủ 7 phần"
+        "fullDays": "Ngày đủ 7 phần",
+        "unitsPosted": "Phần đăng",
+        "leftover": "Phần dư",
+        "sellThrough": "Tỉ lệ bán hết"
       },
       "none": "–",
       "empty": {
@@ -2052,6 +2057,21 @@
       },
       "headline": "Ba chỉ số chính",
       "detail": "Chi tiết đơn",
+      "products": {
+        "title": "Sản phẩm",
+        "bar": "Tỉ lệ bán hết",
+        "unit": "phần",
+        "posted": "Phần đăng",
+        "postedNote": "{offers} món đăng",
+        "held": "Phần được đặt",
+        "heldNote": "trong {orders} đơn",
+        "collected": "Phần đã lấy",
+        "collectedNote": "{orders} đơn đã lấy",
+        "leftover": "Phần dư",
+        "leftoverNote": "không đến tay khách",
+        "sellThrough": "Tỉ lệ bán hết",
+        "sellThroughNote": "{collected}/{posted} phần đến tay khách"
+      },
       "copy": {
         "action": "Sao chép báo cáo",
         "done": "Đã sao chép báo cáo, dán vào tin nhắn để gửi.",
@@ -2061,6 +2081,7 @@
         "users": "- Người dùng mới: {accounts} tài khoản{change}, {customers} khách đặt món lần đầu; tổng {total} tài khoản",
         "orders": "- Giao dịch: {held} đơn{change}, {collected} đơn đã lấy",
         "people": "- Người truy cập: {people}{change}, {views} lượt mở trang",
+        "products": "- Sản phẩm: {posted} phần đăng, {collected} phần đã lấy ({share}%), dư {leftover}",
         "change": " ({change})",
         "compared": "Số trong ngoặc là chênh lệch so với {days, plural, =1 {hôm trước} other {# ngày trước đó}}."
       }

@@ -14,6 +14,9 @@ export const reportSorts = [
   "daysPosted",
   "fullDays",
   "unitsCollected",
+  "unitsPosted",
+  "leftover",
+  "sellThrough",
 ] as const;
 
 export type ReportSort = (typeof reportSorts)[number];

@@ -39,13 +39,16 @@ import type { CountsBody, ReportOutputBody, ReportStoreBody } from "@/lib/api/ge
 import { cn } from "@/lib/utils";
 
 import {
+  leftoverOf,
   periodBefore,
   presetOf,
   presetRange,
   presets,
+  sellThroughOf,
   signed,
   vietnamToday,
 } from "./report-numbers";
+import { ProductsBlock } from "./report-products";
 import { reportSearchParams, type ReportSort } from "./search-params";
 
 const anyStore = "all";
@@ -62,6 +65,8 @@ function sortValue(store: ReportStoreBody, sort: ReportSort): number | string {
   if (sort === "name") return store.name;
   if (sort === "share") return shareOf(store.counts) ?? -1;
   if (sort === "daysPosted" || sort === "fullDays") return store[sort];
+  if (sort === "leftover") return leftoverOf(store.counts);
+  if (sort === "sellThrough") return sellThroughOf(store.counts) ?? -1;
   return store.counts[sort];
 }
 
@@ -262,12 +267,8 @@ function Cards({
       site: false,
     },
   ] as const;
+  // "Phần đã lấy" moved to the products block, with every portion figure.
   const detail = [
-    {
-      key: "collected",
-      figure: format.number(totals.unitsCollected),
-      note: card("collectedNote", { orders: totals.collected }),
-    },
     {
       key: "share",
       figure: share === null ? "–" : `${share}%`,
@@ -319,10 +320,8 @@ function Cards({
           </div>
         ))}
       </dl>
-      <dl
-        aria-label={t("detail")}
-        className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-5"
-      >
+      <ProductsBlock totals={totals} />
+      <dl aria-label={t("detail")} className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {detail.map((c) => (
           <div
             key={c.key}
@@ -338,12 +337,13 @@ function Cards({
   );
 }
 
-const charts = ["orders", "people", "users"] as const;
+const charts = ["orders", "units", "people", "users"] as const;
 type Chart = (typeof charts)[number];
 
 /**
- * The days of the range as bars (NN/g: length for quantities), one of three charts chosen by its tab: the
- * orders held and collected, the people, or the new accounts and first-time customers (SEC-192).
+ * The days of the range as bars (NN/g: length for quantities), one chart chosen by its tab: the orders held and
+ * collected, the portions collected and left over stacked to the portions posted, the people, or the new
+ * accounts and first-time customers (SEC-192).
  */
 function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
   const t = useTranslations("Admin.reports");
@@ -355,6 +355,10 @@ function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
       held: { label: t("series.held"), color: "var(--primary)" },
       collected: { label: t("series.collected"), color: "var(--success)" },
     },
+    units: {
+      unitsCollected: { label: t("series.unitsCollected"), color: "var(--success)" },
+      leftover: { label: t("series.leftover"), color: "var(--muted-foreground)" },
+    },
     people: { people: { label: t("series.people"), color: "var(--primary)" } },
     users: {
       newAccounts: { label: t("series.newAccounts"), color: "var(--primary)" },
@@ -365,6 +369,7 @@ function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
   const data = days.map((d) => ({
     day: format.dateTime(new Date(d.day), { day: "numeric", month: "numeric", timeZone: "UTC" }),
     ...d.counts,
+    leftover: leftoverOf(d.counts),
   }));
 
   return (
@@ -399,7 +404,9 @@ function DayBars({ days }: { days: ReportOutputBody["days"] & object }) {
               key={key}
               dataKey={key}
               fill={`var(--color-${key})`}
-              radius={4}
+              // The portions are stacked, so the bar's height is what was posted.
+              stackId={chart === "units" ? "units" : undefined}
+              radius={chart === "units" ? 0 : 4}
               isAnimationActive={false}
             />
           ))}
@@ -449,6 +456,12 @@ function useCopyReport(
       change: change(totals.people, previous?.people),
       views: totals.views,
     }),
+    t("products", {
+      posted: totals.unitsPosted,
+      collected: totals.unitsCollected,
+      share: sellThroughOf(totals) ?? 0,
+      leftover: leftoverOf(totals),
+    }),
     ...(previous ? [t("compared", { days })] : []),
   ].join("\n");
 
@@ -479,7 +492,7 @@ function useColumns(
   // Each column as wide as its head in the wider of the two languages, measured with its sort arrow, so the
   // store's name keeps the rest. Cancellations are on the cards and in the CSV.
   const figure = (
-    column: "views" | "people" | "offers" | "held" | "collected" | "expired",
+    column: "views" | "people" | "offers" | "unitsPosted" | "held" | "collected" | "expired",
     width: `w-${number}`,
   ) => ({
     id: column,
@@ -505,6 +518,7 @@ function useColumns(
     figure("views", "w-26"),
     figure("people", "w-36"),
     figure("offers", "w-28"),
+    figure("unitsPosted", "w-28"),
     figure("held", "w-26"),
     figure("collected", "w-28"),
     {
@@ -512,6 +526,21 @@ function useColumns(
       header: head("unitsCollected"),
       meta: { width: "w-32" },
       cell: ({ row }) => format.number(row.original.counts.unitsCollected),
+    },
+    {
+      id: "leftover",
+      header: head("leftover"),
+      meta: { width: "w-26" },
+      cell: ({ row }) => format.number(leftoverOf(row.original.counts)),
+    },
+    {
+      id: "sellThrough",
+      header: head("sellThrough"),
+      meta: { width: "w-36" },
+      cell: ({ row }) => {
+        const share = sellThroughOf(row.original.counts);
+        return share === null ? t("none") : `${share}%`;
+      },
     },
     figure("expired", "w-30"),
     {

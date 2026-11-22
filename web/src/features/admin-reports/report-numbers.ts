@@ -55,3 +55,13 @@ export function signed(now: number, before: number): string {
   if (change < 0) return `−${-change}`;
   return "0";
 }
+
+/** The portions posted that reached no customer: posted less collected, never below zero. */
+export function leftoverOf(c: { unitsPosted: number; unitsCollected: number }): number {
+  return Math.max(c.unitsPosted - c.unitsCollected, 0);
+}
+
+/** The share of the portions posted that were collected, in whole percent; none without posts. */
+export function sellThroughOf(c: { unitsPosted: number; unitsCollected: number }): number | null {
+  return c.unitsPosted > 0 ? Math.round((c.unitsCollected * 100) / c.unitsPosted) : null;
+}

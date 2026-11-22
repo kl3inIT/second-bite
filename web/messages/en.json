@@ -1982,8 +1982,6 @@
       "anyStore": "All",
       "export": "Export CSV",
       "card": {
-        "collected": "Units collected",
-        "collectedNote": "{orders} orders",
         "share": "Collected",
         "shareNote": "{collected}/{held} orders",
         "expired": "No-shows",
@@ -2006,8 +2004,10 @@
         "orders": "Orders held and collected by day",
         "people": "Visitors by day",
         "users": "New users by day",
+        "units": "Units collected and left over by day",
         "tab": {
           "orders": "Orders",
+          "units": "Products",
           "people": "Visitors",
           "users": "New users"
         }
@@ -2017,7 +2017,9 @@
         "collected": "Collected",
         "people": "Visitors",
         "newAccounts": "New accounts",
-        "newCustomers": "First-time customers"
+        "newCustomers": "First-time customers",
+        "unitsCollected": "Units collected",
+        "leftover": "Left over"
       },
       "table": "Numbers by store",
       "column": {
@@ -2032,7 +2034,10 @@
         "people": "Visitors",
         "unitsCollected": "Units collected",
         "daysPosted": "Days posted",
-        "fullDays": "Days with 7+"
+        "fullDays": "Days with 7+",
+        "unitsPosted": "Units posted",
+        "leftover": "Left over",
+        "sellThrough": "Sold %"
       },
       "none": "–",
       "empty": {
@@ -2052,6 +2057,21 @@
       },
       "headline": "The three main numbers",
       "detail": "How the orders ended",
+      "products": {
+        "title": "Products",
+        "bar": "Share sold",
+        "unit": "units",
+        "posted": "Units posted",
+        "postedNote": "{offers, plural, one {# post} other {# posts}}",
+        "held": "Units ordered",
+        "heldNote": "in {orders, plural, one {# order} other {# orders}}",
+        "collected": "Units collected",
+        "collectedNote": "{orders, plural, one {# order} other {# orders}} collected",
+        "leftover": "Left over",
+        "leftoverNote": "reached no customer",
+        "sellThrough": "Share sold",
+        "sellThroughNote": "{collected} of {posted} units reached a customer"
+      },
       "copy": {
         "action": "Copy report",
         "done": "Report copied; paste it in a message to send it.",
@@ -2061,6 +2081,7 @@
         "users": "- New users: {accounts} accounts{change}, {customers} first-time customers; {total} accounts in all",
         "orders": "- Orders: {held}{change}, {collected} collected",
         "people": "- Visitors: {people}{change}, {views} page views",
+        "products": "- Products: {posted} units posted, {collected} collected ({share}%), {leftover} left over",
         "change": " ({change})",
         "compared": "The figures in brackets are the change on {days, plural, =1 {the day before} other {the # days before}}."
       }
