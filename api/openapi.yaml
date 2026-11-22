@@ -586,8 +586,20 @@ components:
           description: What the collected orders came to at the counter
           format: int64
           type: integer
+        discountOrders:
+          description: Collected orders that took a discount
+          format: int64
+          type: integer
+        discountVnd:
+          description: The discounts Second Bite paid back on the collected orders
+          format: int64
+          type: integer
         expired:
           description: Orders the customer did not come for
+          format: int64
+          type: integer
+        gramsCollected:
+          description: Grams of the units collected whose dish gives a weight
           format: int64
           type: integer
         held:
@@ -610,6 +622,10 @@ components:
           description: Offers posted for the day
           format: int64
           type: integer
+        originalVnd:
+          description: What the collected orders' dishes cost at their original price
+          format: int64
+          type: integer
         people:
           description: Browsers that opened them, each counted once a day
           format: int64
@@ -628,6 +644,10 @@ components:
           format: int64
           type: integer
         unitsPosted:
+          format: int64
+          type: integer
+        unitsWeighed:
+          description: The units collected whose dish gives a weight
           format: int64
           type: integer
         views:
@@ -651,6 +671,11 @@ components:
         - collectedVnd
         - newAccounts
         - newCustomers
+        - originalVnd
+        - discountVnd
+        - discountOrders
+        - gramsCollected
+        - unitsWeighed
       type: object
     DeleteAccountInputBody:
       additionalProperties: false

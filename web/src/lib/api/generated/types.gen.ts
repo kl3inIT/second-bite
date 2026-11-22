@@ -324,9 +324,21 @@ export type CountsBody = {
      */
     collectedVnd: number;
     /**
+     * Collected orders that took a discount
+     */
+    discountOrders: number;
+    /**
+     * The discounts Second Bite paid back on the collected orders
+     */
+    discountVnd: number;
+    /**
      * Orders the customer did not come for
      */
     expired: number;
+    /**
+     * Grams of the units collected whose dish gives a weight
+     */
+    gramsCollected: number;
     /**
      * Orders, however they ended
      */
@@ -348,6 +360,10 @@ export type CountsBody = {
      */
     offers: number;
     /**
+     * What the collected orders' dishes cost at their original price
+     */
+    originalVnd: number;
+    /**
      * Browsers that opened them, each counted once a day
      */
     people: number;
@@ -359,6 +375,10 @@ export type CountsBody = {
     unitsCollected: number;
     unitsHeld: number;
     unitsPosted: number;
+    /**
+     * The units collected whose dish gives a weight
+     */
+    unitsWeighed: number;
     /**
      * Pages opened
      */
