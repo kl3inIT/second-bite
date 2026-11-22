@@ -753,6 +753,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	})
 
 	registerAdminReviewOperations(admin, s)
+	registerAdminUnitsOperations(admin, s)
 	registerAdminPromotionOperations(admin, s)
 	registerAdminSettingsOperations(admin, s)
 }

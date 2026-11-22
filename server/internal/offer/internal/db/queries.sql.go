@@ -539,6 +539,69 @@ func (q *Queries) MoveSellerOffers(ctx context.Context, arg MoveSellerOffersPara
 	return result.RowsAffected(), nil
 }
 
+const offerUnitsForAdmins = `-- name: OfferUnitsForAdmins :many
+SELECT id, units, units_left, (state <> 'on_sale' OR window_end <= now())::boolean AS ended
+FROM offer_offers
+WHERE ($1::text = ''
+       OR ($1 = 'withdrawn' AND state = 'withdrawn')
+       OR ($1 = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR ($1 = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
+  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+`
+
+type OfferUnitsForAdminsParams struct {
+	Status      string
+	Query       string
+	SellerID    uuid.NullUUID
+	PostedSince *time.Time
+	PostedUntil *time.Time
+}
+
+type OfferUnitsForAdminsRow struct {
+	ID        uuid.UUID
+	Units     int32
+	UnitsLeft int32
+	Ended     bool
+}
+
+// The units of every offer matching the admins' filters, as OffersForAdmins
+// reads them, and whether it has ended (closed, withdrawn or its window over),
+// for the portions above the admins' list.
+func (q *Queries) OfferUnitsForAdmins(ctx context.Context, arg OfferUnitsForAdminsParams) ([]OfferUnitsForAdminsRow, error) {
+	rows, err := q.db.Query(ctx, offerUnitsForAdmins,
+		arg.Status,
+		arg.Query,
+		arg.SellerID,
+		arg.PostedSince,
+		arg.PostedUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OfferUnitsForAdminsRow
+	for rows.Next() {
+		var i OfferUnitsForAdminsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Units,
+			&i.UnitsLeft,
+			&i.Ended,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const offersForAdmins = `-- name: OffersForAdmins :many
 SELECT id, seller_id, posted_by, state, name, description, kind, kind_label, unit, units, units_left, price_vnd,
        original_price_vnd, weight_grams, photo_id, more_photo_ids, window_start, window_end, latitude, longitude, address,

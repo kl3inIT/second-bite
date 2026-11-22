@@ -132,6 +132,22 @@ WHERE (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
   AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
   AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
 
+-- name: OfferUnitsForAdmins :many
+-- The units of every offer matching the admins' filters, as OffersForAdmins
+-- reads them, and whether it has ended (closed, withdrawn or its window over),
+-- for the portions above the admins' list.
+SELECT id, units, units_left, (state <> 'on_sale' OR window_end <= now())::boolean AS ended
+FROM offer_offers
+WHERE (@status::text = ''
+       OR (@status = 'withdrawn' AND state = 'withdrawn')
+       OR (@status = 'closed' AND (state = 'closed' OR (state = 'on_sale' AND window_end <= now())))
+       OR (@status = 'sold_out' AND state = 'on_sale' AND window_end > now() AND units_left = 0)
+       OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
+  AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
+  AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
+
 -- name: SearchOffers :many
 -- Offers customers may order or see sold out: on sale, the window not over,
 -- the seller not blocked; filtered before they are ordered and paged. The

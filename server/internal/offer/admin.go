@@ -100,6 +100,53 @@ func (s *Service) ListForAdmins(ctx context.Context, f AdminFilter) (AdminPage, 
 	return page, nil
 }
 
+// AdminUnits is what the offers matching an admin's filter hold: their
+// identifiers, for order to count what became of their units, how many there
+// are, the units posted and left, and those left on offers that have ended.
+type AdminUnits struct {
+	IDs                     []uuid.UUID
+	Posts, Units, UnitsLeft int
+	// Leftover are the units left on offers closed, withdrawn or whose window
+	// is over: what nobody will take any more.
+	Leftover int
+}
+
+// UnitsForAdmins answers the units of every offer matching f, to an admin,
+// whatever page f asks: the portions above the admins' list.
+func (s *Service) UnitsForAdmins(ctx context.Context, f AdminFilter) (AdminUnits, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return AdminUnits{}, err
+	}
+
+	f.Page, f.Size = 1, 1
+
+	params, err := f.params()
+	if err != nil {
+		return AdminUnits{}, err
+	}
+
+	rows, err := s.queries.OfferUnitsForAdmins(ctx, db.OfferUnitsForAdminsParams{
+		Status: params.Status, Query: params.Query, SellerID: params.SellerID,
+		PostedSince: params.PostedSince, PostedUntil: params.PostedUntil,
+	})
+	if err != nil {
+		return AdminUnits{}, fmt.Errorf("reading the offers' units: %w", err)
+	}
+
+	u := AdminUnits{IDs: make([]uuid.UUID, 0, len(rows)), Posts: len(rows)}
+	for _, r := range rows {
+		u.IDs = append(u.IDs, r.ID)
+		u.Units += int(r.Units)
+		u.UnitsLeft += int(r.UnitsLeft)
+
+		if r.Ended {
+			u.Leftover += int(r.UnitsLeft)
+		}
+	}
+
+	return u, nil
+}
+
 func (f AdminFilter) params() (db.OffersForAdminsParams, error) {
 	if f.Page < 1 || f.Size < 1 || f.Size > maxAdminPageSize {
 		return db.OffersForAdminsParams{}, ErrAdminListInvalid

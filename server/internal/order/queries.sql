@@ -421,6 +421,34 @@ FROM placed
 GROUP BY 1, 2
 ORDER BY 1, 2;
 
+-- name: OutcomesOfOffers :one
+-- What became of the units ordered from the offers given, for the portions
+-- above the admins' list of posts: collected; held by orders still to
+-- collect; and missed, the units of orders ended without a hand-over that
+-- never came back to their offers (expired, or refused for anything but the
+-- customer not coming). Each with how many orders hold them. An order
+-- confirmed or ready whose window is over is expired, as every read reads it.
+WITH lines AS (
+    SELECT l.order_id, l.units,
+           CASE
+               WHEN o.state = 'collected' THEN 'collected'
+               WHEN o.state IN ('confirmed', 'ready') AND o.window_end > now() THEN 'held'
+               WHEN o.state = 'expired' OR o.state IN ('confirmed', 'ready')
+                    OR (o.state = 'refused' AND o.refuse_reason NOT IN ('no_answer', 'no_show', 'late')) THEN 'missed'
+               ELSE 'returned'
+           END AS outcome
+    FROM order_lines AS l
+    JOIN order_orders AS o ON o.id = l.order_id
+    WHERE l.offer_id = ANY (COALESCE(@offer_ids::uuid[], '{}'))
+)
+SELECT coalesce(sum(units) FILTER (WHERE outcome = 'collected'), 0)::bigint AS collected,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'collected') AS collected_orders,
+       coalesce(sum(units) FILTER (WHERE outcome = 'held'), 0)::bigint AS held,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'held') AS held_orders,
+       coalesce(sum(units) FILTER (WHERE outcome = 'missed'), 0)::bigint AS missed,
+       count(DISTINCT order_id) FILTER (WHERE outcome = 'missed') AS missed_orders
+FROM lines;
+
 -- name: InsertProblem :execrows
 -- Nothing is inserted when the order was already reported (SEC-84).
 INSERT INTO order_problems (order_id, kind, note) VALUES (@order_id, @kind, @note)
