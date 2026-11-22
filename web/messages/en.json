@@ -2134,7 +2134,110 @@
         "discountNote": "{orders, plural, one {# order} other {# orders}} with a discount",
         "none": "–"
       },
+      "deep": {
+        "empty": "No numbers for these days yet.",
+        "customers": "{count, plural, one {# customer} other {# customers}} · {share}%",
+        "visits": "Customers by orders collected · {customers}",
+        "visitsTimes": "{times, plural, one {# time} other {# times}}",
+        "visitsMany": "3 times or more",
+        "sources": "Where views came from · {views}",
+        "source": {
+          "none": "Direct or other",
+          "qr": "QR at the counter"
+        },
+        "views": "{count} views",
+        "kinds": "By kind of dish",
+        "kind": {
+          "bakery": "Bakery",
+          "prepared_food": "Cooked food",
+          "ingredients": "Ingredients",
+          "drinks": "Drinks",
+          "mixed_box": "Mixed box",
+          "dessert": "Dessert",
+          "snacks": "Snacks",
+          "produce": "Produce",
+          "other": "Other"
+        },
+        "discounts": "Discount and share sold",
+        "band": {
+          "free": "Free",
+          "from70": "70% off or more",
+          "from50": "50–69% off",
+          "from30": "30–49% off",
+          "under30": "Under 30% off"
+        },
+        "portions": "{collected} of {posted} units · {share}%",
+        "noPosts": "No posts",
+        "dishes": "Dishes",
+        "topSold": "Sold most",
+        "topLeftover": "Left most",
+        "sold": "{collected} of {posted} {unit} collected",
+        "left": "{left} of {posted} {unit} left",
+        "slots": "Orders held by weekday and hour",
+        "weekdayHead": "Day",
+        "weekday": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
+        },
+        "hour": "{hour}:00",
+        "hours": "Hours customers collect",
+        "orders": "{count, plural, one {# order} other {# orders}}",
+        "posts": "{count, plural, one {# post} other {# posts}}",
+        "reviews": "{count, plural, one {# review} other {# reviews}}",
+        "sellOut": "Time to sell out · {posts, plural, one {# post} other {# posts}}",
+        "sellOutBand": {
+          "underHalfHour": "Under 30 minutes",
+          "underHour": "30–60 minutes",
+          "underTwoHours": "1–2 hours",
+          "overTwoHours": "Over 2 hours",
+          "notSoldOut": "Did not sell out"
+        },
+        "median": "Median {minutes} minutes from posting to the last unit ordered.",
+        "leadTimes": "How early customers order · {orders, plural, one {# order} other {# orders}}",
+        "leadBand": {
+          "underHalfHour": "Under 30 minutes",
+          "underHour": "30 minutes – 1 hour",
+          "underThreeHours": "1–3 hours",
+          "overThreeHours": "Over 3 hours"
+        },
+        "failures": "Orders not collected · {orders}",
+        "failure": {
+          "cancelled": "Cancelled by the customer",
+          "expired": "Window ended, customer did not come",
+          "refused_no_answer": "Refused · no answer",
+          "refused_no_show": "Refused · did not come",
+          "refused_late": "Refused · too late",
+          "refused_sold_out": "Refused · out of food",
+          "refused_other": "Refused · another reason",
+          "refused_not_suitable": "Refused · food no longer suitable",
+          "refused_wrong_items": "Refused · wrong dish",
+          "refused_withdrawn": "Post withdrawn"
+        },
+        "tags": "What customers praise",
+        "tag": {
+          "fast_pickup": "Quick pickup",
+          "good_quality": "Good quality",
+          "good_variety": "Good variety",
+          "fair_portions": "Fair portions"
+        },
+        "problems": "Problems reported",
+        "problem": {
+          "missing_item": "A missing item",
+          "wrong_item": "A wrong item",
+          "poor_quality": "Poor quality",
+          "store_closed": "The store was closed"
+        }
+      },
       "analysis": {
+        "customers": "Customers",
+        "products": "Products and prices",
+        "time": "Time",
+        "quality": "Quality",
         "title": "Analysis",
         "funnel": "Customer funnel",
         "people": "Visitors",

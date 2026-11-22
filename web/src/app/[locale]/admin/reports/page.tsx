@@ -11,6 +11,7 @@ import { sessionHeaders } from "@/features/identity/session";
 import { vietnamMidnight } from "@/features/audit/search-params";
 import {
   getReport,
+  getReportAnalysis,
   listReviewsForAdmins,
   listSellerFeedbackForAdmins,
   listSellersForAdmins,
@@ -33,11 +34,13 @@ export default async function ReportsPage({ searchParams }: PageProps<"/[locale]
   const query = reportQuery(filter);
   const [t, headers] = await Promise.all([getTranslations("Admin"), sessionHeaders()]);
 
-  const [{ data: report }, { data: sellers }, { data: feedback }] = await Promise.all([
-    getReport({ headers, query }),
-    listSellersForAdmins({ headers, query: { sort: "name", size: 100 } }),
-    listSellerFeedbackForAdmins({ headers, query }),
-  ]);
+  const [{ data: report }, { data: sellers }, { data: feedback }, { data: deep }] =
+    await Promise.all([
+      getReport({ headers, query }),
+      listSellersForAdmins({ headers, query: { sort: "name", size: 100 } }),
+      listSellerFeedbackForAdmins({ headers, query }),
+      getReportAnalysis({ headers, query }),
+    ]);
 
   const before = periodBefore(report.since, report.until);
   const [{ data: previous }, { data: reviews }] = await Promise.all([
@@ -66,6 +69,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/[locale]
           previous={previous.totals}
           stores={(sellers.items ?? []).map((s) => ({ id: s.id, name: s.name }))}
           ratings={{ counts: reviews.counts, average: reviews.average }}
+          deep={deep}
           exportHref={`/api/admin/reports/export?${new URLSearchParams(query)}`}
         />
         <StoreFeedbackCard items={feedback.items} />

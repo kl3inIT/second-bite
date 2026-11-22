@@ -6,6 +6,16 @@ import { Progress, ProgressLabel } from "@/components/ui/progress";
 import { formatPrice } from "@/features/offers/format";
 import type { CountsBody, ReviewCountsBody } from "@/lib/api/generated";
 
+import {
+  CustomerPanels,
+  Group,
+  Panel,
+  ProductPanels,
+  QualityPanels,
+  TimePanels,
+  type DeepAnalysis,
+} from "./report-deep";
+
 /** The ratings of the days chosen, as GET /admin/reviews counts them (SEC-145). */
 export type Ratings = { counts: ReviewCountsBody; average?: number };
 
@@ -22,37 +32,45 @@ const percent = (part: number, whole: number) =>
   whole > 0 ? Math.min(Math.round((part * 100) / whole), 100) : 0;
 
 /**
- * The report's analysis (report-products-export increment), from what the report and the reviews already
- * give: the visitors followed to the orders held and collected, what one collected order holds on average,
- * and the customers' ratings of the same days.
+ * The report's analysis (report-products-export increment), in four groups: the customers (the visitors
+ * followed to the orders, what an order holds, how often customers came, where the views came from); the
+ * products and prices (by kind, by discount, the dishes sold and left most); time (weekday and hour, the hours
+ * collected, how fast posts sold out, how early orders were placed); and quality (how orders failed, the
+ * ratings, the praise and the problems). The funnel, the averages and the ratings come from the report and the
+ * reviews; the rest from GET /admin/reports/analysis.
  */
-export function ReportAnalysis({ totals, ratings }: { totals: CountsBody; ratings: Ratings }) {
+export function ReportAnalysis({
+  totals,
+  ratings,
+  deep,
+}: {
+  totals: CountsBody;
+  ratings: Ratings;
+  deep: DeepAnalysis;
+}) {
   const t = useTranslations("Admin.reports.analysis");
 
   return (
-    <section aria-labelledby="report-analysis" className="flex flex-col gap-3">
+    <section aria-labelledby="report-analysis" className="flex flex-col gap-5">
       <h2 id="report-analysis" className="text-title-lg text-foreground">
         {t("title")}
       </h2>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <Group id="report-group-customers" title={t("customers")}>
         <Funnel totals={totals} />
         <Averages totals={totals} />
-        <RatingsCard ratings={ratings} />
-      </div>
-    </section>
-  );
-}
-
-function Panel({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
-  return (
-    <section
-      aria-labelledby={id}
-      className="flex break-inside-avoid flex-col gap-4 rounded-2xl border border-border bg-card p-4"
-    >
-      <h3 id={id} className="text-title text-foreground">
-        {title}
-      </h3>
-      {children}
+        <CustomerPanels deep={deep} />
+      </Group>
+      <Group id="report-group-products" title={t("products")}>
+        <ProductPanels deep={deep} />
+      </Group>
+      <Group id="report-group-time" title={t("time")}>
+        <TimePanels deep={deep} />
+      </Group>
+      <Group id="report-group-quality" title={t("quality")}>
+        <QualityPanels deep={deep}>
+          <RatingsCard ratings={ratings} />
+        </QualityPanels>
+      </Group>
     </section>
   );
 }

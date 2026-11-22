@@ -17,6 +17,7 @@ import { Link } from "@/i18n/navigation";
 import type { CountsBody, ReportOutputBody, ReportStoreBody } from "@/lib/api/generated";
 
 import { ReportAnalysis, type Ratings } from "./report-analysis";
+import type { DeepAnalysis } from "./report-deep";
 import { ImpactBlock } from "./report-impact";
 import { leftoverOf, periodBefore, sellThroughOf } from "./report-numbers";
 import { ProductsBlock } from "./report-products";
@@ -32,6 +33,7 @@ export function ReportPrint({
   report,
   previous,
   ratings,
+  deep,
   parts,
   storeName,
   backHref,
@@ -40,6 +42,7 @@ export function ReportPrint({
   report: ReportOutputBody;
   previous: CountsBody | null;
   ratings: Ratings | null;
+  deep: DeepAnalysis | null;
   parts: ReportPart[];
   storeName: string | undefined;
   backHref: string;
@@ -97,7 +100,9 @@ export function ReportPrint({
           {has("products") && <DayBars days={report.days ?? []} only="units" />}
         </>
       )}
-      {has("analysis") && ratings && <ReportAnalysis totals={report.totals} ratings={ratings} />}
+      {has("analysis") && ratings && deep && (
+        <ReportAnalysis totals={report.totals} ratings={ratings} deep={deep} />
+      )}
       {has("stores") && <StoresTable stores={report.stores ?? []} />}
       {children}
     </article>

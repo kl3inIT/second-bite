@@ -15,6 +15,7 @@ import { requireAdmin } from "@/features/identity/current-account";
 import { sessionHeaders } from "@/features/identity/session";
 import {
   getReport,
+  getReportAnalysis,
   listReviewsForAdmins,
   listSellerFeedbackForAdmins,
   listSellersForAdmins,
@@ -39,7 +40,7 @@ export default async function ReportPrintPage({
 
   const { data: report } = await getReport({ headers, query });
   const before = periodBefore(report.since, report.until);
-  const [previous, ratings, feedback, sellers] = await Promise.all([
+  const [previous, ratings, deep, feedback, sellers] = await Promise.all([
     has("kpi") && filter.compare
       ? getReport({
           headers,
@@ -57,6 +58,7 @@ export default async function ReportPrintPage({
           },
         }).then(({ data }) => ({ counts: data.counts, average: data.average }))
       : null,
+    has("analysis") ? getReportAnalysis({ headers, query }).then(({ data }) => data) : null,
     has("feedback")
       ? listSellerFeedbackForAdmins({ headers, query }).then(({ data }) => data.items)
       : null,
@@ -80,6 +82,7 @@ export default async function ReportPrintPage({
           report={report}
           previous={previous}
           ratings={ratings}
+          deep={deep}
           parts={filter.parts}
           storeName={sellers.find((s) => s.id === filter.store)?.name}
           backHref={`/admin/reports${back}`}

@@ -2134,7 +2134,110 @@
         "discountNote": "{orders} đơn dùng mã giảm giá",
         "none": "–"
       },
+      "deep": {
+        "empty": "Chưa có số liệu trong khoảng ngày này.",
+        "customers": "{count} khách · {share}%",
+        "visits": "Khách theo số lần nhận đơn · {customers} khách",
+        "visitsTimes": "{times} lần",
+        "visitsMany": "3 lần trở lên",
+        "sources": "Nguồn truy cập · {views} lượt mở",
+        "source": {
+          "none": "Vào thẳng / khác",
+          "qr": "QR tại quầy"
+        },
+        "views": "{count} lượt",
+        "kinds": "Theo loại món",
+        "kind": {
+          "bakery": "Bánh",
+          "prepared_food": "Món chín",
+          "ingredients": "Nguyên liệu",
+          "drinks": "Đồ uống",
+          "mixed_box": "Hộp tổng hợp",
+          "dessert": "Tráng miệng",
+          "snacks": "Ăn vặt",
+          "produce": "Rau củ quả",
+          "other": "Khác"
+        },
+        "discounts": "Mức giảm giá và tỉ lệ bán hết",
+        "band": {
+          "free": "Miễn phí",
+          "from70": "Giảm từ 70%",
+          "from50": "Giảm 50–69%",
+          "from30": "Giảm 30–49%",
+          "under30": "Giảm dưới 30%"
+        },
+        "portions": "{collected}/{posted} phần · {share}%",
+        "noPosts": "Không có bài",
+        "dishes": "Món",
+        "topSold": "Bán chạy",
+        "topLeftover": "Dư nhiều",
+        "sold": "{collected}/{posted} {unit} đã lấy",
+        "left": "dư {left}/{posted} {unit}",
+        "slots": "Đơn giữ theo thứ và giờ nhận",
+        "weekdayHead": "Thứ",
+        "weekday": {
+          "mon": "T2",
+          "tue": "T3",
+          "wed": "T4",
+          "thu": "T5",
+          "fri": "T6",
+          "sat": "T7",
+          "sun": "CN"
+        },
+        "hour": "{hour}h",
+        "hours": "Giờ khách đến lấy",
+        "orders": "{count} đơn",
+        "posts": "{count} bài",
+        "reviews": "{count} lượt",
+        "sellOut": "Bài bán hết sau bao lâu · {posts} bài",
+        "sellOutBand": {
+          "underHalfHour": "Dưới 30 phút",
+          "underHour": "30–60 phút",
+          "underTwoHours": "1–2 giờ",
+          "overTwoHours": "Trên 2 giờ",
+          "notSoldOut": "Không bán hết"
+        },
+        "median": "Trung vị {minutes} phút từ lúc đăng tới phần cuối được đặt.",
+        "leadTimes": "Khách đặt trước giờ nhận bao lâu · {orders} đơn",
+        "leadBand": {
+          "underHalfHour": "Dưới 30 phút",
+          "underHour": "30 phút – 1 giờ",
+          "underThreeHours": "1–3 giờ",
+          "overThreeHours": "Trên 3 giờ"
+        },
+        "failures": "Đơn không thành · {orders} đơn",
+        "failure": {
+          "cancelled": "Khách huỷ",
+          "expired": "Hết giờ, khách không đến",
+          "refused_no_answer": "Quán từ chối · không nghe máy",
+          "refused_no_show": "Quán từ chối · khách không đến",
+          "refused_late": "Quán từ chối · quá giờ",
+          "refused_sold_out": "Quán từ chối · hết món",
+          "refused_other": "Quán từ chối · lý do khác",
+          "refused_not_suitable": "Quán từ chối · món không còn phù hợp",
+          "refused_wrong_items": "Quán từ chối · sai món",
+          "refused_withdrawn": "Quán đã rút bài"
+        },
+        "tags": "Khách khen gì",
+        "tag": {
+          "fast_pickup": "Nhận hàng nhanh",
+          "good_quality": "Chất lượng tốt",
+          "good_variety": "Đa dạng món",
+          "fair_portions": "Đủ số lượng"
+        },
+        "problems": "Phản ánh sau khi nhận",
+        "problem": {
+          "missing_item": "Thiếu món",
+          "wrong_item": "Sai món",
+          "poor_quality": "Món không đạt",
+          "store_closed": "Quán đóng cửa khi đến"
+        }
+      },
       "analysis": {
+        "customers": "Khách hàng",
+        "products": "Sản phẩm và giá",
+        "time": "Thời gian",
+        "quality": "Chất lượng",
         "title": "Phân tích",
         "funnel": "Phễu khách",
         "people": "Người truy cập",

@@ -51,6 +51,7 @@ import {
 } from "./report-numbers";
 import { ExportDialog } from "./export-dialog";
 import { ReportAnalysis, type Ratings } from "./report-analysis";
+import type { DeepAnalysis } from "./report-deep";
 import { ImpactBlock } from "./report-impact";
 import { ProductsBlock } from "./report-products";
 import { reportSearchParams, type ReportSort } from "./search-params";
@@ -105,12 +106,14 @@ export function ReportView({
   previous,
   stores,
   ratings,
+  deep,
   exportHref,
 }: {
   report: ReportOutputBody;
   previous: CountsBody | null;
   stores: Array<{ id: string; name: string }>;
   ratings: Ratings;
+  deep: DeepAnalysis;
   exportHref: string;
 }) {
   const t = useTranslations("Admin.reports");
@@ -208,7 +211,7 @@ export function ReportView({
       </div>
       <Cards report={report} previous={previous} days={days} />
       <DayBars days={report.days ?? []} />
-      <ReportAnalysis totals={report.totals} ratings={ratings} />
+      <ReportAnalysis totals={report.totals} ratings={ratings} deep={deep} />
       <DataTable
         label={t("table")}
         columns={columns}
