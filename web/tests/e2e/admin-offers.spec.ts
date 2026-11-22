@@ -130,4 +130,15 @@ test.describe("the admin's posts", () => {
     await expect(box).toHaveCount(0);
     await expect(page).not.toHaveURL(/units=/);
   });
+
+  test("Khung giờ keeps the posts and their portions to a time of day", async ({ page }) => {
+    await page.goto("/vi/admin/offers?units=true");
+    const field = await hydrated(page.getByRole("button", { name: /^Khung giờ/ }));
+    await field.click();
+    await page.getByRole("button", { name: "Sáng 06:00–11:00" }).click();
+    await expect(page).toHaveURL(/timeFrom=06(:|%3A)00&timeUntil=11(:|%3A)00/);
+    await expect(page).toHaveURL(/units=true/);
+    await expect(field).toContainText("06:00 – 11:00");
+    await expectNoSeriousA11yViolations(page);
+  });
 });

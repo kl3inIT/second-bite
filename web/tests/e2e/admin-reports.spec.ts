@@ -295,4 +295,42 @@ test.describe("the admin's report", () => {
     await page.getByRole("link", { name: "Quay lại báo cáo" }).click();
     await expect(page).toHaveURL(/\/vi\/admin\/reports$/);
   });
+
+  // report-products-export: "Khung giờ" keeps the report to a part of each day, from a quick choice or any time
+  // in hours and minutes, and the exports, the dialog and the copied message carry it.
+  test("Khung giờ keeps the report to a time of day, its exports too", async ({ page }) => {
+    await page.goto("/vi/admin/reports");
+    const field = await hydrated(page.getByRole("button", { name: /^Khung giờ/ }));
+    await expect(field).toContainText("Cả ngày");
+
+    await field.click();
+    await page.getByRole("button", { name: "Tối 17:00–22:00" }).click();
+    await expect(page).toHaveURL(/timeFrom=17(:|%3A)00&timeUntil=22(:|%3A)00/);
+    await expect(field).toContainText("17:00 – 22:00");
+
+    await field.click();
+    await page.getByLabel("Từ", { exact: true }).fill("18:30");
+    await page.getByLabel("Đến", { exact: true }).fill("18:00");
+    await expect(page.getByText("Giờ bắt đầu phải trước giờ kết thúc.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Áp dụng" })).toBeDisabled();
+    await page.getByLabel("Đến", { exact: true }).fill("21:15");
+    await expectNoSeriousA11yViolations(page);
+    await page.getByRole("button", { name: "Áp dụng" }).click();
+    await expect(page).toHaveURL(/timeFrom=18(:|%3A)30&timeUntil=21(:|%3A)15/);
+    await expect(field).toContainText("18:30 – 21:15");
+
+    await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
+    const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
+    await expect(dialog).toContainText("18:30–21:15");
+    await dialog.getByRole("radio", { name: /^CSV/ }).click();
+    await expect(dialog.getByRole("link", { name: "Xuất" })).toHaveAttribute(
+      "href",
+      /timeFrom=18%3A30&timeUntil=21%3A15/,
+    );
+    await page.keyboard.press("Escape");
+
+    await field.click();
+    await page.getByRole("button", { name: "Cả ngày", exact: true }).click();
+    await expect(page).not.toHaveURL(/timeFrom=/);
+  });
 });
