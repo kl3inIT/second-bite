@@ -12,10 +12,17 @@ import (
 // bom tells Excel the file is UTF-8, so the stores' names keep their marks.
 const bom = "\xEF\xBB\xBF"
 
+// The words the CSV and the workbook share.
+const (
+	wordUnitsPosted    = "Phần đăng"
+	wordUnitsCollected = "Phần đã lấy"
+	wordShareSold      = "Tỉ lệ bán hết (%)"
+)
+
 // The words of the file, in Vietnamese: it is pasted into the sponsor's sheet.
 var csvHeader = []string{
-	"Ngày", "Cửa hàng", "Lượt mở trang", "Người mở", "Lượt vào từ QR", "Món đăng", "Phần đăng",
-	"Đơn giữ", "Phần giữ", "Đơn đã lấy", "Phần đã lấy", "Đơn huỷ", "Quán từ chối", "Khách không đến",
+	"Ngày", "Cửa hàng", "Lượt mở trang", "Người mở", "Lượt vào từ QR", "Món đăng", wordUnitsPosted,
+	"Đơn giữ", "Phần giữ", "Đơn đã lấy", wordUnitsCollected, "Đơn huỷ", "Quán từ chối", "Khách không đến",
 	"Tỉ lệ lấy (%)", "Tiền thu tại quầy (đồng)", "Tài khoản mới", "Khách đặt lần đầu",
 	"Ngày có đăng", "Ngày đăng đủ 7 phần", "Khách nhận đơn", "Khách mua lại",
 	"Giá gốc phần đã lấy (đồng)", "Khách tiết kiệm (đồng)", "Bù giảm giá (đồng)", "Thực phẩm được cứu (gam)",
@@ -39,6 +46,17 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 	w := csv.NewWriter(&buf)
 	w.UseCRLF = true // as Excel writes it
 
+	if err := w.WriteAll(reportRows(r, oneStore, safe)); err != nil { // WriteAll flushes and reports the writer's error
+		return nil, fmt.Errorf("writing the report as CSV: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+// reportRows are the CSV's rows, its header first, each store's name written
+// by name: safe for a CSV, as it is for a workbook, whose cells are never
+// read as formulas.
+func reportRows(r Report, oneStore bool, name func(string) string) [][]string {
 	rows := [][]string{csvHeader}
 
 	for _, d := range r.Days {
@@ -50,7 +68,7 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 
 		for _, sd := range r.StoreDays {
 			if sd.Day.Equal(d.Day) {
-				rows = append(rows, withImpact(append(csvRow(day, safe(sd.Name), sd.Counts, false), "", "", "", ""), sd.Counts))
+				rows = append(rows, withImpact(append(csvRow(day, name(sd.Name), sd.Counts, false), "", "", "", ""), sd.Counts))
 			}
 		}
 	}
@@ -63,15 +81,11 @@ func reportCSV(r Report, oneStore bool) ([]byte, error) {
 	rows = append(rows, withImpact(append(csvRow(csvTotal, "", r.Totals, !oneStore), "", "", customers, returning), r.Totals))
 
 	for _, st := range r.Stores {
-		rows = append(rows, withImpact(append(csvRow(csvTotal, safe(st.Name), st.Counts, false),
+		rows = append(rows, withImpact(append(csvRow(csvTotal, name(st.Name), st.Counts, false),
 			strconv.Itoa(st.DaysPosted), strconv.Itoa(st.FullDays), "", ""), st.Counts))
 	}
 
-	if err := w.WriteAll(rows); err != nil { // WriteAll flushes and reports the writer's error
-		return nil, fmt.Errorf("writing the report as CSV: %w", err)
-	}
-
-	return buf.Bytes(), nil
+	return rows
 }
 
 // csvRow writes c; the new accounts and customers only on a row of the whole

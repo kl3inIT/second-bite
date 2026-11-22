@@ -103,6 +103,43 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	registerAnalysisOperation(admin, s)
 
 	huma.Register(admin, huma.Operation{
+		OperationID: "exportReportWorkbook", Method: http.MethodGet, Path: "/reports/workbook",
+		Summary: "The report and its analysis as an Excel workbook",
+		Description: "The same days and store as getReport, in Vietnamese: a summary, the CSV's rows, then a sheet per " +
+			"part of the analysis (kinds, discounts, dishes, orders not collected, weekday and hour). Figures are numbers.",
+		Responses: map[string]*huma.Response{
+			"200": {Description: "The workbook", Content: map[string]*huma.MediaType{contentTypeXLSX: {}}},
+		},
+	}, func(ctx context.Context, in *reportInput) (*csvOutput, error) {
+		f, err := reportFilter(in, dayOf(s.now()))
+		if err != nil {
+			return nil, err
+		}
+
+		r, err := s.Report(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		a, err := s.Analysis(ctx, f)
+		if err != nil {
+			return nil, err
+		}
+
+		body, err := reportWorkbook(r, a, f.SellerID != nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return &csvOutput{
+			ContentType:        contentTypeXLSX,
+			ContentDisposition: mime.FormatMediaType("attachment", map[string]string{"filename": workbookName(r)}),
+			CacheControl:       "no-store",
+			Body:               body,
+		}, nil
+	})
+
+	huma.Register(admin, huma.Operation{
 		OperationID: "exportReport", Method: http.MethodGet, Path: "/reports/export",
 		Summary: "The report as a CSV file, one row per day and store",
 		Description: "The same numbers as getReport, in Vietnamese, for the sponsor's sheet: a row for the whole site " +

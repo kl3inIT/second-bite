@@ -139,11 +139,7 @@ func checkAnalysisReads(t *testing.T, f fixture, since, until time.Time, shop uu
 		t.Fatal(err)
 	}
 
-	held, collected := 0, 0
-	for _, sl := range a.Slots {
-		held += sl.Held
-		collected += sl.Collected
-	}
+	held, collected := slotTotals(a.Slots)
 
 	lead := a.LeadTimes.UnderHalfHour + a.LeadTimes.UnderHour + a.LeadTimes.UnderThreeHours + a.LeadTimes.OverThreeHours
 	if held != 4 || collected != 1 || lead != 4 {
@@ -157,6 +153,23 @@ func checkAnalysisReads(t *testing.T, f fixture, since, until time.Time, shop uu
 	if a.Visits[1] != 1 || len(a.Visits) != 1 || len(a.Tags) != 0 || len(a.Problems) != 0 {
 		t.Errorf("visits %v, tags %v, problems %v", a.Visits, a.Tags, a.Problems)
 	}
+
+	checkPostsBetween(t, f, since, until, shop)
+}
+
+// slotTotals adds up the orders held and collected of every slot.
+func slotTotals(slots []order.Slot) (held, collected int) {
+	for _, sl := range slots {
+		held += sl.Held
+		collected += sl.Collected
+	}
+
+	return held, collected
+}
+
+// checkPostsBetween reads the store's two posts with their prices.
+func checkPostsBetween(t *testing.T, f fixture, since, until time.Time, shop uuid.UUID) {
+	t.Helper()
 
 	posts, err := f.offers.PostsBetween(t.Context(), since, until, &shop)
 	if err != nil || len(posts) != 2 || posts[0].SellerID != shop || posts[0].OriginalPriceVND != 2*posts[0].PriceVND {
