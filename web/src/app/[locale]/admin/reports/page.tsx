@@ -71,6 +71,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/[locale]
           ratings={{ counts: reviews.counts, average: reviews.average }}
           deep={deep}
           exportHref={`/api/admin/reports/export?${new URLSearchParams(query)}`}
+          workbookHref={`/api/admin/reports/workbook?${new URLSearchParams(query)}`}
         />
         <StoreFeedbackCard items={feedback.items} />
       </div>

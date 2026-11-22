@@ -1,6 +1,6 @@
 "use client";
 
-import { DownloadIcon, FileSpreadsheetIcon, FileTextIcon } from "lucide-react";
+import { DownloadIcon, FileSpreadsheetIcon, FileTextIcon, SheetIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
@@ -23,23 +23,25 @@ import { Link } from "@/i18n/navigation";
 
 import { reportParts, serializeReportPrint, type ReportPart } from "./search-params";
 
-type Format = "pdf" | "csv";
+type Format = "pdf" | "xlsx" | "csv";
 
 /**
- * "Xuất báo cáo" (report-products-export increment): a dialog that chooses a PDF or the CSV for the report's
- * days and store. The PDF is the print page with the parts ticked, which the browser saves as a PDF; the CSV is
- * the server's file, as "Xuất CSV" downloaded it before. Each is a link, so it works as soon as it is drawn.
+ * "Xuất báo cáo" (report-products-export increment): a dialog that chooses a PDF, an Excel workbook or the CSV
+ * for the report's days and store. The PDF is the print page with the parts ticked, which the browser saves as a
+ * PDF; the workbook and the CSV are the server's files. Each is a link, so it works as soon as it is drawn.
  */
 export function ExportDialog({
   range,
   storeName,
   filter,
   csvHref,
+  workbookHref,
 }: {
   range: string;
   storeName: string | undefined;
   filter: { from: Date | null; to: Date | null; store: string | null };
   csvHref: string;
+  workbookHref: string;
 }) {
   const t = useTranslations("Admin.reports.exportDialog");
   const [open, setOpen] = useState(false);
@@ -72,13 +74,19 @@ export function ExportDialog({
                 value={format}
                 onValueChange={(value) => setFormat(value as Format)}
                 aria-labelledby={`${id}-format`}
-                className="sm:grid-cols-2"
+                className="sm:grid-cols-3"
               >
                 <ChoiceOption
                   value="pdf"
                   icon={FileTextIcon}
                   title={t("pdf")}
                   hint={t("pdfHint")}
+                />
+                <ChoiceOption
+                  value="xlsx"
+                  icon={SheetIcon}
+                  title={t("xlsx")}
+                  hint={t("xlsxHint")}
                 />
                 <ChoiceOption
                   value="csv"
@@ -131,10 +139,10 @@ export function ExportDialog({
           </div>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" size="lg" />}>{t("cancel")}</DialogClose>
-            {format === "csv" ? (
+            {format !== "pdf" ? (
               // A plain download: the server answers the file and its name, under the session's cookie.
               <a
-                href={csvHref}
+                href={format === "csv" ? csvHref : workbookHref}
                 download
                 className={buttonVariants({ size: "lg" })}
                 onClick={() => setOpen(false)}

@@ -2097,6 +2097,8 @@
         "format": "Định dạng",
         "pdf": "PDF",
         "pdfHint": "Bản trình bày có biểu đồ, để gửi nhà tài trợ",
+        "xlsx": "Excel",
+        "xlsxHint": "Tổng quan, số theo ngày và cửa hàng, và các phần phân tích, mỗi phần một trang tính",
         "csv": "CSV",
         "csvHint": "Số theo ngày và theo cửa hàng",
         "parts": "Nội dung",

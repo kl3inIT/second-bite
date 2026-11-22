@@ -2097,6 +2097,8 @@
         "format": "Format",
         "pdf": "PDF",
         "pdfHint": "A layout with charts, to send to the sponsor",
+        "xlsx": "Excel",
+        "xlsxHint": "A summary, the numbers by day and store, and the analysis, a sheet each",
         "csv": "CSV",
         "csvHint": "Numbers by day and by store",
         "parts": "Contents",

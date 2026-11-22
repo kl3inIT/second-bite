@@ -108,6 +108,7 @@ export function ReportView({
   ratings,
   deep,
   exportHref,
+  workbookHref,
 }: {
   report: ReportOutputBody;
   previous: CountsBody | null;
@@ -115,6 +116,7 @@ export function ReportView({
   ratings: Ratings;
   deep: DeepAnalysis;
   exportHref: string;
+  workbookHref: string;
 }) {
   const t = useTranslations("Admin.reports");
   const format = useFormatter();
@@ -206,6 +208,7 @@ export function ReportView({
             storeName={stores.find((s) => s.id === params.store)?.name}
             filter={{ from: params.from, to: params.to, store: params.store }}
             csvHref={exportHref}
+            workbookHref={workbookHref}
           />
         </div>
       </div>
