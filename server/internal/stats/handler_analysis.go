@@ -15,19 +15,16 @@ import (
 	"github.com/kl3inIT/second-bite/server/internal/offer"
 )
 
-type analysisPortionsBody struct {
-	Posted    int `json:"posted"`
-	Collected int `json:"collected"`
-}
-
 type analysisKindBody struct {
-	Kind offer.Kind `json:"kind" enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
-	analysisPortionsBody
+	Kind      offer.Kind `json:"kind" enum:"bakery,prepared_food,ingredients,drinks,mixed_box,dessert,snacks,produce,other"`
+	Posted    int        `json:"posted"    doc:"Units posted"`
+	Collected int        `json:"collected" doc:"Units of them collected"`
 }
 
 type analysisDiscountBody struct {
-	Band string `json:"band" doc:"The discount against the original price" enum:"free,from70,from50,from30,under30"`
-	analysisPortionsBody
+	Band      string `json:"band" doc:"The discount against the original price" enum:"free,from70,from50,from30,under30"`
+	Posted    int    `json:"posted"    doc:"Units posted"`
+	Collected int    `json:"collected" doc:"Units of them collected"`
 }
 
 type analysisSlotBody struct {
@@ -42,7 +39,8 @@ type analysisDishBody struct {
 	Name       string    `json:"name"`
 	SellerName string    `json:"sellerName"`
 	Unit       string    `json:"unit"`
-	analysisPortionsBody
+	Posted     int       `json:"posted"    doc:"Units posted"`
+	Collected  int       `json:"collected" doc:"Units of them collected"`
 }
 
 type analysisCountBody struct {
@@ -54,9 +52,9 @@ type analysisOutput struct {
 	Body struct {
 		Since     string                 `json:"since"     format:"date"`
 		Until     string                 `json:"until"     format:"date"`
-		Kinds     []analysisKindBody     `json:"kinds"     doc:"The portions posted and collected by kind of dish, the most posted first"`
-		Discounts []analysisDiscountBody `json:"discounts" doc:"The same by discount band, from food given away to the smallest discount"`
-		Slots     []analysisSlotBody     `json:"slots"     doc:"The orders by weekday and hour of their window's start"`
+		Kinds     []analysisKindBody     `json:"kinds" nullable:"false"     doc:"The portions posted and collected by kind of dish, the most posted first"`
+		Discounts []analysisDiscountBody `json:"discounts" nullable:"false" doc:"The same by discount band, from food given away to the smallest discount"`
+		Slots     []analysisSlotBody     `json:"slots" nullable:"false"     doc:"The orders by weekday and hour of their window's start"`
 		LeadTimes struct {
 			UnderHalfHour   int `json:"underHalfHour"`
 			UnderHour       int `json:"underHour"`
@@ -71,13 +69,13 @@ type analysisOutput struct {
 			NotSoldOut    int `json:"notSoldOut"    doc:"Posts that ended with units left"`
 			MedianMinutes int `json:"medianMinutes" doc:"The middle time to sell out; 0 when none did"`
 		} `json:"sellOut" doc:"How long the posts took from posting to their last unit ordered"`
-		Failures    []analysisCountBody `json:"failures"    doc:"The orders not collected by ending: cancelled, expired, or refused_ and the reason; the most first"`
-		Visits      []analysisCountBody `json:"visits"      doc:"The customers by orders handed over: 1, 2, and 3 for three or more"`
-		TopSold     []analysisDishBody  `json:"topSold"     doc:"The five dishes most collected"`
-		TopLeftover []analysisDishBody  `json:"topLeftover" doc:"The five ended dishes with the most portions not collected"`
-		Sources     []analysisCountBody `json:"sources"     doc:"The views by utm_source, empty for none; the site's whatever store is chosen"`
-		Tags        []analysisCountBody `json:"tags"        doc:"The reviews praising each tag"`
-		Problems    []analysisCountBody `json:"problems"    doc:"The orders reported for each kind of problem"`
+		Failures    []analysisCountBody `json:"failures" nullable:"false"    doc:"The orders not collected by ending: cancelled, expired, or refused_ and the reason; the most first"`
+		Visits      []analysisCountBody `json:"visits" nullable:"false"      doc:"The customers by orders handed over: 1, 2, and 3 for three or more"`
+		TopSold     []analysisDishBody  `json:"topSold" nullable:"false"     doc:"The five dishes most collected"`
+		TopLeftover []analysisDishBody  `json:"topLeftover" nullable:"false" doc:"The five ended dishes with the most portions not collected"`
+		Sources     []analysisCountBody `json:"sources" nullable:"false"     doc:"The views by utm_source, empty for none; the site's whatever store is chosen"`
+		Tags        []analysisCountBody `json:"tags" nullable:"false"        doc:"The reviews praising each tag"`
+		Problems    []analysisCountBody `json:"problems" nullable:"false"    doc:"The orders reported for each kind of problem"`
 	}
 }
 
@@ -111,7 +109,7 @@ func analysisOf(a Analysis) *analysisOutput {
 
 	b.Kinds = []analysisKindBody{}
 	for kind, p := range a.Kinds {
-		b.Kinds = append(b.Kinds, analysisKindBody{Kind: kind, analysisPortionsBody: analysisPortionsBody(p)})
+		b.Kinds = append(b.Kinds, analysisKindBody{Kind: kind, Posted: p.Posted, Collected: p.Collected})
 	}
 
 	slices.SortFunc(b.Kinds, func(x, y analysisKindBody) int {
@@ -120,7 +118,8 @@ func analysisOf(a Analysis) *analysisOutput {
 
 	b.Discounts = []analysisDiscountBody{}
 	for _, band := range []string{DiscountFree, DiscountFrom70, DiscountFrom50, DiscountFrom30, DiscountUnder30} {
-		b.Discounts = append(b.Discounts, analysisDiscountBody{Band: band, analysisPortionsBody: analysisPortionsBody(a.Discounts[band])})
+		p := a.Discounts[band]
+		b.Discounts = append(b.Discounts, analysisDiscountBody{Band: band, Posted: p.Posted, Collected: p.Collected})
 	}
 
 	b.Slots = []analysisSlotBody{}
@@ -170,7 +169,9 @@ func countsBy(counts map[string]int) []analysisCountBody {
 func dishesOf(dishes []DishRank) []analysisDishBody {
 	list := make([]analysisDishBody, len(dishes))
 	for i, d := range dishes {
-		list[i] = analysisDishBody{OfferID: d.OfferID, Name: d.Name, SellerName: d.SellerName, Unit: d.Unit, analysisPortionsBody: analysisPortionsBody(d.Portions)}
+		list[i] = analysisDishBody{
+			OfferID: d.OfferID, Name: d.Name, SellerName: d.SellerName, Unit: d.Unit, Posted: d.Posted, Collected: d.Collected,
+		}
 	}
 
 	return list
