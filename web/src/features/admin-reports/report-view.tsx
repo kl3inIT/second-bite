@@ -48,6 +48,7 @@ import {
   signed,
   vietnamToday,
 } from "./report-numbers";
+import { ReportAnalysis, type Ratings } from "./report-analysis";
 import { ProductsBlock } from "./report-products";
 import { reportSearchParams, type ReportSort } from "./search-params";
 
@@ -88,11 +89,13 @@ export function ReportView({
   report,
   previous,
   stores,
+  ratings,
   exportHref,
 }: {
   report: ReportOutputBody;
   previous: CountsBody | null;
   stores: Array<{ id: string; name: string }>;
+  ratings: Ratings;
   exportHref: string;
 }) {
   const t = useTranslations("Admin.reports");
@@ -188,6 +191,7 @@ export function ReportView({
       </div>
       <Cards report={report} previous={previous} days={days} />
       <DayBars days={report.days ?? []} />
+      <ReportAnalysis totals={report.totals} ratings={ratings} />
       <DataTable
         label={t("table")}
         columns={columns}

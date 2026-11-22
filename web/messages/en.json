@@ -2072,6 +2072,25 @@
         "sellThrough": "Share sold",
         "sellThroughNote": "{collected} of {posted} units reached a customer"
       },
+      "analysis": {
+        "title": "Analysis",
+        "funnel": "Customer funnel",
+        "people": "Visitors",
+        "held": "Orders held",
+        "collected": "Orders collected",
+        "perHundred": "{orders} orders per 100 visitors",
+        "ofHeld": "{share}% of orders held",
+        "average": "Per order collected",
+        "pay": "Customer paid",
+        "payNote": "over {orders, plural, one {# order} other {# orders}} collected",
+        "units": "Units",
+        "unitsNote": "{units} units / {orders, plural, one {# order} other {# orders}}",
+        "ratings": "Ratings · {count, plural, one {# review} other {# reviews}}",
+        "outOf": "/ 5 stars",
+        "stars": "{stars, plural, one {# star} other {# stars}}",
+        "noRatings": "No ratings in these days.",
+        "none": "–"
+      },
       "copy": {
         "action": "Copy report",
         "done": "Report copied; paste it in a message to send it.",

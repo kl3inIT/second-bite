@@ -2072,6 +2072,25 @@
         "sellThrough": "Tỉ lệ bán hết",
         "sellThroughNote": "{collected}/{posted} phần đến tay khách"
       },
+      "analysis": {
+        "title": "Phân tích",
+        "funnel": "Phễu khách",
+        "people": "Người truy cập",
+        "held": "Đơn giữ",
+        "collected": "Đơn đã lấy",
+        "perHundred": "{orders} đơn / 100 người",
+        "ofHeld": "{share}% đơn giữ",
+        "average": "Trung bình mỗi đơn đã lấy",
+        "pay": "Khách trả",
+        "payNote": "trên {orders} đơn đã lấy",
+        "units": "Số phần",
+        "unitsNote": "{units} phần / {orders} đơn",
+        "ratings": "Đánh giá · {count} lượt",
+        "outOf": "/ 5 sao",
+        "stars": "{stars} sao",
+        "noRatings": "Chưa có đánh giá trong khoảng ngày này.",
+        "none": "–"
+      },
       "copy": {
         "action": "Sao chép báo cáo",
         "done": "Đã sao chép báo cáo, dán vào tin nhắn để gửi.",
