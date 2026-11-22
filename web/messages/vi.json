@@ -1260,6 +1260,23 @@
     "originalInvalid": "Giá gốc từ 1.001đ trở lên, hoặc để trống."
   },
   "Admin": {
+    "timeRange": {
+      "label": "Khung giờ",
+      "anytime": "Cả ngày",
+      "presets": "Chọn nhanh khung giờ",
+      "preset": {
+        "morning": "Sáng {from}–{until}",
+        "noon": "Trưa {from}–{until}",
+        "afternoon": "Chiều {from}–{until}",
+        "evening": "Tối {from}–{until}"
+      },
+      "custom": "Hoặc chọn giờ",
+      "from": "Từ",
+      "until": "Đến",
+      "midnight": "Đến 00:00 là tới hết ngày.",
+      "invalid": "Giờ bắt đầu phải trước giờ kết thúc.",
+      "apply": "Áp dụng"
+    },
     "home": "Second Bite, trang quản trị",
     "tag": "Quản trị",
     "collapse": "Thu gọn thanh bên",

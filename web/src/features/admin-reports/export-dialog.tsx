@@ -39,7 +39,13 @@ export function ExportDialog({
 }: {
   range: string;
   storeName: string | undefined;
-  filter: { from: Date | null; to: Date | null; store: string | null };
+  filter: {
+    from: Date | null;
+    to: Date | null;
+    store: string | null;
+    timeFrom: string | null;
+    timeUntil: string | null;
+  };
   csvHref: string;
   workbookHref: string;
 }) {

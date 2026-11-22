@@ -44,7 +44,13 @@ export default async function ReportPrintPage({
     has("kpi") && filter.compare
       ? getReport({
           headers,
-          query: { since: before.since, until: before.until, sellerId: query.sellerId },
+          query: {
+            since: before.since,
+            until: before.until,
+            sellerId: query.sellerId,
+            timeFrom: query.timeFrom,
+            timeUntil: query.timeUntil,
+          },
         }).then(({ data }) => data.totals)
       : null,
     has("analysis")
@@ -68,7 +74,13 @@ export default async function ReportPrintPage({
         )
       : [],
   ]);
-  const back = serializeReportPrint({ from: filter.from, to: filter.to, store: filter.store });
+  const back = serializeReportPrint({
+    from: filter.from,
+    to: filter.to,
+    store: filter.store,
+    timeFrom: filter.timeFrom,
+    timeUntil: filter.timeUntil,
+  });
 
   return (
     <>
@@ -85,6 +97,7 @@ export default async function ReportPrintPage({
           deep={deep}
           parts={filter.parts}
           storeName={sellers.find((s) => s.id === filter.store)?.name}
+          hours={{ from: filter.timeFrom, until: filter.timeUntil }}
           backHref={`/admin/reports${back}`}
         >
           {feedback && <StoreFeedbackCard items={feedback} />}

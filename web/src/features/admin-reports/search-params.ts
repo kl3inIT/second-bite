@@ -8,6 +8,8 @@ import {
   parseAsStringLiteral,
 } from "nuqs/server";
 
+import { timeQuery, timeSearchParams } from "@/features/admin/time-params";
+
 /** The columns the stores' table may be sorted by; the server's order, the most orders first, by default. */
 export const reportSorts = [
   "name",
@@ -40,6 +42,7 @@ export const reportSearchParams = {
   from: parseAsIsoDate,
   to: parseAsIsoDate,
   store: parseAsString,
+  ...timeSearchParams,
   sort: parseAsStringLiteral(reportSorts),
   dir: parseAsStringLiteral(["ascending", "descending"] as const),
 };
@@ -67,6 +70,7 @@ export const reportPrintSearchParams = {
   from: parseAsIsoDate,
   to: parseAsIsoDate,
   store: parseAsString,
+  ...timeSearchParams,
   parts: parseAsArrayOf(parseAsStringLiteral(reportParts)).withDefault([...reportParts]),
   compare: parseAsBoolean.withDefault(true),
 };
@@ -81,12 +85,26 @@ const day = (d: Date) => d.toISOString().slice(0, 10);
  * The query the report and its CSV are read with: the days chosen, a range longer than the server allows cut
  * to its last 92 days, and the store.
  */
-export function reportQuery(filter: { from: Date | null; to: Date | null; store: string | null }): {
+export function reportQuery(filter: {
+  from: Date | null;
+  to: Date | null;
+  store: string | null;
+  timeFrom: string | null;
+  timeUntil: string | null;
+}): {
   since?: string;
   until?: string;
   sellerId?: string;
+  timeFrom?: string;
+  timeUntil?: string;
 } {
-  const query: { since?: string; until?: string; sellerId?: string } = {};
+  const query: {
+    since?: string;
+    until?: string;
+    sellerId?: string;
+    timeFrom?: string;
+    timeUntil?: string;
+  } = { ...timeQuery(filter) };
   if (filter.from) {
     const to = filter.to ?? filter.from;
     const earliest = new Date(to.getTime() - (maxReportDays - 1) * 86_400_000);

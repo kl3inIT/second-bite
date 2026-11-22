@@ -19,6 +19,7 @@ import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import { SearchBox } from "@/features/admin/search-box";
+import { TimeRange } from "@/features/admin/time-range";
 import { PostPanel } from "@/features/admin-sellers/seller-posts";
 import { usePrice } from "@/features/offers/use-price";
 import { Link } from "@/i18n/navigation";
@@ -84,7 +85,11 @@ export function OffersList({
   const [open, setOpen] = useState<OfferBody | null>(null);
   const columns = useColumns(setOpen);
   const filtered =
-    params.q !== "" || params.status !== null || params.store !== null || params.from !== null;
+    params.q !== "" ||
+    params.status !== null ||
+    params.store !== null ||
+    params.from !== null ||
+    params.timeFrom !== null;
 
   return (
     <section aria-label={t("title")} className="flex flex-col gap-5">
@@ -172,6 +177,11 @@ export function OffersList({
           to={params.to}
           onChange={(from, to) => void setParams({ from, to, page: null })}
         />
+        <TimeRange
+          from={params.timeFrom}
+          until={params.timeUntil}
+          onChange={(timeFrom, timeUntil) => void setParams({ timeFrom, timeUntil, page: null })}
+        />
         <Select
           value={String(params.size)}
           items={offerPageSizes.map((size) => ({ value: String(size), label: String(size) }))}
@@ -216,6 +226,8 @@ export function OffersList({
                       store: null,
                       from: null,
                       to: null,
+                      timeFrom: null,
+                      timeUntil: null,
                       page: null,
                     })
                   }

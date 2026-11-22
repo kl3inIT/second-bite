@@ -9,6 +9,7 @@ import {
   parseAsStringLiteral,
 } from "nuqs/server";
 
+import { timeSearchParams } from "@/features/admin/time-params";
 import type { OfferBody } from "@/lib/api/generated";
 
 export type OfferStatus = OfferBody["status"];
@@ -39,6 +40,7 @@ export const offerSearchParams = {
   size: parseAsNumberLiteral(offerPageSizes).withDefault(10),
   // The "Sản phẩm" box over the list, closed unless asked: its numbers are read only while it is open.
   units: parseAsBoolean.withDefault(false),
+  ...timeSearchParams,
 };
 
 export const loadOfferSearchParams = createLoader(offerSearchParams);

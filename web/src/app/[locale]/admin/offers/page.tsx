@@ -5,6 +5,7 @@ import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { UnitsToggle } from "@/features/admin-offers/offer-units";
 import { OffersList } from "@/features/admin-offers/offers-list";
 import { loadOfferSearchParams } from "@/features/admin-offers/search-params";
+import { timeQuery } from "@/features/admin/time-params";
 import { vietnamMidnight } from "@/features/audit/search-params";
 import { requireAdmin } from "@/features/identity/current-account";
 import { sessionHeaders } from "@/features/identity/session";
@@ -33,6 +34,7 @@ export default async function OffersPage({ searchParams }: PageProps<"/[locale]/
     sellerId: filter.store ?? undefined,
     postedSince: filter.from ? vietnamMidnight(filter.from) : undefined,
     postedUntil: filter.from ? vietnamMidnight(filter.to ?? filter.from, 1) : undefined,
+    ...timeQuery(filter),
   };
 
   const [{ data: page }, { data: sellers }, units] = await Promise.all([

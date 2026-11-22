@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { AdminTopBar } from "@/features/admin/admin-top-bar";
 import { OrdersList } from "@/features/admin-orders/orders-list";
 import { loadOrderSearchParams, statusesOf } from "@/features/admin-orders/search-params";
+import { timeQuery } from "@/features/admin/time-params";
 import { vietnamMidnight } from "@/features/audit/search-params";
 import { requireAdmin } from "@/features/identity/current-account";
 import { sessionHeaders } from "@/features/identity/session";
@@ -30,6 +31,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/[locale]/
         sellerId: filter.store ?? undefined,
         collectSince: filter.from ? vietnamMidnight(filter.from) : undefined,
         collectUntil: filter.from ? vietnamMidnight(filter.to ?? filter.from, 1) : undefined,
+        ...timeQuery(filter),
         page: filter.page,
         size: filter.size,
       },

@@ -21,7 +21,7 @@ import type { DeepAnalysis } from "./report-deep";
 import { ImpactBlock } from "./report-impact";
 import { leftoverOf, periodBefore, sellThroughOf } from "./report-numbers";
 import { ProductsBlock } from "./report-products";
-import { Cards, DayBars, rangeOf, shareOf } from "./report-view";
+import { Cards, DayBars, rangeOf, shareOf, withHours } from "./report-view";
 import type { ReportPart } from "./search-params";
 
 /**
@@ -36,6 +36,7 @@ export function ReportPrint({
   deep,
   parts,
   storeName,
+  hours,
   backHref,
   children,
 }: {
@@ -45,6 +46,8 @@ export function ReportPrint({
   deep: DeepAnalysis | null;
   parts: ReportPart[];
   storeName: string | undefined;
+  /** The part of the day the report keeps; both null for all day. */
+  hours: { from: string | null; until: string | null };
   backHref: string;
   /** The stores' feedback, which the server draws. */
   children?: React.ReactNode;
@@ -75,7 +78,7 @@ export function ReportPrint({
         </h1>
         <p className="text-body-sm text-muted-foreground">
           {t("print.scope", {
-            range: rangeOf(report, format),
+            range: withHours(rangeOf(report, format), hours.from, hours.until),
             store: storeName ?? t("print.anyStore"),
           })}
         </p>

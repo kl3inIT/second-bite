@@ -33,6 +33,7 @@ import {
   type Sorted,
 } from "@/features/admin/data-table";
 import { DayRange } from "@/features/admin/day-range";
+import { TimeRange } from "@/features/admin/time-range";
 import { formatPrice } from "@/features/offers/format";
 import { Link } from "@/i18n/navigation";
 import type { CountsBody, ReportOutputBody, ReportStoreBody } from "@/lib/api/generated";
@@ -85,6 +86,11 @@ export function rangeOf(
   return report.since === report.until
     ? day(report.since)
     : `${day(report.since)} – ${day(report.until)}`;
+}
+
+/** The days followed by the part of the day kept, as "16/11 – 22/11 · 17:30–21:15"; the days alone for all day. */
+export function withHours(range: string, from: string | null, until: string | null): string {
+  return from && until ? `${range} · ${from}–${until}` : range;
 }
 
 /** The share of the customers who came back, in whole percent; none without customers (SEC-200). */
@@ -146,6 +152,7 @@ export function ReportView({
     previous,
     days,
     stores.find((s) => s.id === params.store)?.name,
+    { from: params.timeFrom, until: params.timeUntil },
   );
 
   return (
@@ -173,6 +180,11 @@ export function ReportView({
           from={params.from}
           to={params.to}
           onChange={(from, to) => void setParams({ from, to })}
+        />
+        <TimeRange
+          from={params.timeFrom}
+          until={params.timeUntil}
+          onChange={(timeFrom, timeUntil) => void setParams({ timeFrom, timeUntil })}
         />
         <Select
           value={params.store ?? anyStore}
@@ -204,9 +216,15 @@ export function ReportView({
             {t("copy.action")}
           </Button>
           <ExportDialog
-            range={rangeOf(report, format)}
+            range={withHours(rangeOf(report, format), params.timeFrom, params.timeUntil)}
             storeName={stores.find((s) => s.id === params.store)?.name}
-            filter={{ from: params.from, to: params.to, store: params.store }}
+            filter={{
+              from: params.from,
+              to: params.to,
+              store: params.store,
+              timeFrom: params.timeFrom,
+              timeUntil: params.timeUntil,
+            }}
             csvHref={exportHref}
             workbookHref={workbookHref}
           />
@@ -471,13 +489,14 @@ function useCopyReport(
   previous: CountsBody | null,
   days: number,
   store: string | undefined,
+  hours: { from: string | null; until: string | null },
 ) {
   const t = useTranslations("Admin.reports.copy");
   const format = useFormatter();
   const { totals } = report;
   const change = (now: number, before: number | undefined) =>
     before === undefined ? "" : t("change", { change: signed(now, before) });
-  const range = rangeOf(report, format);
+  const range = withHours(rangeOf(report, format), hours.from, hours.until);
 
   const text = [
     store ? t("titleStore", { range, store }) : t("title", { range }),

@@ -8,6 +8,7 @@ import {
   parseAsStringLiteral,
 } from "nuqs/server";
 
+import { timeSearchParams } from "@/features/admin/time-params";
 import type { OrderBody } from "@/lib/api/generated";
 
 export type OrderStatus = OrderBody["status"];
@@ -33,6 +34,7 @@ export const orderPageSizes = [10, 25, 50] as const;
  * window first, 10 a page as Figma AD-DH1 draws it.
  */
 export const orderSearchParams = {
+  ...timeSearchParams,
   state: parseAsStringLiteral(cardStates),
   q: parseAsString.withDefault(""),
   store: parseAsString,

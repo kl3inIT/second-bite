@@ -1260,6 +1260,23 @@
     "originalInvalid": "An original price from 1.001đ, or leave it empty."
   },
   "Admin": {
+    "timeRange": {
+      "label": "Hours",
+      "anytime": "All day",
+      "presets": "Quick hours",
+      "preset": {
+        "morning": "Morning {from}–{until}",
+        "noon": "Midday {from}–{until}",
+        "afternoon": "Afternoon {from}–{until}",
+        "evening": "Evening {from}–{until}"
+      },
+      "custom": "Or choose the hours",
+      "from": "From",
+      "until": "Until",
+      "midnight": "Until 00:00 runs to the end of the day.",
+      "invalid": "The start must come before the end.",
+      "apply": "Apply"
+    },
     "home": "Second Bite, admin",
     "tag": "Admin",
     "collapse": "Collapse the sidebar",

@@ -46,7 +46,13 @@ export default async function ReportsPage({ searchParams }: PageProps<"/[locale]
   const [{ data: previous }, { data: reviews }] = await Promise.all([
     getReport({
       headers,
-      query: { since: before.since, until: before.until, sellerId: query.sellerId },
+      query: {
+        since: before.since,
+        until: before.until,
+        sellerId: query.sellerId,
+        timeFrom: query.timeFrom,
+        timeUntil: query.timeUntil,
+      },
     }),
     listReviewsForAdmins({
       headers,

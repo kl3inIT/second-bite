@@ -19,6 +19,7 @@ import { DataTable, type DataTableColumns } from "@/features/admin/data-table";
 import { DayRange } from "@/features/admin/day-range";
 import { ListFooter } from "@/features/admin/list-footer";
 import { SearchBox } from "@/features/admin/search-box";
+import { TimeRange } from "@/features/admin/time-range";
 import { StoreThumb } from "@/features/admin-sellers/seller-parts";
 import { usePrice } from "@/features/offers/use-price";
 import { Link } from "@/i18n/navigation";
@@ -80,7 +81,11 @@ export function OrdersList({
   });
   const columns = useColumns();
   const filtered =
-    params.q !== "" || params.state !== null || params.store !== null || params.from !== null;
+    params.q !== "" ||
+    params.state !== null ||
+    params.store !== null ||
+    params.from !== null ||
+    params.timeFrom !== null;
 
   return (
     <section aria-label={t("title")} className="flex flex-col gap-5">
@@ -161,6 +166,11 @@ export function OrdersList({
           to={params.to}
           onChange={(from, to) => void setParams({ from, to, page: null })}
         />
+        <TimeRange
+          from={params.timeFrom}
+          until={params.timeUntil}
+          onChange={(timeFrom, timeUntil) => void setParams({ timeFrom, timeUntil, page: null })}
+        />
         <Select
           value={String(params.size)}
           items={orderPageSizes.map((size) => ({ value: String(size), label: String(size) }))}
@@ -205,6 +215,8 @@ export function OrdersList({
                       store: null,
                       from: null,
                       to: null,
+                      timeFrom: null,
+                      timeUntil: null,
                       page: null,
                     })
                   }
