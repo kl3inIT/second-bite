@@ -445,15 +445,18 @@ export function DayBars({
           {t(`chart.${chart}`)}
         </h2>
         {!only && (
-          <Tabs value={chart} onValueChange={(value) => setChart(value as Chart)}>
-            <TabsList variant="line" aria-label={t("chart.label")}>
-              {charts.map((c) => (
-                <TabsTrigger key={c} value={c}>
-                  {t(`chart.tab.${c}`)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          // Four tabs outgrow a phone: they scroll within the card rather than widen the page.
+          <div className="max-w-full overflow-x-auto">
+            <Tabs value={chart} onValueChange={(value) => setChart(value as Chart)}>
+              <TabsList variant="line" aria-label={t("chart.label")}>
+                {charts.map((c) => (
+                  <TabsTrigger key={c} value={c}>
+                    {t(`chart.tab.${c}`)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
         )}
       </div>
       <ChartContainer config={config} className="aspect-auto h-60 w-full">
@@ -570,6 +573,9 @@ function useColumns(
     {
       id: "name",
       header: head("name"),
+      // Every other column has its width, so without one the store's name was squeezed to nothing once they
+      // outgrew the table; the table scrolls sideways instead.
+      meta: { width: "w-56" },
       cell: ({ row }) => (
         <Link
           href={`/admin/sellers/${row.original.sellerId}`}
