@@ -3011,6 +3011,42 @@ export type ExportReportResponses = {
     200: unknown;
 };
 
+export type ExportReportWorkbookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+    };
+    url: '/admin/reports/workbook';
+};
+
+export type ExportReportWorkbookErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ExportReportWorkbookError = ExportReportWorkbookErrors[keyof ExportReportWorkbookErrors];
+
+export type ExportReportWorkbookResponses = {
+    /**
+     * The workbook
+     */
+    200: unknown;
+};
+
 export type ListReviewsForAdminsData = {
     body?: never;
     path?: never;

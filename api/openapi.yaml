@@ -5072,6 +5072,61 @@ paths:
       summary: The report as a CSV file, one row per day and store
       tags:
         - Admin
+  /admin/reports/workbook:
+    get:
+      description: "The same days and store as getReport, in Vietnamese: a summary, the CSV's rows, then a sheet per part of the analysis (kinds, discounts, dishes, orders not collected, weekday and hour). Figures are numbers."
+      operationId: exportReportWorkbook
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's numbers; the views are then its page's and its dishes'
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's numbers; the views are then its page's and its dishes'
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+          description: The workbook
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Disposition:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The report and its analysis as an Excel workbook
+      tags:
+        - Admin
   /admin/reviews:
     get:
       description: q matches the comment, the order's number (SB-24831 or 24831), the customer's name or phone, or the seller's name, Vietnamese marks ignored. A page past the end is empty.
