@@ -178,6 +178,95 @@ export type AdminsOutputBody = {
     admins: Array<RecordBody> | null;
 };
 
+export type AnalysisCountBody = {
+    count: number;
+    key: string;
+};
+
+export type AnalysisDiscountBody = {
+    /**
+     * The discount against the original price
+     */
+    band: 'free' | 'from70' | 'from50' | 'from30' | 'under30';
+};
+
+export type AnalysisDishBody = {
+    name: string;
+    offerId: string;
+    sellerName: string;
+    unit: string;
+};
+
+export type AnalysisKindBody = {
+    kind: 'bakery' | 'prepared_food' | 'ingredients' | 'drinks' | 'mixed_box' | 'dessert' | 'snacks' | 'produce' | 'other';
+};
+
+export type AnalysisOutputBody = {
+    /**
+     * The same by discount band, from food given away to the smallest discount
+     */
+    discounts: Array<AnalysisDiscountBody> | null;
+    /**
+     * The orders not collected by ending: cancelled, expired, or refused_ and the reason; the most first
+     */
+    failures: Array<AnalysisCountBody> | null;
+    /**
+     * The portions posted and collected by kind of dish, the most posted first
+     */
+    kinds: Array<AnalysisKindBody> | null;
+    /**
+     * How long before the window opened the orders were placed
+     */
+    leadTimes: LeadTimesStruct;
+    /**
+     * The orders reported for each kind of problem
+     */
+    problems: Array<AnalysisCountBody> | null;
+    /**
+     * How long the posts took from posting to their last unit ordered
+     */
+    sellOut: SellOutStruct;
+    since: string;
+    /**
+     * The orders by weekday and hour of their window's start
+     */
+    slots: Array<AnalysisSlotBody> | null;
+    /**
+     * The views by utm_source, empty for none; the site's whatever store is chosen
+     */
+    sources: Array<AnalysisCountBody> | null;
+    /**
+     * The reviews praising each tag
+     */
+    tags: Array<AnalysisCountBody> | null;
+    /**
+     * The five ended dishes with the most portions not collected
+     */
+    topLeftover: Array<AnalysisDishBody> | null;
+    /**
+     * The five dishes most collected
+     */
+    topSold: Array<AnalysisDishBody> | null;
+    until: string;
+    /**
+     * The customers by orders handed over: 1, 2, and 3 for three or more
+     */
+    visits: Array<AnalysisCountBody> | null;
+};
+
+export type AnalysisSlotBody = {
+    collected: number;
+    held: number;
+    /**
+     * The hour of the window's start in Vietnam
+     */
+    hour: number;
+    /**
+     * 1 Monday to 7 Sunday, of the window's start in Vietnam
+     */
+    weekday: number;
+};
+
 export type AnswerOrderProblemRequest = {
     /**
      * 1 to 500 characters, or ORDER_ANSWER_INVALID
@@ -645,6 +734,13 @@ export type HistoryOutputBody = {
      * The latest five, newest first
      */
     recent: Array<OrderBody>;
+};
+
+export type LeadTimesStruct = {
+    overThreeHours: number;
+    underHalfHour: number;
+    underHour: number;
+    underThreeHours: number;
 };
 
 export type ListDishesResponse = {
@@ -1581,6 +1677,21 @@ export type SeenBody = {
      * The highest message the seller's people have read
      */
     seller: number;
+};
+
+export type SellOutStruct = {
+    /**
+     * The middle time to sell out; 0 when none did
+     */
+    medianMinutes: number;
+    /**
+     * Posts that ended with units left
+     */
+    notSoldOut: number;
+    overTwoHours: number;
+    underHalfHour: number;
+    underHour: number;
+    underTwoHours: number;
 };
 
 export type SellerBody = {
@@ -2801,6 +2912,44 @@ export type GetReportResponses = {
 };
 
 export type GetReportResponse = GetReportResponses[keyof GetReportResponses];
+
+export type GetReportAnalysisData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+    };
+    url: '/admin/reports/analysis';
+};
+
+export type GetReportAnalysisErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetReportAnalysisError = GetReportAnalysisErrors[keyof GetReportAnalysisErrors];
+
+export type GetReportAnalysisResponses = {
+    /**
+     * OK
+     */
+    200: AnalysisOutputBody;
+};
+
+export type GetReportAnalysisResponse = GetReportAnalysisResponses[keyof GetReportAnalysisResponses];
 
 export type ExportReportData = {
     body?: never;
