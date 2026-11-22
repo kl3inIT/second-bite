@@ -103,14 +103,14 @@ test.describe("the admin's posts", () => {
   // the list's filters; the stub's 80 posts hold 600 portions, a status a quarter of them.
   test("Xem số suất opens what became of the posts' portions", async ({ page }) => {
     await page.goto("/vi/admin/offers");
-    await expect(page.getByRole("region", { name: "Sản phẩm" })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Sản phẩm", exact: true })).toHaveCount(0);
 
     const toggle = await hydrated(page.getByRole("button", { name: "Xem số suất" }));
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await toggle.click();
     await expect(page).toHaveURL(/units=true/);
 
-    const box = page.getByRole("region", { name: "Sản phẩm" });
+    const box = page.getByRole("region", { name: "Sản phẩm", exact: true });
     await expect(box.getByText("từ 80 bài")).toBeVisible();
     await expect(box.getByText("290 khách đã nhận")).toBeVisible();
     await expect(box.getByText("40 khách chưa đến lấy")).toBeVisible();

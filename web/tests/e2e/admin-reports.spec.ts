@@ -135,7 +135,9 @@ test.describe("the admin's report", () => {
     );
 
     await page.getByRole("combobox", { name: "Cửa hàng" }).click();
-    await page.getByRole("option", { name: "Panda Chef" }).click();
+    // Chosen by typing, as a phone's list can still move under a press while the filter row reflows.
+    await page.keyboard.type("Panda");
+    await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/store=/);
     await expect(table.getByRole("row")).toHaveCount(2);
     await expect(table.getByRole("row").nth(1)).toContainText("Panda Chef");
@@ -145,7 +147,7 @@ test.describe("the admin's report", () => {
   // (15, 8 and 5), 16 ordered and 13 collected (11 and 2).
   test("shows what became of the portions, by day and by store", async ({ page }) => {
     await page.goto("/vi/admin/reports");
-    const products = page.getByRole("region", { name: "Sản phẩm" });
+    const products = page.getByRole("region", { name: "Sản phẩm", exact: true });
     await expect(products.getByText("6 món đăng")).toBeVisible();
     await expect(products.getByText("trong 13 đơn")).toBeVisible();
     await expect(products.getByText("10 đơn đã lấy")).toBeVisible();
@@ -236,7 +238,8 @@ test.describe("the admin's report", () => {
     await page.goto("/vi/admin/reports");
     await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
     const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
-    await dialog.getByRole("radio", { name: /^CSV/ }).click();
+    // The choice is pressed where a person presses it: its icon covers the radio until chosen.
+    await dialog.getByText("CSV", { exact: true }).click();
     await expect(dialog.getByRole("checkbox", { name: "Sản phẩm" })).toBeHidden();
     const link = dialog.getByRole("link", { name: "Xuất" });
     await expect(link).toHaveAttribute("href", /^\/api\/admin\/reports\/export\?/);
@@ -252,7 +255,8 @@ test.describe("the admin's report", () => {
     await page.goto("/vi/admin/reports");
     await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
     const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
-    await dialog.getByRole("radio", { name: /^Excel/ }).click();
+    // The choice is pressed where a person presses it: its icon covers the radio until chosen.
+    await dialog.getByText("Excel", { exact: true }).click();
     const link = dialog.getByRole("link", { name: "Xuất" });
     await expect(link).toHaveAttribute("href", /^\/api\/admin\/reports\/workbook\?/);
 
@@ -277,7 +281,7 @@ test.describe("the admin's report", () => {
       page.getByRole("heading", { level: 1, name: "Báo cáo Second Bite" }),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Lưu PDF" })).toBeVisible();
-    await expect(page.getByRole("region", { name: "Sản phẩm" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Sản phẩm", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Tác động" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Theo loại món" })).toBeVisible();
     await expect(
@@ -322,7 +326,8 @@ test.describe("the admin's report", () => {
     await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
     const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
     await expect(dialog).toContainText("18:30–21:15");
-    await dialog.getByRole("radio", { name: /^CSV/ }).click();
+    // The choice is pressed where a person presses it: its icon covers the radio until chosen.
+    await dialog.getByText("CSV", { exact: true }).click();
     await expect(dialog.getByRole("link", { name: "Xuất" })).toHaveAttribute(
       "href",
       /timeFrom=18%3A30&timeUntil=21%3A15/,
