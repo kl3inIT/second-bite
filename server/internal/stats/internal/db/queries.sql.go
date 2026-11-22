@@ -232,3 +232,43 @@ func (q *Queries) ViewDays(ctx context.Context, arg ViewDaysParams) ([]ViewDaysR
 	}
 	return items, nil
 }
+
+const viewSources = `-- name: ViewSources :many
+SELECT source, count(*) AS views
+FROM stats_views
+WHERE day BETWEEN $1 AND $2
+GROUP BY source
+ORDER BY views DESC, source
+`
+
+type ViewSourcesParams struct {
+	Since pgtype.Date
+	Until pgtype.Date
+}
+
+type ViewSourcesRow struct {
+	Source string
+	Views  int64
+}
+
+// The views of the days given by where they came from (utm_source, empty for none), the most first, for the admin's
+// analysis.
+func (q *Queries) ViewSources(ctx context.Context, arg ViewSourcesParams) ([]ViewSourcesRow, error) {
+	rows, err := q.db.Query(ctx, viewSources, arg.Since, arg.Until)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ViewSourcesRow
+	for rows.Next() {
+		var i ViewSourcesRow
+		if err := rows.Scan(&i.Source, &i.Views); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

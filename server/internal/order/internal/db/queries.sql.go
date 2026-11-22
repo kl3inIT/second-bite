@@ -415,6 +415,53 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 	return items, nil
 }
 
+const customerVisits = `-- name: CustomerVisits :many
+SELECT least(visits, 3)::int AS visits, count(*) AS customers
+FROM (
+    SELECT count(*) AS visits
+    FROM order_orders
+    WHERE customer_phone <> '' AND state = 'collected'
+      AND window_start >= $1 AND window_start < $2
+      AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+    GROUP BY customer_phone
+) AS c
+GROUP BY 1
+ORDER BY 1
+`
+
+type CustomerVisitsParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type CustomerVisitsRow struct {
+	Visits    int32
+	Customers int64
+}
+
+// The customers, told apart by phone number, with orders handed over in [since, until), by how many of those orders
+// each had: 1, 2, or 3 and more (counted as 3). An order whose contact was forgotten counts for nobody.
+func (q *Queries) CustomerVisits(ctx context.Context, arg CustomerVisitsParams) ([]CustomerVisitsRow, error) {
+	rows, err := q.db.Query(ctx, customerVisits, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CustomerVisitsRow
+	for rows.Next() {
+		var i CustomerVisitsRow
+		if err := rows.Scan(&i.Visits, &i.Customers); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteChatsEndedBefore = `-- name: DeleteChatsEndedBefore :execrows
 DELETE FROM order_chats
 WHERE order_id IN (SELECT id FROM order_orders WHERE window_end < $1)
@@ -1844,6 +1891,92 @@ func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDa
 	return items, nil
 }
 
+const orderFailures = `-- name: OrderFailures :many
+SELECT CASE
+           WHEN state = 'refused' THEN 'refused_' || refuse_reason
+           WHEN state = 'cancelled' THEN 'cancelled'
+           ELSE 'expired'
+       END::text AS ending,
+       count(*) AS orders
+FROM order_orders
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND (state IN ('cancelled', 'refused', 'expired') OR (state IN ('confirmed', 'ready') AND window_end <= now()))
+GROUP BY 1
+ORDER BY 1
+`
+
+type OrderFailuresParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type OrderFailuresRow struct {
+	Ending string
+	Orders int64
+}
+
+// How the orders of [since, until) that were not collected ended: cancelled, expired (an order still to collect whose
+// window is over too), or refused for each reason; the open ones are left out.
+func (q *Queries) OrderFailures(ctx context.Context, arg OrderFailuresParams) ([]OrderFailuresRow, error) {
+	rows, err := q.db.Query(ctx, orderFailures, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderFailuresRow
+	for rows.Next() {
+		var i OrderFailuresRow
+		if err := rows.Scan(&i.Ending, &i.Orders); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const orderLeadTimes = `-- name: OrderLeadTimes :one
+SELECT count(*) FILTER (WHERE window_start - created_at < interval '30 minutes') AS under_half_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '30 minutes'
+                          AND window_start - created_at < interval '1 hour') AS under_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '1 hour'
+                          AND window_start - created_at < interval '3 hours') AS under_three_hours,
+       count(*) FILTER (WHERE window_start - created_at >= interval '3 hours') AS over_three_hours
+FROM order_orders
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+`
+
+type OrderLeadTimesParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type OrderLeadTimesRow struct {
+	UnderHalfHour   int64
+	UnderHour       int64
+	UnderThreeHours int64
+	OverThreeHours  int64
+}
+
+// How long before its window opened each order of [since, until) was placed, in four bands, for the admin's analysis.
+func (q *Queries) OrderLeadTimes(ctx context.Context, arg OrderLeadTimesParams) (OrderLeadTimesRow, error) {
+	row := q.db.QueryRow(ctx, orderLeadTimes, arg.Since, arg.Until, arg.SellerID)
+	var i OrderLeadTimesRow
+	err := row.Scan(
+		&i.UnderHalfHour,
+		&i.UnderHour,
+		&i.UnderThreeHours,
+		&i.OverThreeHours,
+	)
+	return i, err
+}
+
 const orderOfKey = `-- name: OrderOfKey :one
 SELECT id FROM order_orders
 WHERE customer_id IS NOT DISTINCT FROM $1::uuid AND idempotency_key = $2
@@ -1863,6 +1996,58 @@ func (q *Queries) OrderOfKey(ctx context.Context, arg OrderOfKeyParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const orderSlots = `-- name: OrderSlots :many
+SELECT extract(isodow FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS weekday,
+       extract(hour FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS hour,
+       count(*) AS held,
+       count(*) FILTER (WHERE state = 'collected') AS collected
+FROM order_orders
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+GROUP BY 1, 2
+ORDER BY 1, 2
+`
+
+type OrderSlotsParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type OrderSlotsRow struct {
+	Weekday   int32
+	Hour      int32
+	Held      int64
+	Collected int64
+}
+
+// The orders whose window starts in [since, until), per weekday (1 Monday to 7 Sunday) and hour in Vietnam of the
+// window's start, and how many of them were collected, for the admin's analysis.
+func (q *Queries) OrderSlots(ctx context.Context, arg OrderSlotsParams) ([]OrderSlotsRow, error) {
+	rows, err := q.db.Query(ctx, orderSlots, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderSlotsRow
+	for rows.Next() {
+		var i OrderSlotsRow
+		if err := rows.Scan(
+			&i.Weekday,
+			&i.Hour,
+			&i.Held,
+			&i.Collected,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const ordersForAdmins = `-- name: OrdersForAdmins :many
@@ -2160,6 +2345,48 @@ func (q *Queries) ProblemExists(ctx context.Context, orderID uuid.UUID) (bool, e
 	return exists, err
 }
 
+const problemKindCounts = `-- name: ProblemKindCounts :many
+SELECT p.kind, count(*) AS orders
+FROM order_problems AS p
+JOIN order_orders AS o ON o.id = p.order_id
+WHERE o.window_start >= $1 AND o.window_start < $2
+  AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+GROUP BY 1
+ORDER BY 1
+`
+
+type ProblemKindCountsParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type ProblemKindCountsRow struct {
+	Kind   string
+	Orders int64
+}
+
+// How many orders of [since, until) their customers reported each kind of problem on (SEC-84).
+func (q *Queries) ProblemKindCounts(ctx context.Context, arg ProblemKindCountsParams) ([]ProblemKindCountsRow, error) {
+	rows, err := q.db.Query(ctx, problemKindCounts, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProblemKindCountsRow
+	for rows.Next() {
+		var i ProblemKindCountsRow
+		if err := rows.Scan(&i.Kind, &i.Orders); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const problemsOf = `-- name: ProblemsOf :many
 SELECT order_id, kind, note, reported_at, answer, answered_at
 FROM order_problems WHERE order_id = ANY ($1::uuid[])
@@ -2393,6 +2620,49 @@ func (q *Queries) RedeemLiveTicket(ctx context.Context, arg RedeemLiveTicketPara
 	var topic string
 	err := row.Scan(&topic)
 	return topic, err
+}
+
+const reviewTagCounts = `-- name: ReviewTagCounts :many
+SELECT tag::text AS tag, count(*) AS reviews
+FROM order_reviews AS r
+JOIN order_orders AS o ON o.id = r.order_id
+CROSS JOIN LATERAL unnest(r.tags) AS tag
+WHERE o.window_start >= $1 AND o.window_start < $2
+  AND ($3::uuid IS NULL OR o.seller_id = $3::uuid)
+GROUP BY 1
+ORDER BY 1
+`
+
+type ReviewTagCountsParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type ReviewTagCountsRow struct {
+	Tag     string
+	Reviews int64
+}
+
+// How often each tag praises the orders of [since, until), hidden reviews included.
+func (q *Queries) ReviewTagCounts(ctx context.Context, arg ReviewTagCountsParams) ([]ReviewTagCountsRow, error) {
+	rows, err := q.db.Query(ctx, reviewTagCounts, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReviewTagCountsRow
+	for rows.Next() {
+		var i ReviewTagCountsRow
+		if err := rows.Scan(&i.Tag, &i.Reviews); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const reviewsForAdmins = `-- name: ReviewsForAdmins :many

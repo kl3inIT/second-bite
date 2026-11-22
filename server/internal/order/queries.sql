@@ -469,6 +469,83 @@ WHERE o.window_start >= @since AND o.window_start < @until
 GROUP BY 1, 2, 3
 ORDER BY 1, 2, 3;
 
+-- name: OrderSlots :many
+-- The orders whose window starts in [since, until), per weekday (1 Monday to 7 Sunday) and hour in Vietnam of the
+-- window's start, and how many of them were collected, for the admin's analysis.
+SELECT extract(isodow FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS weekday,
+       extract(hour FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS hour,
+       count(*) AS held,
+       count(*) FILTER (WHERE state = 'collected') AS collected
+FROM order_orders
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+GROUP BY 1, 2
+ORDER BY 1, 2;
+
+-- name: OrderLeadTimes :one
+-- How long before its window opened each order of [since, until) was placed, in four bands, for the admin's analysis.
+SELECT count(*) FILTER (WHERE window_start - created_at < interval '30 minutes') AS under_half_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '30 minutes'
+                          AND window_start - created_at < interval '1 hour') AS under_hour,
+       count(*) FILTER (WHERE window_start - created_at >= interval '1 hour'
+                          AND window_start - created_at < interval '3 hours') AS under_three_hours,
+       count(*) FILTER (WHERE window_start - created_at >= interval '3 hours') AS over_three_hours
+FROM order_orders
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid);
+
+-- name: OrderFailures :many
+-- How the orders of [since, until) that were not collected ended: cancelled, expired (an order still to collect whose
+-- window is over too), or refused for each reason; the open ones are left out.
+SELECT CASE
+           WHEN state = 'refused' THEN 'refused_' || refuse_reason
+           WHEN state = 'cancelled' THEN 'cancelled'
+           ELSE 'expired'
+       END::text AS ending,
+       count(*) AS orders
+FROM order_orders
+WHERE window_start >= @since AND window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (state IN ('cancelled', 'refused', 'expired') OR (state IN ('confirmed', 'ready') AND window_end <= now()))
+GROUP BY 1
+ORDER BY 1;
+
+-- name: CustomerVisits :many
+-- The customers, told apart by phone number, with orders handed over in [since, until), by how many of those orders
+-- each had: 1, 2, or 3 and more (counted as 3). An order whose contact was forgotten counts for nobody.
+SELECT least(visits, 3)::int AS visits, count(*) AS customers
+FROM (
+    SELECT count(*) AS visits
+    FROM order_orders
+    WHERE customer_phone <> '' AND state = 'collected'
+      AND window_start >= @since AND window_start < @until
+      AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+    GROUP BY customer_phone
+) AS c
+GROUP BY 1
+ORDER BY 1;
+
+-- name: ReviewTagCounts :many
+-- How often each tag praises the orders of [since, until), hidden reviews included.
+SELECT tag::text AS tag, count(*) AS reviews
+FROM order_reviews AS r
+JOIN order_orders AS o ON o.id = r.order_id
+CROSS JOIN LATERAL unnest(r.tags) AS tag
+WHERE o.window_start >= @since AND o.window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+GROUP BY 1
+ORDER BY 1;
+
+-- name: ProblemKindCounts :many
+-- How many orders of [since, until) their customers reported each kind of problem on (SEC-84).
+SELECT p.kind, count(*) AS orders
+FROM order_problems AS p
+JOIN order_orders AS o ON o.id = p.order_id
+WHERE o.window_start >= @since AND o.window_start < @until
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+GROUP BY 1
+ORDER BY 1;
+
 -- name: InsertProblem :execrows
 -- Nothing is inserted when the order was already reported (SEC-84).
 INSERT INTO order_problems (order_id, kind, note) VALUES (@order_id, @kind, @note)

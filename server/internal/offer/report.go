@@ -73,3 +73,42 @@ func (s *Service) WeightsOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 
 	return weights, nil
 }
+
+// Post is an offer as the admin's analysis reads it.
+type Post struct {
+	ID, SellerID     uuid.UUID
+	SellerName, Name string
+	Unit             string
+	Kind             Kind
+	Units, UnitsLeft int
+	// PriceVND and OriginalPriceVND give its discount; 0 is food given away.
+	PriceVND, OriginalPriceVND int64
+	PostedAt                   time.Time
+	// Ended is true once it is closed, withdrawn or its window is over.
+	Ended bool
+}
+
+// PostsBetween answers the offers whose window starts in [since, until); one
+// seller's only when sellerID is set.
+func (s *Service) PostsBetween(ctx context.Context, since, until time.Time, sellerID *uuid.UUID) ([]Post, error) {
+	params := db.PostsBetweenParams{Since: since, Until: until}
+	if sellerID != nil {
+		params.SellerID = uuid.NullUUID{UUID: *sellerID, Valid: true}
+	}
+
+	rows, err := s.queries.PostsBetween(ctx, params)
+	if err != nil {
+		return nil, fmt.Errorf("reading the offers posted: %w", err)
+	}
+
+	posts := make([]Post, len(rows))
+	for i, r := range rows {
+		posts[i] = Post{
+			ID: r.ID, SellerID: r.SellerID, SellerName: r.SellerName, Name: r.Name, Unit: r.Unit, Kind: Kind(r.Kind),
+			Units: int(r.Units), UnitsLeft: int(r.UnitsLeft), PriceVND: r.PriceVnd, OriginalPriceVND: r.OriginalPriceVnd,
+			PostedAt: r.CreatedAt, Ended: r.Ended,
+		}
+	}
+
+	return posts, nil
+}

@@ -25,6 +25,15 @@ WHERE day BETWEEN @since AND @until
 GROUP BY day
 ORDER BY day;
 
+-- name: ViewSources :many
+-- The views of the days given by where they came from (utm_source, empty for none), the most first, for the admin's
+-- analysis.
+SELECT source, count(*) AS views
+FROM stats_views
+WHERE day BETWEEN @since AND @until
+GROUP BY source
+ORDER BY views DESC, source;
+
 -- name: OfferSubjects :many
 -- The dishes whose pages were opened, whose store the report asks offer for.
 SELECT DISTINCT subject_id::uuid FROM stats_views

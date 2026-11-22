@@ -91,6 +91,7 @@ func testReportCounts(t *testing.T, f fixture) {
 	}
 
 	checkOfferOutcomes(t, f, since.AddDate(0, 0, -1), until, shop, bread.ID)
+	checkAnalysisReads(t, f, since.AddDate(0, 0, -1), until, shop)
 
 	checkReportReads(t, f, since, until, bread.ID, shop, other)
 }
@@ -123,6 +124,43 @@ func checkOfferOutcomes(t *testing.T, f fixture, since, until time.Time, shop, b
 	weights, err := f.offers.WeightsOf(t.Context(), []uuid.UUID{bread})
 	if err != nil || len(weights) != 0 {
 		t.Errorf("a bread without a weight has none: %v, %v", weights, err)
+	}
+}
+
+// checkAnalysisReads reads what the analysis asks of order and offer: the
+// four orders by slot and how early they were placed, the cancelled and the
+// expired one as failures, the one customer who collected once, and the
+// store's two posts.
+func checkAnalysisReads(t *testing.T, f fixture, since, until time.Time, shop uuid.UUID) {
+	t.Helper()
+
+	a, err := f.orders.Analysis(t.Context(), since, until, &shop)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	held, collected := 0, 0
+	for _, sl := range a.Slots {
+		held += sl.Held
+		collected += sl.Collected
+	}
+
+	lead := a.LeadTimes.UnderHalfHour + a.LeadTimes.UnderHour + a.LeadTimes.UnderThreeHours + a.LeadTimes.OverThreeHours
+	if held != 4 || collected != 1 || lead != 4 {
+		t.Errorf("slots hold %d orders, %d collected, %d timed; want 4, 1 and 4", held, collected, lead)
+	}
+
+	if a.Failures["cancelled"] != 1 || a.Failures["expired"] != 1 || len(a.Failures) != 2 {
+		t.Errorf("failures %v, want one cancelled and one expired", a.Failures)
+	}
+
+	if a.Visits[1] != 1 || len(a.Visits) != 1 || len(a.Tags) != 0 || len(a.Problems) != 0 {
+		t.Errorf("visits %v, tags %v, problems %v", a.Visits, a.Tags, a.Problems)
+	}
+
+	posts, err := f.offers.PostsBetween(t.Context(), since, until, &shop)
+	if err != nil || len(posts) != 2 || posts[0].SellerID != shop || posts[0].OriginalPriceVND != 2*posts[0].PriceVND {
+		t.Errorf("the store's posts %+v, %v", posts, err)
 	}
 }
 

@@ -770,6 +770,71 @@ func (q *Queries) PostDays(ctx context.Context, arg PostDaysParams) ([]PostDaysR
 	return items, nil
 }
 
+const postsBetween = `-- name: PostsBetween :many
+SELECT id, seller_id, seller_name, name, unit, kind, units, units_left, price_vnd, original_price_vnd, created_at,
+       (state <> 'on_sale' OR window_end <= now())::boolean AS ended
+FROM offer_offers
+WHERE window_start >= $1 AND window_start < $2
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+ORDER BY window_start, id
+`
+
+type PostsBetweenParams struct {
+	Since    time.Time
+	Until    time.Time
+	SellerID uuid.NullUUID
+}
+
+type PostsBetweenRow struct {
+	ID               uuid.UUID
+	SellerID         uuid.UUID
+	SellerName       string
+	Name             string
+	Unit             string
+	Kind             string
+	Units            int32
+	UnitsLeft        int32
+	PriceVnd         int64
+	OriginalPriceVnd int64
+	CreatedAt        time.Time
+	Ended            bool
+}
+
+// The offers whose window starts in [since, until), of the seller given, with what the admin's analysis reads of
+// each: its dish, kind, units, prices, when it was posted and whether it has ended.
+func (q *Queries) PostsBetween(ctx context.Context, arg PostsBetweenParams) ([]PostsBetweenRow, error) {
+	rows, err := q.db.Query(ctx, postsBetween, arg.Since, arg.Until, arg.SellerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PostsBetweenRow
+	for rows.Next() {
+		var i PostsBetweenRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SellerID,
+			&i.SellerName,
+			&i.Name,
+			&i.Unit,
+			&i.Kind,
+			&i.Units,
+			&i.UnitsLeft,
+			&i.PriceVnd,
+			&i.OriginalPriceVnd,
+			&i.CreatedAt,
+			&i.Ended,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const putSettings = `-- name: PutSettings :exec
 UPDATE offer_settings
 SET min_discount_percent = $1, default_radius_km = $2,
