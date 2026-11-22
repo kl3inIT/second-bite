@@ -135,8 +135,11 @@ test.describe("the admin's report", () => {
     );
 
     await page.getByRole("combobox", { name: "Cửa hàng" }).click();
-    // Chosen by typing, as a phone's list can still move under a press while the filter row reflows.
-    await page.keyboard.type("Panda");
+    // Chosen with the arrow keys: on a phone the list opens aligned on the chosen store and a press can land on
+    // the store beside it once the filter row wraps.
+    const panda = page.getByRole("option", { name: "Panda Chef" });
+    for (let i = 0; i < 30 && (await panda.getAttribute("data-highlighted")) === null; i++)
+      await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/store=/);
     await expect(table.getByRole("row")).toHaveCount(2);
