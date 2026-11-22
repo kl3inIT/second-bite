@@ -902,6 +902,49 @@ export type OfferSettingsBody = {
     windowMinMinutes: number;
 };
 
+export type OfferUnitsOutputBody = {
+    /**
+     * Units handed over
+     */
+    collected: number;
+    /**
+     * Orders handed over that hold them
+     */
+    collectedOrders: number;
+    /**
+     * Units of orders still to collect, their window not over
+     */
+    held: number;
+    /**
+     * Orders still to collect that hold them
+     */
+    heldOrders: number;
+    /**
+     * Units nobody holds: units_left of the offers
+     */
+    left: number;
+    /**
+     * Of left, those on offers closed, withdrawn or whose window is over
+     */
+    leftover: number;
+    /**
+     * Units of orders ended without a hand-over that did not come back: expired, or refused for anything but the customer not coming
+     */
+    missed: number;
+    /**
+     * Orders that lost them
+     */
+    missedOrders: number;
+    /**
+     * Their units
+     */
+    posted: number;
+    /**
+     * Offers matching the filters
+     */
+    posts: number;
+};
+
 export type OffersOutputBody = {
     offers: Array<OfferBody>;
 };
@@ -2321,6 +2364,52 @@ export type SaveOfferSettingsResponses = {
 };
 
 export type SaveOfferSettingsResponse = SaveOfferSettingsResponses[keyof SaveOfferSettingsResponses];
+
+export type GetOfferUnitsForAdminsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Keep this status; every status when absent
+         */
+        status?: 'on_sale' | 'sold_out' | 'closed' | 'withdrawn';
+        /**
+         * Words of the dish, the seller's name or the description
+         */
+        q?: string;
+        /**
+         * Keep this seller's offers
+         */
+        sellerId?: string;
+        /**
+         * Keep the offers posted at or after this time
+         */
+        postedSince?: string;
+        /**
+         * Keep the offers posted before this time
+         */
+        postedUntil?: string;
+    };
+    url: '/admin/offer-units';
+};
+
+export type GetOfferUnitsForAdminsErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetOfferUnitsForAdminsError = GetOfferUnitsForAdminsErrors[keyof GetOfferUnitsForAdminsErrors];
+
+export type GetOfferUnitsForAdminsResponses = {
+    /**
+     * OK
+     */
+    200: OfferUnitsOutputBody;
+};
+
+export type GetOfferUnitsForAdminsResponse = GetOfferUnitsForAdminsResponses[keyof GetOfferUnitsForAdminsResponses];
 
 export type ListOffersForAdminsData = {
     body?: never;
