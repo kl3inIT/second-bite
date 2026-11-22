@@ -80,15 +80,12 @@ export function UnitsBox({ units }: { units: OfferUnits }) {
   ] as const;
 
   return (
-    <section
-      id={boxId}
-      aria-labelledby={`${boxId}-title`}
-      className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:px-5"
-    >
-      <h2 id={`${boxId}-title`} className="text-title text-foreground">
+    <section id={boxId} aria-labelledby={`${boxId}-title`} className="flex flex-col gap-3">
+      {/* The title stands over the box, not inside it (asked on 22 November 2026). */}
+      <h2 id={`${boxId}-title`} className="text-title-lg text-foreground">
         {t("title")}
       </h2>
-      <dl className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5 xl:gap-0 xl:divide-x xl:divide-border">
+      <dl className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-card p-4 md:grid-cols-3 md:px-5 xl:grid-cols-5 xl:gap-0 xl:divide-x xl:divide-border">
         {figures.map((f) => (
           <div
             key={f.key}
