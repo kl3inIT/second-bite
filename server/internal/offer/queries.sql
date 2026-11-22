@@ -102,6 +102,8 @@ WHERE (@status::text = ''
        OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
   AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
   AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz)
 ORDER BY created_at DESC, id
@@ -116,6 +118,8 @@ WHERE (@status::text = ''
        OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
   AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
   AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
 
@@ -129,6 +133,8 @@ SELECT count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units
 FROM offer_offers
 WHERE (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
   AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
 
@@ -145,6 +151,8 @@ WHERE (@status::text = ''
        OR (@status = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
   AND (@query::text = '' OR search_vector @@ (@query::text)::tsquery)
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(posted_since)::timestamptz IS NULL OR created_at >= sqlc.narg(posted_since)::timestamptz)
   AND (sqlc.narg(posted_until)::timestamptz IS NULL OR created_at < sqlc.narg(posted_until)::timestamptz);
 
@@ -253,6 +261,8 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
 FROM offer_offers
 WHERE window_start >= @since AND window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 GROUP BY 1, 2
 ORDER BY 1, 2;
 
@@ -267,6 +277,8 @@ SELECT id, seller_id, seller_name, name, unit, kind, units, units_left, price_vn
 FROM offer_offers
 WHERE window_start >= @since AND window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 ORDER BY window_start, id;
 
 -- name: WeightsOfOffers :many

@@ -8,6 +8,8 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
+
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // defaultReportDays is the range a report reads when none is asked: the last
@@ -15,9 +17,11 @@ import (
 const defaultReportDays = 7
 
 type reportInput struct {
-	Since    string    `query:"since"    doc:"The first day in Vietnam, YYYY-MM-DD; six days before until when empty" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
-	Until    string    `query:"until"    doc:"The last day in Vietnam, YYYY-MM-DD, included; today when empty"         pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
-	SellerID uuid.UUID `query:"sellerId" doc:"Keep one store's numbers; the views are then its page's and its dishes'"`
+	Since     string    `query:"since"    doc:"The first day in Vietnam, YYYY-MM-DD; six days before until when empty" pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
+	Until     string    `query:"until"    doc:"The last day in Vietnam, YYYY-MM-DD, included; today when empty"         pattern:"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"`
+	SellerID  uuid.UUID `query:"sellerId" doc:"Keep one store's numbers; the views are then its page's and its dishes'"`
+	TimeFrom  string    `query:"timeFrom"  doc:"Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil" pattern:"^([01][0-9]|2[0-3]):[0-5][0-9]$"`
+	TimeUntil string    `query:"timeUntil" doc:"Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's" pattern:"^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$"`
 }
 
 type countsBody struct {
@@ -208,6 +212,13 @@ func reportFilter(in *reportInput, today time.Time) (ReportFilter, error) {
 	if in.SellerID != uuid.Nil {
 		f.SellerID = &in.SellerID
 	}
+
+	clock, ok := platform.ParseClock(in.TimeFrom, in.TimeUntil)
+	if !ok {
+		return ReportFilter{}, ErrReportRangeInvalid
+	}
+
+	f.Clock = clock
 
 	return f, nil
 }

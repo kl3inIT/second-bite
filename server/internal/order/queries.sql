@@ -99,6 +99,8 @@ WHERE (cardinality(@statuses::text[]) = 0
           = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz)
 ORDER BY window_start DESC, number DESC
@@ -111,6 +113,8 @@ WHERE (cardinality(@statuses::text[]) = 0
           = ANY (@statuses::text[]))
   AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);
 
@@ -128,6 +132,8 @@ FROM order_orders
 WHERE true
   AND (@query::text = '' OR search_text LIKE '%' || order_fold(@query::text) || '%' ESCAPE '\')
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (sqlc.narg(collect_since)::timestamptz IS NULL OR window_start >= sqlc.narg(collect_since)::timestamptz)
   AND (sqlc.narg(collect_until)::timestamptz IS NULL OR window_start < sqlc.narg(collect_until)::timestamptz);
 
@@ -408,6 +414,8 @@ WITH placed AS (
     FROM order_orders o
     WHERE o.window_start >= @since AND o.window_start < @until
       AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+      AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+      AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 )
 SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) AS held,
@@ -466,6 +474,8 @@ FROM order_lines AS l
 JOIN order_orders AS o ON o.id = l.order_id
 WHERE o.window_start >= @since AND o.window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 GROUP BY 1, 2, 3
 ORDER BY 1, 2, 3;
 
@@ -479,6 +489,8 @@ SELECT extract(isodow FROM window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS
 FROM order_orders
 WHERE window_start >= @since AND window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 GROUP BY 1, 2
 ORDER BY 1, 2;
 
@@ -492,7 +504,9 @@ SELECT count(*) FILTER (WHERE window_start - created_at < interval '30 minutes')
        count(*) FILTER (WHERE window_start - created_at >= interval '3 hours') AS over_three_hours
 FROM order_orders
 WHERE window_start >= @since AND window_start < @until
-  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid);
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time);
 
 -- name: OrderFailures :many
 -- How the orders of [since, until) that were not collected ended: cancelled, expired (an order still to collect whose
@@ -506,6 +520,8 @@ SELECT CASE
 FROM order_orders
 WHERE window_start >= @since AND window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
   AND (state IN ('cancelled', 'refused', 'expired') OR (state IN ('confirmed', 'ready') AND window_end <= now()))
 GROUP BY 1
 ORDER BY 1;
@@ -520,6 +536,8 @@ FROM (
     WHERE customer_phone <> '' AND state = 'collected'
       AND window_start >= @since AND window_start < @until
       AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+      AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+      AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
     GROUP BY customer_phone
 ) AS c
 GROUP BY 1
@@ -533,6 +551,8 @@ JOIN order_orders AS o ON o.id = r.order_id
 CROSS JOIN LATERAL unnest(r.tags) AS tag
 WHERE o.window_start >= @since AND o.window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 GROUP BY 1
 ORDER BY 1;
 
@@ -543,6 +563,8 @@ FROM order_problems AS p
 JOIN order_orders AS o ON o.id = p.order_id
 WHERE o.window_start >= @since AND o.window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR o.seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (o.window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
 GROUP BY 1
 ORDER BY 1;
 

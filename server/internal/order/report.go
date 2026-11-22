@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // DayCounts is how one seller's orders of one collection day ended, for the
@@ -28,11 +29,14 @@ type DayCounts struct {
 	Cancelled, Refused, Expired int
 }
 
-// OrderDays counts the orders whose window starts in [since, until), per
+// OrderDays counts the orders whose window starts in [since, until), and in
+// clock's part of the day, per
 // collection day and seller; one seller's only when sellerID is set. An order
 // confirmed or ready whose window is over counts as expired.
-func (s *Service) OrderDays(ctx context.Context, since, until time.Time, sellerID *uuid.UUID) ([]DayCounts, error) {
+func (s *Service) OrderDays(ctx context.Context, since, until time.Time, sellerID *uuid.UUID, clock platform.Clock) ([]DayCounts, error) {
 	params := db.OrderDaysParams{Since: since, Until: until}
+
+	params.TimeFrom, params.TimeUntil = clock.Bounds()
 	if sellerID != nil {
 		params.SellerID = uuid.NullUUID{UUID: *sellerID, Valid: true}
 	}
@@ -123,8 +127,10 @@ type OfferOutcome struct {
 // OfferOutcomes answers what the orders whose window starts in [since, until)
 // took of each offer, per collection day and seller; one seller's only when
 // sellerID is set.
-func (s *Service) OfferOutcomes(ctx context.Context, since, until time.Time, sellerID *uuid.UUID) ([]OfferOutcome, error) {
+func (s *Service) OfferOutcomes(ctx context.Context, since, until time.Time, sellerID *uuid.UUID, clock platform.Clock) ([]OfferOutcome, error) {
 	params := db.OfferOutcomesParams{Since: since, Until: until}
+
+	params.TimeFrom, params.TimeUntil = clock.Bounds()
 	if sellerID != nil {
 		params.SellerID = uuid.NullUUID{UUID: *sellerID, Valid: true}
 	}

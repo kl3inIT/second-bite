@@ -149,10 +149,15 @@ func summaryRows(r Report, oneStore bool) [][]any {
 		scope = r.Stores[0].Name
 	}
 
+	hours := "Cả ngày"
+	if !r.Clock.IsZero() {
+		hours = r.Clock.From + " đến " + r.Clock.Until
+	}
+
 	rows := [][]any{
 		{"Báo cáo Second Bite", r.Since.Format(time.DateOnly) + " đến " + r.Until.Format(time.DateOnly)},
 		{"Cửa hàng", scope},
-		{},
+		{"Khung giờ nhận", hours},
 		{"Người truy cập", c.People},
 		{"Lượt mở trang", c.Views},
 		{"Lượt vào từ QR", c.QRViews},

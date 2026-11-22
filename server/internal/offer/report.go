@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kl3inIT/second-bite/server/internal/offer/internal/db"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 // PostDay is what one seller posted for one collection day, for the admin's
@@ -21,10 +22,13 @@ type PostDay struct {
 }
 
 // PostDays counts the offers and units posted whose window starts in
-// [since, until), per collection day and seller; one seller's only when
-// sellerID is set. Every offer counts, whatever became of it.
-func (s *Service) PostDays(ctx context.Context, since, until time.Time, sellerID *uuid.UUID) ([]PostDay, error) {
+// [since, until), and in clock's part of the day, per collection day and
+// seller; one seller's only when sellerID is set. Every offer counts,
+// whatever became of it.
+func (s *Service) PostDays(ctx context.Context, since, until time.Time, sellerID *uuid.UUID, clock platform.Clock) ([]PostDay, error) {
 	params := db.PostDaysParams{Since: since, Until: until}
+
+	params.TimeFrom, params.TimeUntil = clock.Bounds()
 	if sellerID != nil {
 		params.SellerID = uuid.NullUUID{UUID: *sellerID, Valid: true}
 	}
@@ -88,10 +92,12 @@ type Post struct {
 	Ended bool
 }
 
-// PostsBetween answers the offers whose window starts in [since, until); one
-// seller's only when sellerID is set.
-func (s *Service) PostsBetween(ctx context.Context, since, until time.Time, sellerID *uuid.UUID) ([]Post, error) {
+// PostsBetween answers the offers whose window starts in [since, until), and
+// in clock's part of the day; one seller's only when sellerID is set.
+func (s *Service) PostsBetween(ctx context.Context, since, until time.Time, sellerID *uuid.UUID, clock platform.Clock) ([]Post, error) {
 	params := db.PostsBetweenParams{Since: since, Until: until}
+
+	params.TimeFrom, params.TimeUntil = clock.Bounds()
 	if sellerID != nil {
 		params.SellerID = uuid.NullUUID{UUID: *sellerID, Valid: true}
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/kl3inIT/second-bite/server/internal/offer"
+	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
 
 type offerUnitsOutput struct {
@@ -41,9 +42,20 @@ func registerAdminUnitsOperations(admin huma.API, s *Service) {
 
 		PostedSince time.Time `query:"postedSince" doc:"Keep the offers posted at or after this time"`
 		PostedUntil time.Time `query:"postedUntil" doc:"Keep the offers posted before this time"`
+
+		TimeFrom  string `query:"timeFrom"  doc:"Keep those whose window starts at or after this time of each day in Vietnam, HH:MM; with timeUntil" pattern:"^([01][0-9]|2[0-3]):[0-5][0-9]$"`
+		TimeUntil string `query:"timeUntil" doc:"Keep those whose window starts before this time of each day, HH:MM or 24:00" pattern:"^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$"`
 	},
 	) (*offerUnitsOutput, error) {
 		f := offer.AdminFilter{Status: in.Status, Query: in.Q, SellerID: in.SellerID}
+
+		clock, ok := platform.ParseClock(in.TimeFrom, in.TimeUntil)
+		if !ok {
+			return nil, offer.ErrAdminListInvalid
+		}
+
+		f.Clock = clock
+
 		if !in.PostedSince.IsZero() {
 			f.PostedSince = &in.PostedSince
 		}

@@ -46,13 +46,17 @@ SELECT count(*) FILTER (WHERE state = 'on_sale' AND window_end > now() AND units
 FROM offer_offers
 WHERE ($1::text = '' OR search_vector @@ ($1::text)::tsquery)
   AND ($2::uuid IS NULL OR seller_id = $2::uuid)
-  AND ($3::timestamptz IS NULL OR created_at >= $3::timestamptz)
-  AND ($4::timestamptz IS NULL OR created_at < $4::timestamptz)
+  AND ($3::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $3::text::time)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $4::text::time)
+  AND ($5::timestamptz IS NULL OR created_at >= $5::timestamptz)
+  AND ($6::timestamptz IS NULL OR created_at < $6::timestamptz)
 `
 
 type CountOffersByStatusParams struct {
 	Query       string
 	SellerID    uuid.NullUUID
+	TimeFrom    pgtype.Text
+	TimeUntil   pgtype.Text
 	PostedSince *time.Time
 	PostedUntil *time.Time
 }
@@ -70,6 +74,8 @@ func (q *Queries) CountOffersByStatus(ctx context.Context, arg CountOffersByStat
 	row := q.db.QueryRow(ctx, countOffersByStatus,
 		arg.Query,
 		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
 		arg.PostedSince,
 		arg.PostedUntil,
 	)
@@ -92,14 +98,18 @@ WHERE ($1::text = ''
        OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
   AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
-  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
-  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+  AND ($6::timestamptz IS NULL OR created_at >= $6::timestamptz)
+  AND ($7::timestamptz IS NULL OR created_at < $7::timestamptz)
 `
 
 type CountOffersForAdminsParams struct {
 	Status      string
 	Query       string
 	SellerID    uuid.NullUUID
+	TimeFrom    pgtype.Text
+	TimeUntil   pgtype.Text
 	PostedSince *time.Time
 	PostedUntil *time.Time
 }
@@ -109,6 +119,8 @@ func (q *Queries) CountOffersForAdmins(ctx context.Context, arg CountOffersForAd
 		arg.Status,
 		arg.Query,
 		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
 		arg.PostedSince,
 		arg.PostedUntil,
 	)
@@ -549,14 +561,18 @@ WHERE ($1::text = ''
        OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
   AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
-  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
-  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+  AND ($6::timestamptz IS NULL OR created_at >= $6::timestamptz)
+  AND ($7::timestamptz IS NULL OR created_at < $7::timestamptz)
 `
 
 type OfferUnitsForAdminsParams struct {
 	Status      string
 	Query       string
 	SellerID    uuid.NullUUID
+	TimeFrom    pgtype.Text
+	TimeUntil   pgtype.Text
 	PostedSince *time.Time
 	PostedUntil *time.Time
 }
@@ -576,6 +592,8 @@ func (q *Queries) OfferUnitsForAdmins(ctx context.Context, arg OfferUnitsForAdmi
 		arg.Status,
 		arg.Query,
 		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
 		arg.PostedSince,
 		arg.PostedUntil,
 	)
@@ -615,16 +633,20 @@ WHERE ($1::text = ''
        OR ($1 = 'on_sale' AND state = 'on_sale' AND window_end > now() AND units_left > 0))
   AND ($2::text = '' OR search_vector @@ ($2::text)::tsquery)
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
-  AND ($4::timestamptz IS NULL OR created_at >= $4::timestamptz)
-  AND ($5::timestamptz IS NULL OR created_at < $5::timestamptz)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+  AND ($6::timestamptz IS NULL OR created_at >= $6::timestamptz)
+  AND ($7::timestamptz IS NULL OR created_at < $7::timestamptz)
 ORDER BY created_at DESC, id
-LIMIT $7 OFFSET $6
+LIMIT $9 OFFSET $8
 `
 
 type OffersForAdminsParams struct {
 	Status      string
 	Query       string
 	SellerID    uuid.NullUUID
+	TimeFrom    pgtype.Text
+	TimeUntil   pgtype.Text
 	PostedSince *time.Time
 	PostedUntil *time.Time
 	SkipRows    int32
@@ -670,6 +692,8 @@ func (q *Queries) OffersForAdmins(ctx context.Context, arg OffersForAdminsParams
 		arg.Status,
 		arg.Query,
 		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
 		arg.PostedSince,
 		arg.PostedUntil,
 		arg.SkipRows,
@@ -727,14 +751,18 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
 FROM offer_offers
 WHERE window_start >= $1 AND window_start < $2
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
 GROUP BY 1, 2
 ORDER BY 1, 2
 `
 
 type PostDaysParams struct {
-	Since    time.Time
-	Until    time.Time
-	SellerID uuid.NullUUID
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
 }
 
 type PostDaysRow struct {
@@ -746,7 +774,13 @@ type PostDaysRow struct {
 
 // The offers posted and their units, per collection day in Vietnam and seller, for the admin's report (SEC-80).
 func (q *Queries) PostDays(ctx context.Context, arg PostDaysParams) ([]PostDaysRow, error) {
-	rows, err := q.db.Query(ctx, postDays, arg.Since, arg.Until, arg.SellerID)
+	rows, err := q.db.Query(ctx, postDays,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -776,13 +810,17 @@ SELECT id, seller_id, seller_name, name, unit, kind, units, units_left, price_vn
 FROM offer_offers
 WHERE window_start >= $1 AND window_start < $2
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
 ORDER BY window_start, id
 `
 
 type PostsBetweenParams struct {
-	Since    time.Time
-	Until    time.Time
-	SellerID uuid.NullUUID
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
 }
 
 type PostsBetweenRow struct {
@@ -803,7 +841,13 @@ type PostsBetweenRow struct {
 // The offers whose window starts in [since, until), of the seller given, with what the admin's analysis reads of
 // each: its dish, kind, units, prices, when it was posted and whether it has ended.
 func (q *Queries) PostsBetween(ctx context.Context, arg PostsBetweenParams) ([]PostsBetweenRow, error) {
-	rows, err := q.db.Query(ctx, postsBetween, arg.Since, arg.Until, arg.SellerID)
+	rows, err := q.db.Query(ctx, postsBetween,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
 	if err != nil {
 		return nil, err
 	}

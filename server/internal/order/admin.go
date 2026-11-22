@@ -92,6 +92,9 @@ type AdminFilter struct {
 	// CollectSince and CollectUntil keep the orders whose window starts in
 	// [CollectSince, CollectUntil); either may be nil.
 	CollectSince, CollectUntil *time.Time
+	// Clock keeps the orders whose window starts in that part of the day;
+	// the zero Clock keeps every one.
+	Clock platform.Clock
 	// Page counts from 1; Size runs from 1 to 100.
 	Page, Size int
 }
@@ -188,7 +191,11 @@ func (f AdminFilter) params() (db.OrdersForAdminsParams, error) {
 		wanted = append(wanted, string(st))
 	}
 
+	from, until := f.Clock.Bounds()
+
 	return db.OrdersForAdminsParams{
+		TimeFrom:     from,
+		TimeUntil:    until,
 		Statuses:     wanted,
 		Query:        escapeLike(query),
 		SellerID:     uuid.NullUUID{UUID: f.SellerID, Valid: f.SellerID != uuid.Nil},

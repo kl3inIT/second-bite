@@ -36,6 +36,9 @@ type AdminFilter struct {
 	// PostedSince and PostedUntil keep the offers posted in
 	// [PostedSince, PostedUntil); either may be nil.
 	PostedSince, PostedUntil *time.Time
+	// Clock keeps the offers whose window starts in that part of the day;
+	// the zero Clock keeps every one.
+	Clock platform.Clock
 	// Page counts from 1; Size runs from 1 to 100.
 	Page, Size int
 }
@@ -74,6 +77,7 @@ func (s *Service) ListForAdmins(ctx context.Context, f AdminFilter) (AdminPage, 
 	total, err := s.queries.CountOffersForAdmins(ctx, db.CountOffersForAdminsParams{
 		Status: params.Status, Query: params.Query, SellerID: params.SellerID,
 		PostedSince: params.PostedSince, PostedUntil: params.PostedUntil,
+		TimeFrom: params.TimeFrom, TimeUntil: params.TimeUntil,
 	})
 	if err != nil {
 		return AdminPage{}, fmt.Errorf("counting the offers: %w", err)
@@ -83,6 +87,7 @@ func (s *Service) ListForAdmins(ctx context.Context, f AdminFilter) (AdminPage, 
 
 	counts, err := s.queries.CountOffersByStatus(ctx, db.CountOffersByStatusParams{
 		Query: params.Query, SellerID: params.SellerID, PostedSince: params.PostedSince, PostedUntil: params.PostedUntil,
+		TimeFrom: params.TimeFrom, TimeUntil: params.TimeUntil,
 	})
 	if err != nil {
 		return AdminPage{}, fmt.Errorf("counting the offers by status: %w", err)
@@ -128,6 +133,7 @@ func (s *Service) UnitsForAdmins(ctx context.Context, f AdminFilter) (AdminUnits
 	rows, err := s.queries.OfferUnitsForAdmins(ctx, db.OfferUnitsForAdminsParams{
 		Status: params.Status, Query: params.Query, SellerID: params.SellerID,
 		PostedSince: params.PostedSince, PostedUntil: params.PostedUntil,
+		TimeFrom: params.TimeFrom, TimeUntil: params.TimeUntil,
 	})
 	if err != nil {
 		return AdminUnits{}, fmt.Errorf("reading the offers' units: %w", err)
@@ -165,7 +171,11 @@ func (f AdminFilter) params() (db.OffersForAdminsParams, error) {
 		return db.OffersForAdminsParams{}, ErrAdminListInvalid
 	}
 
+	from, until := f.Clock.Bounds()
+
 	return db.OffersForAdminsParams{
+		TimeFrom:    from,
+		TimeUntil:   until,
 		Status:      string(f.Status),
 		Query:       searchQuery(query),
 		SellerID:    uuid.NullUUID{UUID: f.SellerID, Valid: f.SellerID != uuid.Nil},

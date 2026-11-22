@@ -57,7 +57,7 @@ func testReportCounts(t *testing.T, f fixture) {
 	until := since.AddDate(0, 0, 1)
 
 	// The shifted order may fall on the day before in Vietnam; ask for both.
-	days, err := f.orders.OrderDays(t.Context(), since.AddDate(0, 0, -1), until, &shop)
+	days, err := f.orders.OrderDays(t.Context(), since.AddDate(0, 0, -1), until, &shop, platform.Clock{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,9 +91,50 @@ func testReportCounts(t *testing.T, f fixture) {
 	}
 
 	checkOfferOutcomes(t, f, since.AddDate(0, 0, -1), until, shop, bread.ID)
+	checkClock(t, f, since.AddDate(0, 0, -1), until, shop)
 	checkAnalysisReads(t, f, since.AddDate(0, 0, -1), until, shop)
 
 	checkReportReads(t, f, since, until, bread.ID, shop, other)
+}
+
+// checkClock keeps the orders by the part of the day their window starts in:
+// the whole day written 00:00 to 24:00 keeps the four, and one minute six
+// hours from now, which no window starts in, keeps none.
+func checkClock(t *testing.T, f fixture, since, until time.Time, shop uuid.UUID) {
+	t.Helper()
+
+	count := func(clock platform.Clock) int {
+		t.Helper()
+
+		days, err := f.orders.OrderDays(t.Context(), since, until, &shop, clock)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		held := 0
+		for _, d := range days {
+			held += d.Held
+		}
+
+		return held
+	}
+
+	whole, ok := platform.ParseClock("00:00", "24:00")
+	if !ok || count(whole) != 4 {
+		t.Errorf("the whole day keeps %d orders, want 4", count(whole))
+	}
+
+	away := time.Now().Add(6 * time.Hour).In(time.FixedZone("", 7*60*60))
+
+	end := away.Add(time.Minute).Format("15:04")
+	if end == "00:00" {
+		end = "24:00"
+	}
+
+	minute, ok := platform.ParseClock(away.Format("15:04"), end)
+	if !ok || count(minute) != 0 {
+		t.Errorf("a minute six hours away keeps %d orders, want none", count(minute))
+	}
 }
 
 // checkOfferOutcomes reads what the orders took of the bread: five units in
@@ -101,7 +142,7 @@ func testReportCounts(t *testing.T, f fixture) {
 func checkOfferOutcomes(t *testing.T, f fixture, since, until time.Time, shop, bread uuid.UUID) {
 	t.Helper()
 
-	outcomes, err := f.orders.OfferOutcomes(t.Context(), since, until, &shop)
+	outcomes, err := f.orders.OfferOutcomes(t.Context(), since, until, &shop, platform.Clock{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +175,7 @@ func checkOfferOutcomes(t *testing.T, f fixture, since, until time.Time, shop, b
 func checkAnalysisReads(t *testing.T, f fixture, since, until time.Time, shop uuid.UUID) {
 	t.Helper()
 
-	a, err := f.orders.Analysis(t.Context(), since, until, &shop)
+	a, err := f.orders.Analysis(t.Context(), since, until, &shop, platform.Clock{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +212,7 @@ func slotTotals(slots []order.Slot) (held, collected int) {
 func checkPostsBetween(t *testing.T, f fixture, since, until time.Time, shop uuid.UUID) {
 	t.Helper()
 
-	posts, err := f.offers.PostsBetween(t.Context(), since, until, &shop)
+	posts, err := f.offers.PostsBetween(t.Context(), since, until, &shop, platform.Clock{})
 	if err != nil || len(posts) != 2 || posts[0].SellerID != shop || posts[0].OriginalPriceVND != 2*posts[0].PriceVND {
 		t.Errorf("the store's posts %+v, %v", posts, err)
 	}
@@ -182,7 +223,7 @@ func checkPostsBetween(t *testing.T, f fixture, since, until time.Time, shop uui
 func checkReportReads(t *testing.T, f fixture, since, until time.Time, bread, shop, other uuid.UUID) {
 	t.Helper()
 
-	posts, err := f.offers.PostDays(t.Context(), since, until, nil)
+	posts, err := f.offers.PostDays(t.Context(), since, until, nil, platform.Clock{})
 	if err != nil {
 		t.Fatal(err)
 	}

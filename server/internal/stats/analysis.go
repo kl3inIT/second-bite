@@ -87,22 +87,26 @@ func (s *Service) Analysis(ctx context.Context, f ReportFilter) (Analysis, error
 	since := time.Date(f.Since.Year(), f.Since.Month(), f.Since.Day(), 0, 0, 0, 0, vietnam)
 	until := time.Date(f.Until.Year(), f.Until.Month(), f.Until.Day()+1, 0, 0, 0, 0, vietnam)
 
-	posts, err := s.offers.PostsBetween(ctx, since, until, f.SellerID)
+	posts, err := s.offers.PostsBetween(ctx, since, until, f.SellerID, f.Clock)
 	if err != nil {
 		return Analysis{}, err
 	}
 
-	outcomes, err := s.orders.OfferOutcomes(ctx, since, until, f.SellerID)
+	outcomes, err := s.orders.OfferOutcomes(ctx, since, until, f.SellerID, f.Clock)
 	if err != nil {
 		return Analysis{}, err
 	}
 
-	orders, err := s.orders.Analysis(ctx, since, until, f.SellerID)
+	orders, err := s.orders.Analysis(ctx, since, until, f.SellerID, f.Clock)
 	if err != nil {
 		return Analysis{}, err
 	}
 
-	sources, err := s.queries.ViewSources(ctx, db.ViewSourcesParams{Since: date(f.Since), Until: date(f.Until)})
+	from, to := f.Clock.Bounds()
+
+	sources, err := s.queries.ViewSources(ctx, db.ViewSourcesParams{
+		Since: date(f.Since), Until: date(f.Until), TimeFrom: from, TimeUntil: to,
+	})
 	if err != nil {
 		return Analysis{}, fmt.Errorf("counting the views by source: %w", err)
 	}
