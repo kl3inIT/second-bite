@@ -174,7 +174,7 @@ function CodeStep({
         refuse(formApi, error, codeRefusals);
         return;
       }
-      return leavingThePage(formApi, returnTo, { refresh: true });
+      return leavingThePage(returnTo, { refresh: true });
     },
   });
 

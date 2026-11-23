@@ -61,7 +61,7 @@ export function PasswordSignInForm({
         refuse(formApi, error);
         return;
       }
-      return leavingThePage(formApi, returnTo, { refresh: true });
+      return leavingThePage(returnTo, { refresh: true });
     },
   });
 

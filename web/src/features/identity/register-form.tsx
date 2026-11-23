@@ -60,7 +60,7 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
         });
         return;
       }
-      return leavingThePage(formApi, returnTo, { refresh: true });
+      return leavingThePage(returnTo, { refresh: true });
     },
   });
 

@@ -121,7 +121,7 @@ function CodeStep({
         refuse(formApi, error, codeRefusals);
         return;
       }
-      return leavingThePage(formApi, { pathname: "/delete-account", query: { done: "1" } });
+      return leavingThePage({ pathname: "/delete-account", query: { done: "1" } });
     },
   });
 
@@ -219,7 +219,7 @@ export function DeleteAccountWithPasswordForm({ username }: { username: string }
         refuse(formApi, error, { IDENTITY_PASSWORD_INCORRECT: "password" });
         return;
       }
-      return leavingThePage(formApi, { pathname: "/delete-account", query: { done: "1" } });
+      return leavingThePage({ pathname: "/delete-account", query: { done: "1" } });
     },
   });
 
