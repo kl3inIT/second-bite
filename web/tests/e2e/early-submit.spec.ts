@@ -17,6 +17,18 @@ const FIELDS = [
   "brevoApiKey",
 ] as const;
 
+/** The requests the page makes that write to the API, to show that a form is sent once. */
+function writesOf(page: Page) {
+  const sent: string[] = [];
+  page.on("request", (request) => {
+    const { pathname } = new URL(request.url());
+    if (request.method() !== "GET" && pathname.startsWith("/api/")) {
+      sent.push(`${request.method()} ${pathname}`);
+    }
+  });
+  return sent;
+}
+
 /**
  * Holds the page's scripts until `release` is called, so the server's HTML is on the screen and React has not
  * hydrated it, as on a slow phone on a slow line, where a press then once put the password in the address. Each
@@ -31,15 +43,10 @@ async function beforeHydration(page: Page) {
     await route.fallback();
   });
   const documents: string[] = [];
-  const sent: string[] = [];
   page.on("request", (request) => {
     if (request.resourceType() === "document") documents.push(request.url());
-    const { pathname } = new URL(request.url());
-    if (request.method() !== "GET" && pathname.startsWith("/api/")) {
-      sent.push(`${request.method()} ${pathname}`);
-    }
   });
-  return { release, documents, sent };
+  return { release, documents, sent: writesOf(page) };
 }
 
 /**
@@ -382,5 +389,111 @@ test.describe("a form that leaves the page pressed again on its way out", () => 
 
     await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
     expect(sent).toEqual(["POST /api/accounts/me/password-deletion"]);
+  });
+});
+
+/**
+ * Drops the requests the router makes for the next page (React Server Components, asked for with an `RSC` header):
+ * held for good, as on a mobile line that lost them, or failed at once. The page's own document still loads.
+ */
+async function dropTheNextPage(page: Page, how: "hold" | "abort") {
+  await page.route("**/*", async (route) => {
+    if (route.request().headers()["rsc"] !== "1") return route.fallback();
+    if (how === "abort") return route.abort("internetdisconnected");
+    // Held until the test ends.
+  });
+}
+
+// A form that leaves the page once it is sent stays sent until the next page comes (above). When the router never
+// brings that page, the line having lost it, the form does not stay stuck on "sending…" for good: the next page
+// loads in full, which sends nothing again.
+test.describe("a form that leaves the page when the next page does not come", () => {
+  // The next page loads in full after the wait `leavingThePage` gives the router, then takes its own time.
+  test.slow();
+
+  for (const how of ["hold", "abort"] as const) {
+    test(`signing in with a password (${how})`, async ({ page }) => {
+      await page.goto("/vi/sign-in?returnTo=%2F%3Fkind%3Dbakery");
+      const sent = writesOf(page);
+      await dropTheNextPage(page, how);
+
+      await page.getByLabel("Tên đăng nhập").fill("lan.anh");
+      await page.getByLabel("Mật khẩu").fill("correct horse");
+      await (await hydrated(page.getByRole("button", { name: "Đăng nhập", exact: true }))).click();
+
+      await expect(page).toHaveURL(/\/vi\?kind=bakery$/, { timeout: 20_000 });
+      await expect(page.getByRole("button", { name: "Tài khoản lan.anh" })).toBeVisible();
+      expect(sent).toEqual(["POST /api/auth/password-sessions"]);
+    });
+  }
+
+  test("making an account", async ({ page }) => {
+    const username = `som.mat.${Date.now().toString(36)}`;
+    await page.goto("/vi/register?returnTo=%2F%3Fkind%3Dbakery");
+    const sent = writesOf(page);
+    await dropTheNextPage(page, "hold");
+
+    await page.getByLabel("Tên đăng nhập").fill(username);
+    await page.getByLabel("Mật khẩu", { exact: true }).fill("a lost password");
+    await page.getByLabel("Nhập lại mật khẩu").fill("a lost password");
+    await (await hydrated(page.getByRole("button", { name: "Tạo tài khoản" }))).click();
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/, { timeout: 20_000 });
+    await expect(page.getByRole("button", { name: `Tài khoản ${username}` })).toBeVisible();
+    expect(sent).toEqual(["POST /api/auth/accounts"]);
+  });
+
+  test("signing in with an emailed code", async ({ page }, testInfo) => {
+    await page.goto("/vi/sign-in/email?returnTo=%2F%3Fkind%3Dbakery");
+    const sent = writesOf(page);
+    await page.getByLabel("Email").fill(`mat.${testInfo.project.name}@example.com`);
+    await (await hydrated(page.getByRole("button", { name: "Gửi mã" }))).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Nhập mã" })).toBeVisible();
+    await dropTheNextPage(page, "hold");
+
+    await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/, { timeout: 20_000 });
+    expect(sent).toEqual(["POST /api/auth/sign-in-codes", "POST /api/auth/sessions"]);
+  });
+
+  test("deleting an account with its password", async ({ page }) => {
+    const made = await page.request.post("/api/auth/accounts", {
+      data: {
+        username: `xoa.mat.${Date.now().toString(36)}`,
+        password: "a long password",
+        session: "cookie",
+      },
+    });
+    expect(made.status()).toBe(201);
+    await page.goto("/vi/delete-account");
+    const sent = writesOf(page);
+    await dropTheNextPage(page, "hold");
+
+    await page.getByLabel("Mật khẩu").fill("a long password");
+    await (await hydrated(page.getByRole("button", { name: "Xoá vĩnh viễn tài khoản" }))).click();
+
+    await expect(page).toHaveURL(/\/vi\/delete-account\?done=1$/, { timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
+    expect(sent).toEqual(["POST /api/accounts/me/password-deletion"]);
+  });
+
+  test("deleting an account with an emailed code", async ({ page }, testInfo) => {
+    await signIn(page, `xoa.mat.${testInfo.project.name}.${Date.now().toString(36)}@example.com`);
+    await page.goto("/vi/delete-account");
+    const sent = writesOf(page);
+    await (await hydrated(page.getByRole("button", { name: "Gửi mã xác nhận" }))).click();
+    await expect(page.getByRole("heading", { name: "Nhập mã xác nhận" })).toBeVisible();
+    await dropTheNextPage(page, "hold");
+
+    await page.getByLabel("Mã xác nhận 6 số").fill("123456");
+    await page.getByRole("button", { name: "Xoá vĩnh viễn tài khoản" }).click();
+
+    await expect(page).toHaveURL(/\/vi\/delete-account\?done=1$/, { timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
+    expect(sent).toEqual([
+      "POST /api/accounts/me/deletion-codes",
+      "POST /api/accounts/me/deletion",
+    ]);
   });
 });
