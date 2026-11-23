@@ -32,6 +32,27 @@ test.describe("the admin's frame", () => {
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
   });
 
+  // The account menu on the site's header leads an admin to the admin's pages; a customer's has no such item.
+  test("an admin's account menu leads to the admin, a customer's does not", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, `khach.menu.${testInfo.project.name}@example.com`);
+    await page.goto("/vi");
+    await (await hydrated(page.getByRole("button", { name: /^Tài khoản/ }))).click();
+    await expect(page.getByRole("menuitem", { name: "Cài đặt tài khoản" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Trang quản trị" })).toHaveCount(0);
+    await page.keyboard.press("Escape");
+
+    await signIn(page, `admin.menu.${testInfo.project.name}@example.com`);
+    await page.goto("/vi");
+    await (await hydrated(page.getByRole("button", { name: /^Tài khoản/ }))).click();
+    const admin = page.getByRole("menuitem", { name: "Trang quản trị" });
+    await expect(admin).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+    await admin.click();
+    await expect(page).toHaveURL(/\/vi\/admin/);
+  });
+
   test("an admin gets the sidebar, and an unknown page inside it", async ({
     page,
     isMobile,
