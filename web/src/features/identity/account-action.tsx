@@ -22,7 +22,11 @@ export async function AccountAction({ returnTo }: { returnTo: string }) {
             {t("openStore")}
           </span>
         </Link>
-        <AccountMenu email={accountHandle(account)} displayName={account.displayName} />
+        <AccountMenu
+          email={accountHandle(account)}
+          displayName={account.displayName}
+          admin={account.role === "admin"}
+        />
       </div>
     );
   }
