@@ -415,6 +415,7 @@
     "guestTitle": "Bạn chưa đăng nhập",
     "guestBody": "Đặt món không cần đăng nhập, chỉ cần tên và số điện thoại. Đăng nhập để giữ đơn trong tài khoản và xem trên máy khác.",
     "signedIn": "Đã đăng nhập",
+    "admin": "Trang quản trị",
     "settings": "Cài đặt tài khoản"
   },
   "TopBar": {
