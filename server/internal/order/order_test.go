@@ -47,50 +47,51 @@ func TestOrder(t *testing.T) {
 	relaxLimits(t, pool)
 
 	for name, check := range map[string]func(*testing.T, fixture){
-		"placing takes units and confirms at once": testPlacingTakesUnits,
-		"a cart refused takes nothing":             testRefusedCartTakesNothing,
-		"two customers race for the last unit":     testRaceForTheLastUnit,
-		"who reads an order":                       testWhoReadsAnOrder,
-		"cancelling until the order is ready":      testCancelUntilReady,
-		"handing over":                             testHandOver,
-		"a collected order is rated once":          testRateOnce,
-		"staff refuse an order":                    testStaffRefuse,
-		"expiry is read from the window":           testExpiryReadFromTheWindow,
-		"a seller lists the orders of a day":       testSellerListsADay,
-		"the customer lists open and ended orders": testCustomerLists,
-		"an order without an account":              testOrderWithoutAccount,
-		"no answer or no show gives units back":    testNoShowGivesUnitsBack,
-		"a mistake is taken back":                  testReopen,
-		"some orders are not reopened":             testReopenStaysShut,
-		"admins read what an account ordered":      testHistoryForAdmins,
-		"orders follow their offer's window":       testOrdersFollowTheWindow,
-		"orders and offers follow their seller":    testOrdersAndOffersFollowTheSeller,
-		"ended orders expire in the table":         testEndedOrdersExpire,
-		"withdrawing an offer refuses its orders":  testWithdrawRefusesOrders,
-		"the two sides of an order talk":           testChatConversation,
-		"who takes part in a chat":                 testChatWhoTakesPart,
-		"a chat closes with its order":             testChatClosesWithTheOrder,
-		"a chat is bounded":                        testChatBounds,
-		"messages are numbered in commit order":    testChatNumbersInCommitOrder,
-		"live tickets work once, for who may":      testLiveTickets,
-		"every change of an order notifies":        testEveryChangeNotifies,
-		"old chats are forgotten":                  testOldChatsAreForgotten,
-		"admins list every seller's orders":        testAdminsListOrders,
-		"admins count what became of posts' units": testAdminsCountOfferUnits,
-		"admins hide a review and show it again":   testAdminsHideReviews,
-		"sellers read the reviews of their store":  testSellerReadsReviews,
-		"the report counts the days":               testReportCounts,
-		"the report counts first orders":           testFirstOrders,
-		"the report counts returning customers":    testReturningCustomers,
-		"pushes tell of each change":               testPushesTellOfEachChange,
-		"pushes tell of time":                      testPushesTellOfTime,
-		"a problem is reported and answered":       testProblemReportedAndAnswered,
-		"a problem is reported within two days":    testProblemWithinTwoDays,
-		"a seller deleted waits for its orders":    testSellerDeletionWaitsForOrders,
-		"a promotion takes its discounts":          testPromotionDiscounts,
-		"a promotion stops at its budget":          testPromotionBudget,
-		"an order takes the best promotion":        testPromotionBestRule,
-		"admins run promotions and pay sellers":    testPromotionsForAdmins,
+		"placing takes units and confirms at once":   testPlacingTakesUnits,
+		"a cart refused takes nothing":               testRefusedCartTakesNothing,
+		"two customers race for the last unit":       testRaceForTheLastUnit,
+		"who reads an order":                         testWhoReadsAnOrder,
+		"cancelling until the order is ready":        testCancelUntilReady,
+		"handing over":                               testHandOver,
+		"a collected order is rated once":            testRateOnce,
+		"staff refuse an order":                      testStaffRefuse,
+		"expiry is read from the window":             testExpiryReadFromTheWindow,
+		"a seller lists the orders of a day":         testSellerListsADay,
+		"the customer lists open and ended orders":   testCustomerLists,
+		"an order without an account":                testOrderWithoutAccount,
+		"no answer or no show gives units back":      testNoShowGivesUnitsBack,
+		"a mistake is taken back":                    testReopen,
+		"some orders are not reopened":               testReopenStaysShut,
+		"admins read what an account ordered":        testHistoryForAdmins,
+		"orders follow their offer's window":         testOrdersFollowTheWindow,
+		"orders and offers follow their seller":      testOrdersAndOffersFollowTheSeller,
+		"ended orders expire in the table":           testEndedOrdersExpire,
+		"withdrawing an offer refuses its orders":    testWithdrawRefusesOrders,
+		"the two sides of an order talk":             testChatConversation,
+		"who takes part in a chat":                   testChatWhoTakesPart,
+		"a chat closes with its order":               testChatClosesWithTheOrder,
+		"a chat is bounded":                          testChatBounds,
+		"messages are numbered in commit order":      testChatNumbersInCommitOrder,
+		"live tickets work once, for who may":        testLiveTickets,
+		"every change of an order notifies":          testEveryChangeNotifies,
+		"old chats are forgotten":                    testOldChatsAreForgotten,
+		"admins list every seller's orders":          testAdminsListOrders,
+		"admins count what became of posts' units":   testAdminsCountOfferUnits,
+		"admins hide a review and show it again":     testAdminsHideReviews,
+		"sellers read the reviews of their store":    testSellerReadsReviews,
+		"the report counts the days":                 testReportCounts,
+		"the report counts customers' confirmations": testReportCountsConfirmations,
+		"the report counts first orders":             testFirstOrders,
+		"the report counts returning customers":      testReturningCustomers,
+		"pushes tell of each change":                 testPushesTellOfEachChange,
+		"pushes tell of time":                        testPushesTellOfTime,
+		"a problem is reported and answered":         testProblemReportedAndAnswered,
+		"a problem is reported within two days":      testProblemWithinTwoDays,
+		"a seller deleted waits for its orders":      testSellerDeletionWaitsForOrders,
+		"a promotion takes its discounts":            testPromotionDiscounts,
+		"a promotion stops at its budget":            testPromotionBudget,
+		"an order takes the best promotion":          testPromotionBestRule,
+		"admins run promotions and pay sellers":      testPromotionsForAdmins,
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -566,12 +567,16 @@ func testHandOver(t *testing.T, f fixture) {
 	mustFail(t, "a stranger", err, order.ErrNotFound)
 
 	collected, err := f.orders.HandOver(owner, o.ID)
-	if err != nil || collected.Status != order.StatusCollected || collected.CollectedAt == nil {
+	if err != nil || collected.Status != order.StatusCollected || collected.CollectedAt == nil ||
+		collected.CollectedBy != order.SideSeller {
 		t.Fatalf("handed over %+v, %v", collected, err)
 	}
 
-	_, err = f.orders.HandOver(owner, o.ID)
-	mustFail(t, "handing over twice", err, order.ErrTransitionNotAllowed)
+	// A second press, or the customer's own confirmation after it, finds the order as it was.
+	twice, err := f.orders.HandOver(owner, o.ID)
+	if err != nil || twice.Status != order.StatusCollected || !twice.CollectedAt.Equal(*collected.CollectedAt) {
+		t.Fatalf("handing over twice: %+v, %v", twice, err)
+	}
 
 	_, err = f.orders.Refuse(owner, o.ID, order.RefuseOther, "")
 	mustFail(t, "refusing a collected order", err, order.ErrTransitionNotAllowed)
@@ -675,7 +680,9 @@ func testReopen(t *testing.T, f fixture) {
 	_, err = f.orders.Reopen(owner, o.ID)
 	mustFail(t, "reopening an open order", err, order.ErrTransitionNotAllowed)
 
-	if _, err := f.orders.HandOver(owner, o.ID); err != nil {
+	// The store takes back what its customer confirmed by mistake, as it takes back its own hand-over; the
+	// table's check holds that who confirmed it is forgotten with it.
+	if _, err := f.orders.Collect(customer, o.ID, ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -684,7 +691,7 @@ func testReopen(t *testing.T, f fixture) {
 
 	again, err := f.orders.Reopen(owner, o.ID)
 	if err != nil || again.Status != order.StatusConfirmed || again.CollectedAt != nil {
-		t.Fatalf("a hand-over taken back: %+v, %v", again, err)
+		t.Fatalf("a collection taken back: %+v, %v", again, err)
 	}
 
 	// A no-show gave its units back; f.someone took them; taking the refusal back fails.

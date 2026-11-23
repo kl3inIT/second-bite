@@ -71,6 +71,7 @@ type orderBody struct {
 	CreatedAt        time.Time           `json:"createdAt"`
 	ReadyAt          *time.Time          `json:"readyAt,omitempty"`
 	CollectedAt      *time.Time          `json:"collectedAt,omitempty"`
+	CollectedBy      Side                `json:"collectedBy,omitempty"  doc:"Who confirmed the collection: the seller's people, who handed it over, or its customer; none until collected" enum:"seller,customer"`
 	CancelledAt      *time.Time          `json:"cancelledAt,omitempty"`
 	RefusedAt        *time.Time          `json:"refusedAt,omitempty"`
 	CancelReason     string              `json:"cancelReason,omitempty"`
@@ -139,7 +140,8 @@ func toBody(o Order) orderBody {
 			Latitude: o.CollectionPoint.Latitude, Longitude: o.CollectionPoint.Longitude,
 		},
 		Lines: lines, TotalVND: o.TotalVND, WindowStart: o.WindowStart, WindowEnd: o.WindowEnd, CreatedAt: o.CreatedAt,
-		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CancelledAt: o.CancelledAt, RefusedAt: o.RefusedAt,
+		ReadyAt: o.ReadyAt, CollectedAt: o.CollectedAt, CollectedBy: o.CollectedBy, CancelledAt: o.CancelledAt,
+		RefusedAt:    o.RefusedAt,
 		CancelReason: o.CancelReason, RefuseReason: o.RefuseReason, RefuseNote: o.RefuseNote,
 		CheckoutID: o.CheckoutID, CustomerName: o.Contact.Name, CustomerPhone: o.Contact.Phone, Review: review, Access: o.Access,
 		CanReview: o.Status == StatusCollected && !o.Reviewed,
@@ -312,6 +314,22 @@ func registerCustomerOperations(api huma.API, s *Service) {
 	},
 	) (*orderOutput, error) {
 		o, err := s.Cancel(ctx, in.OrderID, in.Access, in.Body.Reason)
+		if err != nil {
+			return nil, err
+		}
+
+		return &orderOutput{Body: toBody(o)}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "collectOrder", Method: http.MethodPost, Path: "/orders/{orderId}/collect",
+		Summary: "Confirm you collected your order",
+		Description: "By its customer, signed in or sending its access, within the window while the order is confirmed or " +
+			"ready: it is collected as when the seller's people hand it over, and its review opens. An order already " +
+			"collected, by either, is answered as it is.",
+		Tags: tagOrders, Security: anyone,
+	}, func(ctx context.Context, in *customerPath) (*orderOutput, error) {
+		o, err := s.Collect(ctx, in.OrderID, in.Access)
 		if err != nil {
 			return nil, err
 		}
@@ -605,7 +623,8 @@ func registerStaffOperations(api huma.API, s *Service) {
 		OperationID: "handOverOrder", Method: http.MethodPost, Path: "/orders/{orderId}/hand-over",
 		Summary: "Hand an order over",
 		Description: "Within the window, once staff have matched the collector to the order by its QR code or by " +
-			"the name and phone number on it.",
+			"the name and phone number on it. An order already collected, handed over or confirmed by its customer, " +
+			"is answered as it is.",
 		Tags: tagOrders, Security: security,
 	}, func(ctx context.Context, in *orderPath) (*orderOutput, error) {
 		o, err := s.HandOver(ctx, in.OrderID)

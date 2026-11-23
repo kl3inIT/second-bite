@@ -359,3 +359,51 @@ func phoneOf(t *testing.T) string {
 
 	return fmt.Sprintf("09%08d", uuid.New().ID()%100_000_000)
 }
+
+// testReportCountsConfirmations has a store hand one order over and the
+// customer of another confirm it themselves: both count as collected, and the
+// report tells how many their customers confirmed.
+func testReportCountsConfirmations(t *testing.T, f fixture) {
+	t.Helper()
+
+	owner := f.as(t, "owner", platform.RoleCustomer)
+	customer := f.as(t, "customer", platform.RoleCustomer)
+	shop := f.shop(owner, t, "Bếp Tự Xác Nhận")
+	rice := f.post(owner, t, shop, "Cơm suất", 4, 20_000, time.Now().Add(-time.Minute))
+
+	collect := func(by func(id uuid.UUID) (order.Order, error)) {
+		t.Helper()
+
+		o, err := f.orders.Place(customer, key(), uuid.Nil, f.someone, []order.Wanted{{rice.ID, 1}})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := by(o.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	collect(func(id uuid.UUID) (order.Order, error) { return f.orders.HandOver(owner, id) })
+	collect(func(id uuid.UUID) (order.Order, error) { return f.orders.Collect(customer, id, "") })
+
+	day := time.Now().In(time.FixedZone("", 7*60*60))
+	since := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, day.Location())
+
+	days, err := f.orders.OrderDays(t.Context(), since.AddDate(0, 0, -1), since.AddDate(0, 0, 1), &shop, platform.Clock{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var collected, byCustomer, money int64
+	for _, d := range days {
+		collected += int64(d.Collected)
+		byCustomer += int64(d.CollectedByCustomer)
+		money += d.CollectedVND
+	}
+
+	// The money taken counts both, however they were collected.
+	if collected != 2 || byCustomer != 1 || money != 40_000 {
+		t.Errorf("collected %d, %d confirmed by the customer, %d đồng; want 2, 1 and 40,000", collected, byCustomer, money)
+	}
+}

@@ -778,6 +778,10 @@ components:
         collected:
           format: int64
           type: integer
+        collectedByCustomer:
+          description: Collected orders whose customer confirmed the collection, the store not having handed them over first
+          format: int64
+          type: integer
         collectedVnd:
           description: What the collected orders came to at the counter
           format: int64
@@ -864,6 +868,7 @@ components:
         - cancelled
         - refused
         - expired
+        - collectedByCustomer
         - collectedVnd
         - newAccounts
         - newCustomers
@@ -2098,6 +2103,12 @@ components:
           type: string
         collectedAt:
           format: date-time
+          type: string
+        collectedBy:
+          description: "Who confirmed the collection: the seller's people, who handed it over, or its customer; none until collected"
+          enum:
+            - seller
+            - customer
           type: string
         createdAt:
           format: date-time
@@ -6432,9 +6443,46 @@ paths:
       summary: Cancel your order until the seller marks it ready
       tags:
         - Orders
+  /orders/{orderId}/collect:
+    post:
+      description: "By its customer, signed in or sending its access, within the window while the order is confirmed or ready: it is collected as when the seller's people hand it over, and its review opens. An order already collected, by either, is answered as it is."
+      operationId: collectOrder
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+        - description: The order's access, for its customer who did not sign in
+          in: header
+          name: Order-Access
+          schema:
+            description: The order's access, for its customer who did not sign in
+            maxLength: 64
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - {}
+        - bearer: []
+        - cookie: []
+      summary: Confirm you collected your order
+      tags:
+        - Orders
   /orders/{orderId}/hand-over:
     post:
-      description: Within the window, once staff have matched the collector to the order by its QR code or by the name and phone number on it.
+      description: Within the window, once staff have matched the collector to the order by its QR code or by the name and phone number on it. An order already collected, handed over or confirmed by its customer, is answered as it is.
       operationId: handOverOrder
       parameters:
         - in: path

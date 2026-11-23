@@ -102,12 +102,15 @@ type Order struct {
 	TotalVND int64
 	// Discount is what a promotion took off when the order was placed; none
 	// when nothing did.
-	Discount     *Discount
-	WindowStart  time.Time
-	WindowEnd    time.Time
-	CreatedAt    time.Time
-	ReadyAt      *time.Time
-	CollectedAt  *time.Time
+	Discount    *Discount
+	WindowStart time.Time
+	WindowEnd   time.Time
+	CreatedAt   time.Time
+	ReadyAt     *time.Time
+	CollectedAt *time.Time
+	// CollectedBy is who confirmed the collection: the seller's people, who
+	// handed it over, or its customer; empty until it is collected.
+	CollectedBy  Side
 	CancelledAt  *time.Time
 	RefusedAt    *time.Time
 	CancelReason string
@@ -427,7 +430,7 @@ func (s *Service) fromRow(r db.GetOrderRow) Order {
 		Status:          Status(r.State), TotalVND: r.TotalVnd, WindowStart: r.WindowStart, WindowEnd: r.WindowEnd,
 		CreatedAt: r.CreatedAt, ReadyAt: r.ReadyAt, CollectedAt: r.CollectedAt, CancelledAt: r.CancelledAt,
 		RefusedAt: r.RefusedAt, CancelReason: r.CancelReason, RefuseReason: RefuseReason(r.RefuseReason.String),
-		RefuseNote: r.RefuseNote, access: r.Access,
+		RefuseNote: r.RefuseNote, CollectedBy: Side(r.CollectedBy.String), access: r.Access,
 	}
 
 	if r.PromotionID.Valid {

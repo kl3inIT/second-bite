@@ -111,38 +111,88 @@ func (s *Service) Ready(ctx context.Context, id uuid.UUID) (Order, error) {
 }
 
 // HandOver hands an order over within its window, once staff have matched the
-// collector to it by its QR code or by the name and phone number on it.
+// collector to it by its QR code or by the name and phone number on it. An
+// order already collected, by staff or confirmed by its customer, is answered
+// as it is.
 func (s *Service) HandOver(ctx context.Context, id uuid.UUID) (Order, error) {
 	caller, err := s.staffOf(ctx, id)
 	if err != nil {
 		return Order{}, err
 	}
 
+	var collected bool
+
 	err = s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
-		switch {
-		case !o.Status.open():
-			return ErrTransitionNotAllowed
-		case s.now().Before(o.WindowStart):
-			return ErrOutsideWindow
-		}
+		collected, err = s.collect(ctx, q, tx, o, SideSeller, actor(caller))
 
-		if err := q.MarkCollected(ctx, id); err != nil {
-			return fmt.Errorf("handing the order over: %w", err)
-		}
-
-		if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: id, Kind: "collected", ActorID: actor(caller)}); err != nil {
-			return err
-		}
-
-		return notifyOrder(ctx, tx, id, o.SellerID, StatusCollected)
+		return err
 	})
 	if err != nil {
 		return Order{}, err
 	}
 
-	s.logged(ctx, "order collected", "order.collection.confirmed", id, caller)
+	if collected {
+		s.logged(ctx, "order collected", "order.collection.confirmed", id, caller, slog.String("collected_by", string(SideSeller)))
+	}
 
 	return s.Get(ctx, id, "")
+}
+
+// Collect is its customer's word, signed in or holding its access, that they
+// collected the order: within its window, as a hand-over, for a store that did
+// not press "Đã giao". The order is then collected as if staff had handed it
+// over. An order already collected is answered as it is, so the store and its
+// customer confirming at once make one collection.
+func (s *Service) Collect(ctx context.Context, id uuid.UUID, access string) (Order, error) {
+	caller, signedIn := platform.CallerFrom(ctx)
+
+	var collected bool
+
+	err := s.transition(ctx, id, func(q *db.Queries, tx pgx.Tx, o Order) error {
+		if !s.isCustomer(ctx, o, access) {
+			return ErrNotFound
+		}
+
+		var err error
+
+		collected, err = s.collect(ctx, q, tx, o, SideCustomer, uuid.NullUUID{UUID: caller.AccountID, Valid: signedIn})
+
+		return err
+	})
+	if err != nil {
+		return Order{}, err
+	}
+
+	if collected {
+		s.logged(ctx, "order collected", "order.collection.confirmed", id, caller, slog.String("collected_by", string(SideCustomer)))
+	}
+
+	return s.Get(ctx, id, access)
+}
+
+// collect ends o as collected, confirmed by side, in the transaction that
+// locked it: still open and its window opened, it records one event and tells
+// the sockets following it and its seller's orders. An order already collected
+// is left as it is and collect answers false.
+func (s *Service) collect(ctx context.Context, q *db.Queries, tx pgx.Tx, o Order, by Side, who uuid.NullUUID) (bool, error) {
+	switch {
+	case o.Status == StatusCollected:
+		return false, nil
+	case !o.Status.open():
+		return false, ErrTransitionNotAllowed
+	case s.now().Before(o.WindowStart):
+		return false, ErrOutsideWindow
+	}
+
+	if err := q.MarkCollected(ctx, db.MarkCollectedParams{ID: o.ID, CollectedBy: textOf(string(by))}); err != nil {
+		return false, fmt.Errorf("collecting the order: %w", err)
+	}
+
+	if err := q.InsertEvent(ctx, db.InsertEventParams{OrderID: o.ID, Kind: "collected", ActorID: who}); err != nil {
+		return false, err
+	}
+
+	return true, notifyOrder(ctx, tx, o.ID, o.SellerID, StatusCollected)
 }
 
 // Reopen takes a mistaken hand-over or refusal back: the order is open again,
@@ -295,8 +345,8 @@ func (s *Service) transition(ctx context.Context, id uuid.UUID, change func(*db.
 
 func textOf(s string) pgtype.Text { return pgtype.Text{String: s, Valid: s != ""} }
 
-func (s *Service) logged(ctx context.Context, msg, event string, id uuid.UUID, caller platform.Caller) {
-	attrs := []any{slog.String("event", event), slog.String("order_id", id.String())}
+func (s *Service) logged(ctx context.Context, msg, event string, id uuid.UUID, caller platform.Caller, more ...any) {
+	attrs := append([]any{slog.String("event", event), slog.String("order_id", id.String())}, more...)
 	if caller.AccountID != uuid.Nil {
 		attrs = append(attrs, slog.String("account_id", caller.AccountID.String()))
 	}

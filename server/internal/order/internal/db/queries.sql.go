@@ -317,7 +317,7 @@ const customerOrders = `-- name: CustomerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders
 WHERE customer_id = $1
   AND ($2::uuid IS NULL OR checkout_id = $2)
@@ -366,6 +366,7 @@ type CustomerOrdersRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
+	CollectedBy   pgtype.Text
 }
 
 // A customer's orders, newest first: open ones are confirmed or ready with
@@ -416,6 +417,7 @@ func (q *Queries) CustomerOrders(ctx context.Context, arg CustomerOrdersParams) 
 			&i.PromotionRule,
 			&i.PromotionNew,
 			&i.DiscountVnd,
+			&i.CollectedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -614,7 +616,7 @@ const getOrder = `-- name: GetOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders WHERE id = $1
 `
 
@@ -648,6 +650,7 @@ type GetOrderRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
+	CollectedBy   pgtype.Text
 }
 
 func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, error) {
@@ -683,6 +686,7 @@ func (q *Queries) GetOrder(ctx context.Context, id uuid.UUID) (GetOrderRow, erro
 		&i.PromotionRule,
 		&i.PromotionNew,
 		&i.DiscountVnd,
+		&i.CollectedBy,
 	)
 	return i, err
 }
@@ -1172,7 +1176,7 @@ const lockOrder = `-- name: LockOrder :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders WHERE id = $1 FOR UPDATE
 `
 
@@ -1206,6 +1210,7 @@ type LockOrderRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
+	CollectedBy   pgtype.Text
 }
 
 // Serializes the transitions of one order until the transaction ends.
@@ -1242,6 +1247,7 @@ func (q *Queries) LockOrder(ctx context.Context, id uuid.UUID) (LockOrderRow, er
 		&i.PromotionRule,
 		&i.PromotionNew,
 		&i.DiscountVnd,
+		&i.CollectedBy,
 	)
 	return i, err
 }
@@ -1277,7 +1283,7 @@ const lockOrderShared = `-- name: LockOrderShared :one
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders WHERE id = $1 FOR SHARE
 `
 
@@ -1311,6 +1317,7 @@ type LockOrderSharedRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
+	CollectedBy   pgtype.Text
 }
 
 // Holds an order against a transition (which locks it for update) until the
@@ -1348,6 +1355,7 @@ func (q *Queries) LockOrderShared(ctx context.Context, id uuid.UUID) (LockOrderS
 		&i.PromotionRule,
 		&i.PromotionNew,
 		&i.DiscountVnd,
+		&i.CollectedBy,
 	)
 	return i, err
 }
@@ -1494,11 +1502,17 @@ func (q *Queries) MarkCancelled(ctx context.Context, arg MarkCancelledParams) er
 }
 
 const markCollected = `-- name: MarkCollected :exec
-UPDATE order_orders SET state = 'collected', collected_at = now() WHERE id = $1
+UPDATE order_orders SET state = 'collected', collected_at = now(), collected_by = $1 WHERE id = $2
 `
 
-func (q *Queries) MarkCollected(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, markCollected, id)
+type MarkCollectedParams struct {
+	CollectedBy pgtype.Text
+	ID          uuid.UUID
+}
+
+// collected_by is who confirmed it: 'seller' or 'customer'.
+func (q *Queries) MarkCollected(ctx context.Context, arg MarkCollectedParams) error {
+	_, err := q.db.Exec(ctx, markCollected, arg.CollectedBy, arg.ID)
 	return err
 }
 
@@ -1570,7 +1584,8 @@ func (q *Queries) MarkRefused(ctx context.Context, arg MarkRefusedParams) error 
 
 const markReopened = `-- name: MarkReopened :exec
 UPDATE order_orders
-SET state = 'confirmed', ready_at = NULL, collected_at = NULL, refused_at = NULL, refuse_reason = NULL, refuse_note = ''
+SET state = 'confirmed', ready_at = NULL, collected_at = NULL, collected_by = NULL, refused_at = NULL, refuse_reason = NULL,
+    refuse_note = ''
 WHERE id = $1
 `
 
@@ -1840,7 +1855,7 @@ func (q *Queries) OpenOrdersOfOffer(ctx context.Context, offerID uuid.UUID) ([]u
 
 const orderDays = `-- name: OrderDays :many
 WITH placed AS (
-    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units,
+    SELECT o.id, o.number, o.customer_id, o.seller_id, o.checkout_id, o.customer_name, o.customer_phone, o.seller_name, o.latitude, o.longitude, o.address, o.state, o.window_start, o.window_end, o.total_vnd, o.idempotency_key, o.cancel_reason, o.refuse_reason, o.refuse_note, o.created_at, o.ready_at, o.collected_at, o.cancelled_at, o.refused_at, o.access, o.search_text, o.due_soon_at, o.zalo_consent_at, o.contact_forgotten_at, o.promotion_id, o.promotion_name, o.promotion_rule, o.promotion_new, o.discount_vnd, o.collected_by, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units,
            (SELECT sum(l.original_price_vnd * l.units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS original_vnd
     FROM order_orders o
     WHERE o.window_start >= $1 AND o.window_start < $2
@@ -1852,6 +1867,7 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) AS held,
        sum(units)::bigint AS units_held,
        count(*) FILTER (WHERE state = 'collected') AS collected,
+       count(*) FILTER (WHERE state = 'collected' AND collected_by = 'customer') AS collected_by_customer,
        coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
        coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
        coalesce(sum(original_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS original_vnd,
@@ -1875,24 +1891,26 @@ type OrderDaysParams struct {
 }
 
 type OrderDaysRow struct {
-	Day            pgtype.Date
-	SellerID       uuid.UUID
-	Held           int64
-	UnitsHeld      int64
-	Collected      int64
-	UnitsCollected int64
-	CollectedVnd   int64
-	OriginalVnd    int64
-	DiscountVnd    int64
-	DiscountOrders int64
-	Cancelled      int64
-	Refused        int64
-	Expired        int64
+	Day                 pgtype.Date
+	SellerID            uuid.UUID
+	Held                int64
+	UnitsHeld           int64
+	Collected           int64
+	CollectedByCustomer int64
+	UnitsCollected      int64
+	CollectedVnd        int64
+	OriginalVnd         int64
+	DiscountVnd         int64
+	DiscountOrders      int64
+	Cancelled           int64
+	Refused             int64
+	Expired             int64
 }
 
 // The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
 // confirmed or ready whose window is over counts as expired, as every read of an order reads it. For the orders
-// collected, also what their dishes cost at the original price and the discounts Second Bite paid back.
+// collected, also how many their customers confirmed, what their dishes cost at the original price and the discounts
+// Second Bite paid back.
 func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDaysRow, error) {
 	rows, err := q.db.Query(ctx, orderDays,
 		arg.Since,
@@ -1914,6 +1932,7 @@ func (q *Queries) OrderDays(ctx context.Context, arg OrderDaysParams) ([]OrderDa
 			&i.Held,
 			&i.UnitsHeld,
 			&i.Collected,
+			&i.CollectedByCustomer,
 			&i.UnitsCollected,
 			&i.CollectedVnd,
 			&i.OriginalVnd,
@@ -2126,7 +2145,7 @@ const ordersForAdmins = `-- name: OrdersForAdmins :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders
 WHERE (cardinality($1::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
@@ -2183,6 +2202,7 @@ type OrdersForAdminsRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
+	CollectedBy   pgtype.Text
 }
 
 // One page of every seller's orders in the statuses given (all when empty),
@@ -2240,6 +2260,7 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 			&i.PromotionRule,
 			&i.PromotionNew,
 			&i.DiscountVnd,
+			&i.CollectedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -2977,7 +2998,7 @@ const sellerOrders = `-- name: SellerOrders :many
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders
 WHERE seller_id = $1 AND window_start >= $2 AND window_start < $3
 ORDER BY window_start, number
@@ -3020,6 +3041,7 @@ type SellerOrdersRow struct {
 	PromotionRule string
 	PromotionNew  bool
 	DiscountVnd   int64
+	CollectedBy   pgtype.Text
 }
 
 // A seller's orders whose window starts within [day_start, day_end), soonest
@@ -3063,6 +3085,7 @@ func (q *Queries) SellerOrders(ctx context.Context, arg SellerOrdersParams) ([]S
 			&i.PromotionRule,
 			&i.PromotionNew,
 			&i.DiscountVnd,
+			&i.CollectedBy,
 		); err != nil {
 			return nil, err
 		}
