@@ -13,6 +13,9 @@ abstract class CountsBody with _$CountsBody {
     required int cancelled,
     required int collected,
 
+    /// Collected orders whose customer confirmed the collection, the store not having handed them over first
+    required int collectedByCustomer,
+
     /// What the collected orders came to at the counter
     required int collectedVnd,
 

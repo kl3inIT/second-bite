@@ -387,6 +387,51 @@
   "orderCancelKeep": "Keep order",
   "orderCancelConfirm": "Cancel order",
   "orderCancelFailed": "The order could not be cancelled. Try again in a moment.",
+  "orderCollectOpen": "I've collected it",
+  "@orderCollectOpen": {
+    "description": "The button with which a customer confirms they collected their order"
+  },
+  "orderCollectQuestion": "Food in your hands?",
+  "@orderCollectQuestion": {
+    "description": "The heading of the card that offers to confirm the collection"
+  },
+  "orderCollectHint": "If the store has not pressed Delivered, confirm it yourself so the order is not counted as a no-show.",
+  "@orderCollectHint": {
+    "description": "Why a customer confirms the collection themselves"
+  },
+  "orderCollectTitle": "Confirm you collected order #{number}?",
+  "@orderCollectTitle": {
+    "description": "The title of the sheet that confirms the collection",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "orderCollectBody": "Confirm only once the {units} portions from {seller} are in your hands. The order is then collected and can no longer be cancelled.",
+  "@orderCollectBody": {
+    "description": "What confirming the collection means",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "orderCollectKeep": "Not yet",
+  "@orderCollectKeep": {
+    "description": "Leaves the order as it is"
+  },
+  "orderCollectConfirm": "Yes, I collected it",
+  "@orderCollectConfirm": {
+    "description": "Confirms the order collected"
+  },
+  "orderCollectFailed": "Could not confirm. Try again in a few minutes.",
+  "@orderCollectFailed": {
+    "description": "Said when the confirmation got no answer"
+  },
   "reviewTitle": "How was it today?",
   "reviewHint": "Your rating helps the shop and the next buyers.",
   "reviewStarsLegend": "Stars",

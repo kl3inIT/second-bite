@@ -9,6 +9,7 @@ part of 'counts_body.dart';
 _CountsBody _$CountsBodyFromJson(Map<String, dynamic> json) => _CountsBody(
   cancelled: (json['cancelled'] as num).toInt(),
   collected: (json['collected'] as num).toInt(),
+  collectedByCustomer: (json['collectedByCustomer'] as num).toInt(),
   collectedVnd: (json['collectedVnd'] as num).toInt(),
   discountOrders: (json['discountOrders'] as num).toInt(),
   discountVnd: (json['discountVnd'] as num).toInt(),
@@ -34,6 +35,7 @@ Map<String, dynamic> _$CountsBodyToJson(_CountsBody instance) =>
     <String, dynamic>{
       'cancelled': instance.cancelled,
       'collected': instance.collected,
+      'collectedByCustomer': instance.collectedByCustomer,
       'collectedVnd': instance.collectedVnd,
       'discountOrders': instance.discountOrders,
       'discountVnd': instance.discountVnd,

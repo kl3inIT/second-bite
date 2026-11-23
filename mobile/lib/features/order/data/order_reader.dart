@@ -12,7 +12,8 @@ part 'order_reader.g.dart';
 /// web/src/features/orders/read-orders.ts reads them (SEC-204 › design 3):
 /// the account's when someone is signed in, otherwise those placed on this
 /// phone, each read with its access; and what a customer does to one:
-/// cancel it, rate it, report a problem, write in its chat. The access goes
+/// cancel it, confirm it collected, rate it, report a problem, write in its
+/// chat. The access goes
 /// as `Order-Access` with every call about an order that has one.
 /// {@endtemplate}
 class OrderReader {
@@ -71,6 +72,11 @@ class OrderReader {
         body: CancelOrderRequest(reason: reason),
         orderAccess: order.access,
       );
+
+  /// Confirms [order] collected by its customer, "Đã nhận món", as the
+  /// store's "Đã giao" would.
+  Future<OrderBody> collect(OrderBody order) =>
+      _orders.collectOrder(orderId: order.id, orderAccess: order.access);
 
   /// Rates [order] with [stars], [tags] and a [comment].
   Future<OrderBody> review(

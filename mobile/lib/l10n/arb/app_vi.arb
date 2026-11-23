@@ -2152,6 +2152,51 @@
   "@orderCancelFailed": {
     "description": "Cancelling failed without an answer"
   },
+  "orderCollectOpen": "Đã nhận món",
+  "@orderCollectOpen": {
+    "description": "The button with which a customer confirms they collected their order"
+  },
+  "orderCollectQuestion": "Đã cầm món trên tay?",
+  "@orderCollectQuestion": {
+    "description": "The heading of the card that offers to confirm the collection"
+  },
+  "orderCollectHint": "Quán chưa bấm Đã giao thì bạn tự xác nhận, để đơn không bị ghi là không đến nhận.",
+  "@orderCollectHint": {
+    "description": "Why a customer confirms the collection themselves"
+  },
+  "orderCollectTitle": "Xác nhận đã nhận đơn #{number}?",
+  "@orderCollectTitle": {
+    "description": "The title of the sheet that confirms the collection",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "orderCollectBody": "Chỉ xác nhận khi {units} phần của {seller} đã ở trong tay bạn. Sau đó đơn được ghi là đã nhận và không huỷ được nữa.",
+  "@orderCollectBody": {
+    "description": "What confirming the collection means",
+    "placeholders": {
+      "units": {
+        "type": "int"
+      },
+      "seller": {
+        "type": "String"
+      }
+    }
+  },
+  "orderCollectKeep": "Chưa nhận",
+  "@orderCollectKeep": {
+    "description": "Leaves the order as it is"
+  },
+  "orderCollectConfirm": "Xác nhận đã nhận",
+  "@orderCollectConfirm": {
+    "description": "Confirms the order collected"
+  },
+  "orderCollectFailed": "Chưa xác nhận được. Thử lại sau ít phút.",
+  "@orderCollectFailed": {
+    "description": "Said when the confirmation got no answer"
+  },
   "reviewTitle": "Món hôm nay thế nào?",
   "@reviewTitle": {
     "description": "The rating's title"

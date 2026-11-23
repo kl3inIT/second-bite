@@ -1464,6 +1464,35 @@ class AppLocalizationsVi extends AppLocalizations {
   String get orderCancelFailed => 'Chưa huỷ được đơn. Thử lại sau ít phút.';
 
   @override
+  String get orderCollectOpen => 'Đã nhận món';
+
+  @override
+  String get orderCollectQuestion => 'Đã cầm món trên tay?';
+
+  @override
+  String get orderCollectHint =>
+      'Quán chưa bấm Đã giao thì bạn tự xác nhận, để đơn không bị ghi là không đến nhận.';
+
+  @override
+  String orderCollectTitle(String number) {
+    return 'Xác nhận đã nhận đơn #$number?';
+  }
+
+  @override
+  String orderCollectBody(int units, String seller) {
+    return 'Chỉ xác nhận khi $units phần của $seller đã ở trong tay bạn. Sau đó đơn được ghi là đã nhận và không huỷ được nữa.';
+  }
+
+  @override
+  String get orderCollectKeep => 'Chưa nhận';
+
+  @override
+  String get orderCollectConfirm => 'Xác nhận đã nhận';
+
+  @override
+  String get orderCollectFailed => 'Chưa xác nhận được. Thử lại sau ít phút.';
+
+  @override
   String get reviewTitle => 'Món hôm nay thế nào?';
 
   @override

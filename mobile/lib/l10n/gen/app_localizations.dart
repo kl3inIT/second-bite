@@ -2435,6 +2435,54 @@ abstract class AppLocalizations {
   /// **'Chưa huỷ được đơn. Thử lại sau ít phút.'**
   String get orderCancelFailed;
 
+  /// The button with which a customer confirms they collected their order
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã nhận món'**
+  String get orderCollectOpen;
+
+  /// The heading of the card that offers to confirm the collection
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã cầm món trên tay?'**
+  String get orderCollectQuestion;
+
+  /// Why a customer confirms the collection themselves
+  ///
+  /// In vi, this message translates to:
+  /// **'Quán chưa bấm Đã giao thì bạn tự xác nhận, để đơn không bị ghi là không đến nhận.'**
+  String get orderCollectHint;
+
+  /// The title of the sheet that confirms the collection
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận đã nhận đơn #{number}?'**
+  String orderCollectTitle(String number);
+
+  /// What confirming the collection means
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ xác nhận khi {units} phần của {seller} đã ở trong tay bạn. Sau đó đơn được ghi là đã nhận và không huỷ được nữa.'**
+  String orderCollectBody(int units, String seller);
+
+  /// Leaves the order as it is
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa nhận'**
+  String get orderCollectKeep;
+
+  /// Confirms the order collected
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận đã nhận'**
+  String get orderCollectConfirm;
+
+  /// Said when the confirmation got no answer
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa xác nhận được. Thử lại sau ít phút.'**
+  String get orderCollectFailed;
+
   /// The rating's title
   ///
   /// In vi, this message translates to:

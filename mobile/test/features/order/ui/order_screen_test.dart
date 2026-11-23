@@ -93,6 +93,8 @@ void main() {
           findsOneWidget,
         );
         expect(find.byType(CancelOrder), findsOneWidget);
+        // Its window is not open now: there is nothing to confirm collected.
+        expect(find.byType(CollectOrder), findsNothing);
         expect(find.text('#SB-1001'), findsOneWidget);
         // The store's map on the directions card (SEC-206).
         expect(find.byKey(testStoreMapKey), findsOneWidget);
@@ -289,6 +291,39 @@ void main() {
 
         verify(() => reader.cancel(any(), reason: 'Đặt nhầm')).called(1);
       });
+
+      testWidgets(
+        'confirm the order collected within its window, after asking',
+        (tester) async {
+          // customer-confirms-collection: one tap only opens the sheet; "Chưa
+          // nhận" leaves the order as it is, and confirming sends it once.
+          final now = DateTime.now();
+          final open = order().copyWith(
+            windowStart: now.subtract(const Duration(minutes: 30)),
+            windowEnd: now.add(const Duration(hours: 1)),
+          );
+          when(
+            () => reader.collect(any()),
+          ).thenAnswer((_) async => order(status: OrderBodyStatus.collected));
+          await pumpOrder(
+            tester,
+            () async => (order: open, together: const <OrderBody>[]),
+          );
+
+          await tester.tap(find.widgetWithText(AppButton, 'Đã nhận món'));
+          await tester.pumpAndSettle();
+          expect(find.text('Xác nhận đã nhận đơn #SB-1001?'), findsOneWidget);
+          await tester.tap(find.text('Chưa nhận'));
+          await tester.pumpAndSettle();
+          verifyNever(() => reader.collect(any()));
+
+          await tester.tap(find.widgetWithText(AppButton, 'Đã nhận món'));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Xác nhận đã nhận'));
+          await tester.pumpAndSettle();
+          verify(() => reader.collect(any())).called(1);
+        },
+      );
 
       testWidgets('review only once a star is chosen', (tester) async {
         when(

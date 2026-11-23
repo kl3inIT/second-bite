@@ -1567,6 +1567,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'The order could not be cancelled. Try again in a moment.';
 
   @override
+  String get orderCollectOpen => 'I\'ve collected it';
+
+  @override
+  String get orderCollectQuestion => 'Food in your hands?';
+
+  @override
+  String get orderCollectHint =>
+      'If the store has not pressed Delivered, confirm it yourself so the order is not counted as a no-show.';
+
+  @override
+  String orderCollectTitle(String number) {
+    return 'Confirm you collected order #$number?';
+  }
+
+  @override
+  String orderCollectBody(int units, String seller) {
+    return 'Confirm only once the $units portions from $seller are in your hands. The order is then collected and can no longer be cancelled.';
+  }
+
+  @override
+  String get orderCollectKeep => 'Not yet';
+
+  @override
+  String get orderCollectConfirm => 'Yes, I collected it';
+
+  @override
+  String get orderCollectFailed =>
+      'Could not confirm. Try again in a few minutes.';
+
+  @override
   String get reviewTitle => 'How was it today?';
 
   @override

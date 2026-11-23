@@ -167,6 +167,145 @@ class _CancelSheetState extends ConsumerState<CancelSheet> {
   }
 }
 
+/// {@template collect_order}
+/// "Đã nhận món" within an order's window (customer-confirms-collection
+/// increment), as the web's collect-order.tsx: the customer confirms they
+/// hold the food, for a store that did not press "Đã giao", so the order is
+/// not counted as a no-show. One tap only asks: a sheet says what it does,
+/// then confirms or leaves the order as it is, as Too Good To Go's "Tap to
+/// pick up" opens a sheet before its swipe.
+/// {@endtemplate}
+class CollectOrder extends ConsumerWidget {
+  /// {@macro collect_order}
+  const new({required this.order, super.key});
+
+  /// The order.
+  final OrderBody order;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final text = context.appTextStyles;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(SpacingTokens.space4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: SpacingTokens.space3,
+          children: [
+            Semantics(
+              header: true,
+              child: Text(l10n.orderCollectQuestion, style: text.title),
+            ),
+            Text(l10n.orderCollectHint, style: text.bodySm),
+            AppButton(
+              onPressed: () async {
+                final collected = await showModalBottomSheet<bool>(
+                  context: context,
+                  showDragHandle: true,
+                  isScrollControlled: true,
+                  builder: (_) => CollectSheet(order: order),
+                );
+                if (collected ?? false) _changed(ref, order);
+              },
+              child: Text(l10n.orderCollectOpen),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// {@template collect_sheet}
+/// The sheet that confirms [order] collected: pops `true` once it is.
+/// {@endtemplate}
+class CollectSheet extends ConsumerStatefulWidget {
+  /// {@macro collect_sheet}
+  const new({required this.order, super.key});
+
+  /// The order.
+  final OrderBody order;
+
+  @override
+  ConsumerState<CollectSheet> createState() => _CollectSheetState();
+}
+
+class _CollectSheetState extends ConsumerState<CollectSheet> {
+  String? _error;
+  bool _pending = false;
+
+  Future<void> _collect() async {
+    setState(() {
+      _pending = true;
+      _error = null;
+    });
+    try {
+      await ref.read(orderReaderProvider).collect(widget.order);
+      if (mounted) Navigator.of(context).pop(true);
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _pending = false;
+        _error = _failure(error, context.l10n.orderCollectFailed);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final text = context.appTextStyles;
+    final order = widget.order;
+    final error = _error;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          SpacingTokens.space4,
+          0,
+          SpacingTokens.space4,
+          SpacingTokens.space4,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: SpacingTokens.space3,
+          children: [
+            Semantics(
+              header: true,
+              child: Text(
+                l10n.orderCollectTitle(order.number),
+                style: text.headline,
+              ),
+            ),
+            Text(
+              l10n.orderCollectBody(unitsOf(order), order.seller.name),
+              style: text.bodySm,
+            ),
+            if (error != null)
+              AppAlert(
+                icon: LucideIcons.circleAlert,
+                title: error,
+                description: '',
+              ),
+            AppButton(
+              onPressed: _pending ? null : _collect,
+              child: Text(l10n.orderCollectConfirm),
+            ),
+            AppButton(
+              variant: AppButtonVariant.secondary,
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.orderCollectKeep),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The word for [stars] stars, "Tốt" for four.
 String starWord(AppLocalizations l10n, int stars) => switch (stars) {
   1 => l10n.reviewWord1,
