@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 
-import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
@@ -122,6 +122,7 @@ function CodeStep({
         return;
       }
       router.replace({ pathname: "/delete-account", query: { done: "1" } });
+      return leavingThePage();
     },
   });
 
@@ -220,6 +221,7 @@ export function DeleteAccountWithPasswordForm({ username }: { username: string }
         return;
       }
       router.replace({ pathname: "/delete-account", query: { done: "1" } });
+      return leavingThePage();
     },
   });
 
