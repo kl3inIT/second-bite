@@ -64,7 +64,12 @@ export async function StoreOrder({
   const phase = windowPhase(order, now);
   let sub = "";
   if (order.status === "collected") {
-    sub = t("detail.collectedAt", { time: time(order.collectedAt ?? order.windowEnd) });
+    // Who confirmed it: the store's "Đã giao", or the customer's own "Đã nhận món".
+    const at = { time: time(order.collectedAt ?? order.windowEnd) };
+    sub =
+      order.collectedBy === "customer"
+        ? t("detail.collectedByCustomerAt", at)
+        : t("detail.collectedAt", at);
   } else if (!open) {
     if (why === "customer" || why === "expired") sub = t(`ended.${why}`);
     else if (why) {

@@ -304,7 +304,17 @@ function useColumns(): DataTableColumns<OrderBody> {
       id: "status",
       header: t("column.status"),
       meta: { width: "w-48" },
-      cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
+      // A collected order says who confirmed it: the store's "Đã giao" or its customer's "Đã nhận món".
+      cell: ({ row }) => (
+        <span className="flex min-w-0 items-center gap-2">
+          <OrderStatusBadge status={row.original.status} />
+          {row.original.status === "collected" && row.original.collectedBy && (
+            <span className="truncate text-label text-muted-foreground">
+              {t(`collectedBy.${row.original.collectedBy}`)}
+            </span>
+          )}
+        </span>
+      ),
     },
     {
       id: "window",

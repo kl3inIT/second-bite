@@ -81,6 +81,11 @@ export async function OrderRow({ order, tab }: { order: OrderBody; tab: OrderTab
           )}
         </p>
         {ended && <p className="text-body-sm text-muted-foreground">{ended}</p>}
+        {order.status === "collected" && order.collectedBy && (
+          <p className="text-body-sm text-muted-foreground">
+            {t(`collectedBy.${order.collectedBy}`)}
+          </p>
+        )}
       </div>
       <div className="flex items-center gap-6 max-md:w-full max-md:justify-between">
         <span className="w-22 rounded-full bg-muted px-4 py-2 text-center text-body-sm-strong">

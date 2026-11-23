@@ -168,6 +168,8 @@ test.describe("the order tab of a store", () => {
     await expect(
       row(page, "Phạm Quốc Bảo · 0933222888").getByRole("button", { name: "Hoàn tác" }),
     ).toBeVisible();
+    // Its customer confirmed "Đã nhận món" themselves; the store sees it delivered, and who confirmed it.
+    await expect(row(page, "Phạm Quốc Bảo · 0933222888")).toContainText("Khách xác nhận");
     await expectNoSeriousA11yViolations(page);
 
     await page.getByRole("link", { name: "Đã hủy · 1" }).click();
@@ -178,6 +180,15 @@ test.describe("the order tab of a store", () => {
     await expect(
       row(page, "Võ Lan · 0900123456").getByRole("button", { name: "Hoàn tác" }),
     ).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+
+    // The order its customer confirmed reads as delivered on its own page, saying the customer confirmed it.
+    await page.getByRole("link", { name: "Đã giao · 1" }).click();
+    await row(page, "Phạm Quốc Bảo · 0933222888")
+      .getByRole("link", { name: "Túi bánh mì và croissant" })
+      .click();
+    await expect(page.getByRole("heading", { name: "Đã giao cho khách" })).toBeVisible();
+    await expect(page.getByText(/^Khách tự xác nhận đã nhận lúc \d\d:\d\d$/)).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
 

@@ -537,7 +537,8 @@
       "toldBody": "{date}, {time} · đã báo cho bạn",
       "collected": "Bạn đã nhận món",
       "collectedBody": "{time} · {free, select, yes {nhận miễn phí} other {đã trả {total}}}",
-      "collectedRated": "{time} · {free, select, yes {nhận miễn phí} other {đã trả {total}}} · bạn chấm {stars} sao"
+      "collectedRated": "{time} · {free, select, yes {nhận miễn phí} other {đã trả {total}}} · bạn chấm {stars} sao",
+      "collectedByYou": "Bạn tự xác nhận đã nhận món"
     },
     "cancel": {
       "open": "Huỷ đơn",
@@ -555,6 +556,16 @@
       "change": "Đổi ý?",
       "note": "Huỷ được cho tới khi quán báo món sẵn sàng.",
       "after": "Huỷ được cho tới khi quán báo món sẵn sàng. Sau đó không huỷ được nữa."
+    },
+    "collect": {
+      "open": "Đã nhận món",
+      "question": "Đã cầm món trên tay?",
+      "hint": "Quán chưa bấm Đã giao thì bạn tự xác nhận, để đơn không bị ghi là không đến nhận.",
+      "title": "Xác nhận đã nhận đơn #{number}?",
+      "body": "Chỉ xác nhận khi {units} phần của {seller} đã ở trong tay bạn. Sau đó đơn được ghi là đã nhận và không huỷ được nữa.",
+      "keep": "Chưa nhận",
+      "confirm": "Xác nhận đã nhận",
+      "failed": "Chưa xác nhận được. Thử lại sau ít phút."
     },
     "date": "{day}/{month}",
     "ended": {
@@ -1067,7 +1078,8 @@
       },
       "collect": "Thu của khách",
       "instead": "thay vì {total}",
-      "payback": "Khách được giảm {amount} ({promotion}). Second Bite bù quán {amount}, chuyển vào cuối tuần."
+      "payback": "Khách được giảm {amount} ({promotion}). Second Bite bù quán {amount}, chuyển vào cuối tuần.",
+      "collectedByCustomerAt": "Khách tự xác nhận đã nhận lúc {time}"
     },
     "track": {
       "label": "Các bước của đơn",
@@ -1075,6 +1087,10 @@
       "preparing": "Chuẩn bị",
       "ready": "Sẵn sàng",
       "collected": "Hoàn tất"
+    },
+    "collectedBy": {
+      "customer": "Khách xác nhận",
+      "seller": "Quán giao"
     }
   },
   "DayFilter": {
@@ -1939,7 +1955,11 @@
         "payVnd": "Khách trả tại quầy"
       },
       "actions": "Thao tác với đơn {number}",
-      "view": "Xem chi tiết"
+      "view": "Xem chi tiết",
+      "collectedBy": {
+        "customer": "Khách xác nhận",
+        "seller": "Quán giao"
+      }
     },
     "reviews": {
       "title": "Đánh giá",
@@ -2257,6 +2277,7 @@
         "collected": "Đơn đã lấy",
         "perHundred": "{orders} đơn / 100 người",
         "ofHeld": "{share}% đơn giữ",
+        "byCustomer": "{count} khách tự xác nhận",
         "average": "Trung bình mỗi đơn đã lấy",
         "pay": "Khách trả",
         "payNote": "trên {orders} đơn đã lấy",

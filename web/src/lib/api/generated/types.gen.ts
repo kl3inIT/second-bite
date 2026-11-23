@@ -433,6 +433,10 @@ export type CountsBody = {
     cancelled: number;
     collected: number;
     /**
+     * Collected orders whose customer confirmed the collection, the store not having handed them over first
+     */
+    collectedByCustomer: number;
+    /**
      * What the collected orders came to at the counter
      */
     collectedVnd: number;
@@ -1109,6 +1113,10 @@ export type OrderBody = {
      */
     checkoutId: string;
     collectedAt?: string;
+    /**
+     * Who confirmed the collection: the seller's people, who handed it over, or its customer; none until collected
+     */
+    collectedBy?: 'seller' | 'customer';
     createdAt: string;
     /**
      * Who collects, as given with the order; empty once the customer deleted their account
@@ -3990,6 +3998,39 @@ export type CancelOrderResponses = {
 };
 
 export type CancelOrderResponse = CancelOrderResponses[keyof CancelOrderResponses];
+
+export type CollectOrderData = {
+    body?: never;
+    headers?: {
+        /**
+         * The order's access, for its customer who did not sign in
+         */
+        'Order-Access'?: string;
+    };
+    path: {
+        orderId: string;
+    };
+    query?: never;
+    url: '/orders/{orderId}/collect';
+};
+
+export type CollectOrderErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type CollectOrderError = CollectOrderErrors[keyof CollectOrderErrors];
+
+export type CollectOrderResponses = {
+    /**
+     * OK
+     */
+    200: OrderBody;
+};
+
+export type CollectOrderResponse = CollectOrderResponses[keyof CollectOrderResponses];
 
 export type HandOverOrderData = {
     body?: never;

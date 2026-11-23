@@ -90,7 +90,15 @@ function Funnel({ totals }: { totals: CountsBody }) {
     {
       key: "collected",
       value: totals.collected,
-      note: totals.held > 0 ? t("ofHeld", { share: percent(totals.collected, totals.held) }) : "",
+      // How many of them their customer confirmed, "Đã nhận món", the store not having pressed "Đã giao".
+      note: [
+        totals.held > 0 ? t("ofHeld", { share: percent(totals.collected, totals.held) }) : "",
+        totals.collectedByCustomer > 0
+          ? t("byCustomer", { count: totals.collectedByCustomer })
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" · "),
     },
   ] as const;
 

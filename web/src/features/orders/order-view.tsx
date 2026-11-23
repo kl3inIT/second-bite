@@ -13,6 +13,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 import { CancelOrder } from "./cancel-order";
+import { CollectOrder } from "./collect-order";
 import { OrderProblem } from "./order-problem";
 import { hoursAndMinutes, savingOf, unitsOf, windowPhase, type Order } from "./order";
 import {
@@ -141,8 +142,8 @@ function OrderBody({ main, aside }: { main: React.ReactNode; aside: React.ReactN
 
 /**
  * An order still to collect (Figma D2, D3, D4): the blue band with the window in large figures, how long until it
- * opens or closes and the steps; on a phone the ticket under it, how to collect once it is ready, the dishes and
- * totals, the way to the counter, and cancelling at the very end. From 768px the ticket is in the band, and two
+ * opens or closes and the steps; on a phone the ticket under it, how to collect once it is ready, within the window
+ * the customer's own "Đã nhận món", the dishes and totals, the way to the counter, and cancelling at the very end. From 768px the ticket is in the band, and two
  * columns follow: how to collect and cancelling, then the order's details and the way to the counter (one column
  * below 1024px).
  */
@@ -164,6 +165,8 @@ export function OpenOrder({
   const from = format.dateTime(new Date(order.windowStart), "time");
   const until = format.dateTime(new Date(order.windowEnd), "time");
   const ready = order.status === "ready";
+  // Within the window the customer may confirm they hold the food, as the store's "Đã giao" does.
+  const collectable = windowPhase(order, now) === "open";
 
   return (
     <article aria-label={t("orderNumber", { number: order.number })} className={WIDE_FRAME}>
@@ -198,6 +201,15 @@ export function OpenOrder({
           <div className={cn(!ready && "max-md:hidden")}>
             <HowToCollect order={order} />
           </div>
+          {collectable ? (
+            <CollectOrder
+              orderId={order.id}
+              access={order.access}
+              number={order.number}
+              seller={order.seller.name}
+              units={unitsOf(order)}
+            />
+          ) : null}
           {cancellable ? (
             <div className="max-lg:order-last">
               <CancelOrder
@@ -411,7 +423,7 @@ function Timeline({ order }: { order: Order }) {
       moments.push({ title: t("ready"), body: t("readyBody", { time: at(order.readyAt) }) });
     }
     moments.push({
-      title: t("collected"),
+      title: order.collectedBy === "customer" ? t("collectedByYou") : t("collected"),
       body: order.review
         ? t("collectedRated", { ...paid, stars: order.review.stars })
         : t("collectedBody", paid),

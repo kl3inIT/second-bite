@@ -107,6 +107,24 @@ test.describe("the admin's orders", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  // customer-confirms-collection: an order collected says who confirmed it, the store or its customer.
+  test("a collected order says who confirmed it", async ({ page }) => {
+    await page.goto("/vi/admin/orders");
+
+    await (await hydrated(page.getByRole("button", { name: /^Đã nhận/ }))).click();
+    await expect(page).toHaveURL(/state=collected/);
+    const table = page.getByRole("table", { name: "Đơn hàng" });
+    await expect(table.getByRole("row")).toHaveCount(3);
+    const byCustomer = table.getByRole("row").filter({ hasText: "Khách xác nhận" });
+    await expect(byCustomer).toHaveCount(1);
+    await expect(table.getByRole("row").filter({ hasText: "Quán giao" })).toHaveCount(1);
+    await expectNoSeriousA11yViolations(page);
+
+    await byCustomer.getByRole("link", { name: /^SB-/ }).click();
+    await expect(page.getByText(/^Lúc \d\d:\d\d · Khách xác nhận$/)).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+  });
+
   test("says when nothing matches, and clears the filters", async ({ page }) => {
     await page.goto("/vi/admin/orders?q=khong-co-don-nay");
 
