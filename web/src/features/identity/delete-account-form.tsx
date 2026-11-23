@@ -6,11 +6,11 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 
-import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm, useLeavingThePage } from "@/components/form/app-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import {
   deleteMyAccount,
@@ -104,7 +104,7 @@ function CodeStep({
   onResent: (challengeId: string) => void;
 }) {
   const t = useTranslations("DeleteAccount");
-  const router = useRouter();
+  const leavingThePage = useLeavingThePage();
   const [gone, setGone] = useState(false);
   const [resending, startResending] = useTransition();
 
@@ -121,8 +121,7 @@ function CodeStep({
         refuse(formApi, error, codeRefusals);
         return;
       }
-      router.replace({ pathname: "/delete-account", query: { done: "1" } });
-      return leavingThePage();
+      return leavingThePage(formApi, { pathname: "/delete-account", query: { done: "1" } });
     },
   });
 
@@ -206,7 +205,7 @@ function CodeStep({
 // server's words say so under the field.
 export function DeleteAccountWithPasswordForm({ username }: { username: string }) {
   const t = useTranslations("DeleteAccount");
-  const router = useRouter();
+  const leavingThePage = useLeavingThePage();
 
   const form = useAppForm({
     defaultValues: { password: "" },
@@ -220,8 +219,7 @@ export function DeleteAccountWithPasswordForm({ username }: { username: string }
         refuse(formApi, error, { IDENTITY_PASSWORD_INCORRECT: "password" });
         return;
       }
-      router.replace({ pathname: "/delete-account", query: { done: "1" } });
-      return leavingThePage();
+      return leavingThePage(formApi, { pathname: "/delete-account", query: { done: "1" } });
     },
   });
 

@@ -5,10 +5,10 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 
-import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm, useLeavingThePage } from "@/components/form/app-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { ApiError } from "@/lib/api/client";
 import { requestSignInCode, signIn } from "@/lib/api/generated";
 import { cn } from "@/lib/utils";
@@ -34,14 +34,8 @@ type Step =
 // person goes back to the page that sent them. Each step is a form of its own (docs/guidelines/web.md › Forms); the
 // server's words for a refusal go under the field they concern, or above the button (SEC-28).
 export function SignInForm({ returnTo }: { returnTo: string }) {
-  const router = useRouter();
   const [step, setStep] = useState<Step>({ name: "email" });
   const [email, setEmail] = useState("");
-
-  function signedIn() {
-    router.replace(returnTo);
-    router.refresh();
-  }
 
   function sent(to: string, challengeId: string) {
     setEmail(to);
@@ -59,7 +53,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
         step={step}
         onResent={(challengeId) => sent(step.email, challengeId)}
         onChangeEmail={() => setStep({ name: "email" })}
-        onSignedIn={signedIn}
+        returnTo={returnTo}
       />
     );
   }
@@ -153,16 +147,17 @@ function CodeStep({
   step,
   onResent,
   onChangeEmail,
-  onSignedIn,
+  returnTo,
 }: {
   step: Extract<Step, { name: "code" }>;
   onResent: (challengeId: string) => void;
   onChangeEmail: () => void;
-  onSignedIn: () => void;
+  returnTo: string;
 }) {
   const t = useTranslations("SignIn");
   const [gone, setGone] = useState(false);
   const [resending, startResending] = useTransition();
+  const leavingThePage = useLeavingThePage();
 
   const form = useAppForm({
     defaultValues: { code: "" },
@@ -179,8 +174,7 @@ function CodeStep({
         refuse(formApi, error, codeRefusals);
         return;
       }
-      onSignedIn();
-      return leavingThePage();
+      return leavingThePage(formApi, returnTo, { refresh: true });
     },
   });
 
