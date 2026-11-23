@@ -497,3 +497,106 @@ test.describe("a form that leaves the page when the next page does not come", ()
     ]);
   });
 });
+
+/** The documents the page asks for from now on: a full load of a page, where the router brings one without. */
+function documentsOf(page: Page) {
+  const documents: string[] = [];
+  page.on("request", (request) => {
+    if (request.resourceType() === "document") documents.push(new URL(request.url()).pathname);
+  });
+  return documents;
+}
+
+/** Longer than `leavingThePage` waits for the router before it loads the next page in full. */
+const PAST_THE_WAIT_MS = 12_000;
+
+// The full load is only for a next page that does not come: once the router has brought it, or the person has gone
+// somewhere else, nothing loads again, so the page they are on stays theirs.
+test.describe("a form that leaves the page once the next page has come", () => {
+  test.slow();
+
+  test("signing in with a password loads no page again", async ({ page }) => {
+    await page.goto("/vi/sign-in?returnTo=%2F%3Fkind%3Dbakery");
+    const documents = documentsOf(page);
+    await page.getByLabel("Tên đăng nhập").fill("lan.anh");
+    await page.getByLabel("Mật khẩu").fill("correct horse");
+    await (await hydrated(page.getByRole("button", { name: "Đăng nhập", exact: true }))).click();
+
+    await expect(page.getByRole("button", { name: "Tài khoản lan.anh" })).toBeVisible();
+    await page.waitForTimeout(PAST_THE_WAIT_MS);
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    expect(documents).toEqual([]);
+  });
+
+  test("making an account loads no page again", async ({ page }) => {
+    const username = `som.den.${Date.now().toString(36)}`;
+    await page.goto("/vi/register?returnTo=%2F%3Fkind%3Dbakery");
+    const documents = documentsOf(page);
+    await page.getByLabel("Tên đăng nhập").fill(username);
+    await page.getByLabel("Mật khẩu", { exact: true }).fill("a password that came");
+    await page.getByLabel("Nhập lại mật khẩu").fill("a password that came");
+    await (await hydrated(page.getByRole("button", { name: "Tạo tài khoản" }))).click();
+
+    await expect(page.getByRole("button", { name: `Tài khoản ${username}` })).toBeVisible();
+    await page.waitForTimeout(PAST_THE_WAIT_MS);
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    expect(documents).toEqual([]);
+  });
+
+  test("signing in with an emailed code loads no page again", async ({ page }, testInfo) => {
+    await page.goto("/vi/sign-in/email?returnTo=%2F%3Fkind%3Dbakery");
+    const documents = documentsOf(page);
+    await page.getByLabel("Email").fill(`den.${testInfo.project.name}@example.com`);
+    await (await hydrated(page.getByRole("button", { name: "Gửi mã" }))).click();
+    await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    await page.waitForTimeout(PAST_THE_WAIT_MS);
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    expect(documents).toEqual([]);
+  });
+
+  test("a person who goes on to another page after signing in stays there", async ({ page }) => {
+    await page.goto("/vi/sign-in?returnTo=%2F%3Fkind%3Dbakery");
+    const documents = documentsOf(page);
+    await page.getByLabel("Tên đăng nhập").fill("lan.anh");
+    await page.getByLabel("Mật khẩu").fill("correct horse");
+    await (await hydrated(page.getByRole("button", { name: "Đăng nhập", exact: true }))).click();
+    await expect(page.getByRole("button", { name: "Tài khoản lan.anh" })).toBeVisible();
+
+    await page.getByRole("banner").getByRole("link", { name: "Mở quán" }).click();
+    await expect(page).toHaveURL(/\/vi\/stores$/);
+    await page.waitForTimeout(PAST_THE_WAIT_MS);
+    await expect(page).toHaveURL(/\/vi\/stores$/);
+    expect(documents).toEqual([]);
+  });
+
+  test("a person who follows a link while the next page is on its way stays where they went", async ({
+    page,
+  }) => {
+    await page.goto("/vi/sign-in?returnTo=%2F%3Fkind%3Dbakery");
+    const documents = documentsOf(page);
+    // Only the page the form leaves for is held; the link's page comes.
+    await page.route("**/*", async (route) => {
+      const { pathname, search } = new URL(route.request().url());
+      const held =
+        route.request().headers()["rsc"] === "1" &&
+        pathname === "/vi" &&
+        search.includes("kind=bakery");
+      if (!held) return route.fallback();
+    });
+    await page.getByLabel("Tên đăng nhập").fill("lan.anh");
+    await page.getByLabel("Mật khẩu").fill("correct horse");
+    const answered = page.waitForResponse((response) =>
+      response.url().endsWith("/api/auth/password-sessions"),
+    );
+    await (await hydrated(page.getByRole("button", { name: "Đăng nhập", exact: true }))).click();
+    expect((await answered).status()).toBe(201);
+
+    await page.getByRole("link", { name: "Đăng ký" }).click();
+    await expect(page).toHaveURL(/\/vi\/register/);
+    await page.waitForTimeout(PAST_THE_WAIT_MS);
+    await expect(page).toHaveURL(/\/vi\/register/);
+    expect(documents).toEqual([]);
+  });
+});
