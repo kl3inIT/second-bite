@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
+import { LayoutDashboardIcon, LogOutIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
 
@@ -19,8 +19,17 @@ import { signOut } from "@/lib/api/generated";
 // The signed-in account's capsule on the header: the address it is signed in with, and sign-out, which ends
 // the session on the server and leaves the person on the page they were reading (SEC-29 › What a person
 // can do); before it, account settings, where the account is managed and deleted (SEC-37). Deletion is not
-// offered here, beside sign-out.
-export function AccountMenu({ email, displayName }: { email: string; displayName: string }) {
+// offered here, beside sign-out. An admin also finds the admin's pages here, first, so the site leads back to
+// them without typing the address; the server still guards them (requireAdmin).
+export function AccountMenu({
+  email,
+  displayName,
+  admin = false,
+}: {
+  email: string;
+  displayName: string;
+  admin?: boolean;
+}) {
   const t = useTranslations("Account");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -58,6 +67,12 @@ export function AccountMenu({ email, displayName }: { email: string; displayName
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          {admin && (
+            <DropdownMenuItem render={<Link href="/admin" />}>
+              <LayoutDashboardIcon aria-hidden />
+              {t("admin")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem render={<Link href="/account/settings" />}>
             <SettingsIcon aria-hidden />
             {t("settings")}

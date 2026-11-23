@@ -59,12 +59,20 @@ test.describe("the admin's report", () => {
     await expect(first).toContainText("La Paris");
     await expect(first).toContainText("89%");
     await expect(first.getByRole("link", { name: "La Paris" })).toBeVisible();
+    // The store's name keeps a column of its own however many figures follow it.
+    expect((await first.getByRole("cell").first().boundingBox())?.width ?? 0).toBeGreaterThan(100);
     await expect(first).toContainText("264.000");
     // SEC-200: the support programme's figures, returning customers and each store's days and portions.
     await expect(page.getByRole("definition").filter({ hasText: "40%" })).toBeVisible();
     await expect(page.getByText("4/10 khách đã lấy đơn quay lại")).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Ngày đủ 7 phần" })).toBeVisible();
     await expect(table.getByRole("columnheader", { name: "Phần đã lấy" })).toBeVisible();
+    // Nothing widens the page: the chart's four tabs and the stores' table scroll within their cards.
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
     await expectNoSeriousA11yViolations(page);
   });
 
@@ -303,15 +311,19 @@ test.describe("the admin's report", () => {
     await expect(page).toHaveURL(/\/vi\/admin\/reports$/);
   });
 
-  // report-products-export: "Khung giờ" keeps the report to a part of each day, from a quick choice or any time
-  // in hours and minutes, and the exports, the dialog and the copied message carry it.
+  // report-products-export: "Khung giờ" keeps the report to any time from and to in hours and minutes, and the
+  // exports, the dialog and the copied message carry it.
   test("Khung giờ keeps the report to a time of day, its exports too", async ({ page }) => {
     await page.goto("/vi/admin/reports");
     const field = await hydrated(page.getByRole("button", { name: /^Khung giờ/ }));
     await expect(field).toContainText("Cả ngày");
 
+    // Only hours and minutes are offered: no ready-made parts of the day.
     await field.click();
-    await page.getByRole("button", { name: "Tối 17:00–22:00" }).click();
+    await expect(page.getByRole("button", { name: /^Tối/ })).toHaveCount(0);
+    await page.getByLabel("Từ", { exact: true }).fill("17:00");
+    await page.getByLabel("Đến", { exact: true }).fill("22:00");
+    await page.getByRole("button", { name: "Áp dụng" }).click();
     await expect(page).toHaveURL(/timeFrom=17(:|%3A)00&timeUntil=22(:|%3A)00/);
     await expect(field).toContainText("17:00 – 22:00");
 

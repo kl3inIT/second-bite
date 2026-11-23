@@ -415,6 +415,7 @@
     "guestTitle": "You are not signed in",
     "guestBody": "You can order without signing in, with just a name and a phone number. Sign in to keep your orders in your account and see them on another device.",
     "signedIn": "Signed in",
+    "admin": "Admin",
     "settings": "Account settings"
   },
   "TopBar": {
@@ -1263,14 +1264,6 @@
     "timeRange": {
       "label": "Hours",
       "anytime": "All day",
-      "presets": "Quick hours",
-      "preset": {
-        "morning": "Morning {from}–{until}",
-        "noon": "Midday {from}–{until}",
-        "afternoon": "Afternoon {from}–{until}",
-        "evening": "Evening {from}–{until}"
-      },
-      "custom": "Or choose the hours",
       "from": "From",
       "until": "Until",
       "midnight": "Until 00:00 runs to the end of the day.",

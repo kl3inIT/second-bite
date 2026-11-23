@@ -135,7 +135,9 @@ test.describe("the admin's posts", () => {
     await page.goto("/vi/admin/offers?units=true");
     const field = await hydrated(page.getByRole("button", { name: /^Khung giờ/ }));
     await field.click();
-    await page.getByRole("button", { name: "Sáng 06:00–11:00" }).click();
+    await page.getByLabel("Từ", { exact: true }).fill("06:00");
+    await page.getByLabel("Đến", { exact: true }).fill("11:00");
+    await page.getByRole("button", { name: "Áp dụng" }).click();
     await expect(page).toHaveURL(/timeFrom=06(:|%3A)00&timeUntil=11(:|%3A)00/);
     await expect(page).toHaveURL(/units=true/);
     await expect(field).toContainText("06:00 – 11:00");

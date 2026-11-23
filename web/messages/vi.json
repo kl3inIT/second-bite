@@ -415,6 +415,7 @@
     "guestTitle": "Bạn chưa đăng nhập",
     "guestBody": "Đặt món không cần đăng nhập, chỉ cần tên và số điện thoại. Đăng nhập để giữ đơn trong tài khoản và xem trên máy khác.",
     "signedIn": "Đã đăng nhập",
+    "admin": "Trang quản trị",
     "settings": "Cài đặt tài khoản"
   },
   "TopBar": {
@@ -1263,14 +1264,6 @@
     "timeRange": {
       "label": "Khung giờ",
       "anytime": "Cả ngày",
-      "presets": "Chọn nhanh khung giờ",
-      "preset": {
-        "morning": "Sáng {from}–{until}",
-        "noon": "Trưa {from}–{until}",
-        "afternoon": "Chiều {from}–{until}",
-        "evening": "Tối {from}–{until}"
-      },
-      "custom": "Hoặc chọn giờ",
       "from": "Từ",
       "until": "Đến",
       "midnight": "Đến 00:00 là tới hết ngày.",

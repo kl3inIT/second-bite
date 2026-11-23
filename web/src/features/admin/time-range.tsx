@@ -9,18 +9,11 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-/** The parts of the day one tap chooses. */
-const presets = [
-  ["morning", "06:00", "11:00"],
-  ["noon", "11:00", "14:00"],
-  ["afternoon", "14:00", "17:00"],
-  ["evening", "17:00", "22:00"],
-] as const;
-
 /**
  * A part of the day in an admin's filter bar, beside the days: "Khung giờ: 17:30 – 21:15" on a field, and under
- * it the parts one tap chooses, or any time from and to in hours and minutes. "Cả ngày" clears it. A range ending
- * at 00:00 ends at midnight (24:00), so the evening's last minutes can be kept.
+ * it any time from and to in hours and minutes. "Cả ngày" clears it. A range ending at 00:00 ends at midnight
+ * (24:00), so the evening's last minutes can be kept. No ready-made parts of the day: their labels overflowed the
+ * panel, and the user asked for the hours and minutes alone (22 November 2026).
  */
 export function TimeRange({
   from,
@@ -63,22 +56,9 @@ export function TimeRange({
           {from && until ? `${shown(from)} – ${shown(until)}` : t("anytime")}
         </span>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-80">
-        <div className="flex flex-col gap-4 p-1">
-          <fieldset aria-label={t("presets")} className="grid grid-cols-2 gap-2">
-            {presets.map(([key, a, b]) => (
-              <Button
-                key={key}
-                variant="choice"
-                aria-pressed={from === a && until === b}
-                onClick={() => choose([a, b])}
-              >
-                {t(`preset.${key}`, { from: a, until: b })}
-              </Button>
-            ))}
-          </fieldset>
-          <div className="flex flex-col gap-3 border-t border-border pt-3">
-            <p className="text-body-sm-strong text-foreground">{t("custom")}</p>
+      <PopoverContent align="start" className="w-72">
+        <div className="flex flex-col gap-3 p-1">
+          <div className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel htmlFor={`${id}-from`}>{t("from")}</FieldLabel>
