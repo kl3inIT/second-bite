@@ -106,6 +106,7 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 	})
 
 	registerAnalysisOperation(admin, s)
+	registerShiftOperations(admin, s)
 
 	huma.Register(admin, huma.Operation{
 		OperationID: "exportReportWorkbook", Method: http.MethodGet, Path: "/reports/workbook",
