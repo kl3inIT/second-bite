@@ -14,7 +14,11 @@ part 'shift_day_body.g.dart';
 abstract class ShiftDayBody with _$ShiftDayBody {
   const factory ShiftDayBody({
     required DateTime day,
+
+    /// In the order asked
     required List<ShiftBlockBody> shifts,
+
+    /// The whole day, whatever the shifts
     required ShiftSummaryBody summary,
   }) = _ShiftDayBody;
 

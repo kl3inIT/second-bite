@@ -12,10 +12,15 @@ part 'shift_order_body.g.dart';
 @Freezed()
 abstract class ShiftOrderBody with _$ShiftOrderBody {
   const factory ShiftOrderBody({
+    /// The name copied on the order; empty once forgotten
     required String customer,
+
+    /// The dishes, each with its portions when more than one
     required String dishes,
     required int number,
     required DateTime orderedAt,
+
+    /// The phone copied on the order; empty once forgotten
     required String phone,
     required ShiftOrderBodyStatus status,
     required String store,

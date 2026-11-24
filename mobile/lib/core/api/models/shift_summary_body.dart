@@ -10,10 +10,19 @@ part 'shift_summary_body.g.dart';
 @Freezed()
 abstract class ShiftSummaryBody with _$ShiftSummaryBody {
   const factory ShiftSummaryBody({
+    /// Orders, however they ended
     required int orders,
+
+    /// Stores with a post or an order
     required int stores,
+
+    /// Portions handed over
     required int unitsCollected,
+
+    /// Portions the store refused or whose window ended without a hand-over; an order cancelled by its customer is in neither
     required int unitsNotCollected,
+
+    /// Portions of the offers posted for it, whatever became of them
     required int unitsPosted,
   }) = _ShiftSummaryBody;
 

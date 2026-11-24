@@ -13,10 +13,15 @@ part 'shift_block_body.g.dart';
 @Freezed()
 abstract class ShiftBlockBody with _$ShiftBlockBody {
   const factory ShiftBlockBody({
+    /// HH:MM
     required String from,
     required String name,
+
+    /// By window, then number
     required List<ShiftOrderBody> orders,
     required ShiftSummaryBody summary,
+
+    /// HH:MM, 24:00 ending at midnight
     required String until,
   }) = _ShiftBlockBody;
 
