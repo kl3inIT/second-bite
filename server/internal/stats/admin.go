@@ -144,6 +144,8 @@ func RegisterAdminOperations(admin huma.API, s *Service) {
 		}, nil
 	})
 
+	registerShiftOperation(admin, s)
+
 	huma.Register(admin, huma.Operation{
 		OperationID: "exportReport", Method: http.MethodGet, Path: "/reports/export",
 		Summary: "The report as a CSV file, one row per day and store",

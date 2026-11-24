@@ -61,7 +61,7 @@ const times = new Set(["startsAt", "endsAt"]);
 export function AuditChange({ event }: { event: AuditEventBody }) {
   const t = useTranslations("Admin.audit.change");
   const format = useFormatter();
-  const { reason, changes, source, name, weekStart, amountVnd } = event.details;
+  const { reason, changes, source, name, weekStart, amountVnd, orders } = event.details;
 
   const transitions: Partial<Record<AuditEventBody["action"], string>> = {
     "seller.approve": t("approved"),
@@ -87,6 +87,9 @@ export function AuditChange({ event }: { event: AuditEventBody }) {
             amount: formatPrice(amountVnd ?? 0),
           })}
         </span>
+      )}
+      {event.action === "report.export_customers" && (
+        <span>{t("customersExported", { orders: orders ?? 0 })}</span>
       )}
       {changes?.map((change) => (
         <span key={change.field}>

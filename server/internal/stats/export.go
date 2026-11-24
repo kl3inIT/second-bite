@@ -17,11 +17,13 @@ const (
 	wordUnitsPosted    = "Phần đăng"
 	wordUnitsCollected = "Phần đã lấy"
 	wordShareSold      = "Tỉ lệ bán hết (%)"
+	wordAllStores      = "Tất cả cửa hàng"
+	wordStore          = "Cửa hàng"
 )
 
 // The words of the file, in Vietnamese: it is pasted into the sponsor's sheet.
 var csvHeader = []string{
-	"Ngày", "Cửa hàng", "Lượt mở trang", "Người mở", "Lượt vào từ QR", "Món đăng", wordUnitsPosted,
+	"Ngày", wordStore, "Lượt mở trang", "Người mở", "Lượt vào từ QR", "Món đăng", wordUnitsPosted,
 	"Đơn giữ", "Phần giữ", "Đơn đã lấy", wordUnitsCollected, "Đơn huỷ", "Quán từ chối", "Khách không đến",
 	"Tỉ lệ lấy (%)", "Tiền thu tại quầy (đồng)", "Tài khoản mới", "Khách đặt lần đầu",
 	"Ngày có đăng", "Ngày đăng đủ 7 phần", "Khách nhận đơn", "Khách mua lại",

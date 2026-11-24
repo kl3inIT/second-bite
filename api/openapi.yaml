@@ -611,6 +611,10 @@ components:
         name:
           description: The name of a promotion set up
           type: string
+        orders:
+          description: How many orders it listed with their customers
+          format: int64
+          type: integer
         provider:
           description: Who delivers email after the change
           enum:
@@ -620,11 +624,22 @@ components:
         reason:
           description: What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
           type: string
+        sellerId:
+          description: The store it was kept to, when one was chosen
+          type: string
+        since:
+          description: The first day, in Vietnam, of a report whose customers were downloaded
+          format: date
+          type: string
         source:
           description: Where a change of admins came from
           enum:
             - admin
             - command_line
+          type: string
+        until:
+          description: Its last day, included
+          format: date
           type: string
         weekStart:
           description: The Monday of a week of discounts marked paid
@@ -652,6 +667,7 @@ components:
             - promotion.create
             - promotion.change
             - seller.mark_payout
+            - report.export_customers
           type: string
         actorId:
           type: string
@@ -667,7 +683,7 @@ components:
         resourceId:
           type: string
         resourceLabel:
-          description: The store's name, the account's address or the order's number at the time; absent once that account is deleted
+          description: The store's name, the account's address, the order's number or the report's days at the time; absent once that account is deleted
           type: string
         resourceType:
           enum:
@@ -678,6 +694,7 @@ components:
             - order_settings
             - email_settings
             - promotion
+            - report
           type: string
       required:
         - id
@@ -4126,6 +4143,7 @@ paths:
                 - promotion.create
                 - promotion.change
                 - seller.mark_payout
+                - report.export_customers
               type: string
             type:
               - array
@@ -5177,6 +5195,77 @@ paths:
         - bearer: []
         - cookie: []
       summary: The report as a CSV file, one row per day and store
+      tags:
+        - Admin
+  /admin/reports/shifts:
+    get:
+      description: "The same days and store as getReport (#261), in Vietnamese: \"Tổng hợp\", then a sheet per day \"Ngày DD-MM\". A shift is the afternoon's when its window starts before 17:00 in Vietnam, else the evening's. Per shift, store and dish: the portions posted, collected (ordered on the app and collected, plus those handed out at the counter: posted and held by no order on the app not cancelled) and not taken (of orders on the app that expired or were refused); and every order on the app with its customer's name and phone. Cancelled orders are left out. The download is recorded in the audit as report.export_customers, without the customers."
+      operationId: exportShiftWorkbook
+      parameters:
+        - description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+          explode: false
+          in: query
+          name: since
+          schema:
+            description: The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+          explode: false
+          in: query
+          name: until
+          schema:
+            description: The last day in Vietnam, YYYY-MM-DD, included; today when empty
+            pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+            type: string
+        - description: Keep one store's numbers; the views are then its page's and its dishes'
+          explode: false
+          in: query
+          name: sellerId
+          schema:
+            description: Keep one store's numbers; the views are then its page's and its dishes'
+            type: string
+        - description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+          explode: false
+          in: query
+          name: timeFrom
+          schema:
+            description: Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+            pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+            type: string
+        - description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+          explode: false
+          in: query
+          name: timeUntil
+          schema:
+            description: Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+            pattern: ^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+          description: The workbook
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Disposition:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          description: Error
+      security:
+        - bearer: []
+        - cookie: []
+      summary: The report by day and shift with every order's customer, as an Excel workbook for the sponsor
       tags:
         - Admin
   /admin/reports/workbook:

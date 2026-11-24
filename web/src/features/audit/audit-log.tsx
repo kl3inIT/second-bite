@@ -5,6 +5,7 @@ import {
   BanknoteIcon,
   CircleCheckIcon,
   CircleXIcon,
+  DownloadIcon,
   EyeIcon,
   EyeOffIcon,
   MailIcon,
@@ -76,6 +77,7 @@ const actionLook: Record<
   "promotion.create": { variant: "success", icon: TagIcon },
   "promotion.change": { variant: "info", icon: TagIcon },
   "seller.mark_payout": { variant: "success", icon: BanknoteIcon },
+  "report.export_customers": { variant: "warning", icon: DownloadIcon },
 };
 
 const all = "all";

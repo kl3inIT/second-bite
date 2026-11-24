@@ -271,9 +271,9 @@ SELECT id, seller_id FROM offer_offers WHERE id = ANY(@ids::uuid[]);
 
 -- name: PostsBetween :many
 -- The offers whose window starts in [since, until), of the seller given, with what the admin's analysis reads of
--- each: its dish, kind, units, prices, when it was posted and whether it has ended.
+-- each: its dish, kind, units, prices, when it was posted, its window and whether it has ended.
 SELECT id, seller_id, seller_name, name, unit, kind, units, units_left, price_vnd, original_price_vnd, created_at,
-       (state <> 'on_sale' OR window_end <= now())::boolean AS ended
+       window_start, window_end, (state <> 'on_sale' OR window_end <= now())::boolean AS ended
 FROM offer_offers
 WHERE window_start >= @since AND window_start < @until
   AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)

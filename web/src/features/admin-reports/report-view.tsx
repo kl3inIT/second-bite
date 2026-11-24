@@ -115,6 +115,7 @@ export function ReportView({
   deep,
   exportHref,
   workbookHref,
+  shiftsHref,
 }: {
   report: ReportOutputBody;
   previous: CountsBody | null;
@@ -123,6 +124,7 @@ export function ReportView({
   deep: DeepAnalysis;
   exportHref: string;
   workbookHref: string;
+  shiftsHref: string;
 }) {
   const t = useTranslations("Admin.reports");
   const format = useFormatter();
@@ -227,6 +229,7 @@ export function ReportView({
             }}
             csvHref={exportHref}
             workbookHref={workbookHref}
+            shiftsHref={shiftsHref}
           />
         </div>
       </div>

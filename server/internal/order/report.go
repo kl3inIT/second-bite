@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
+	"github.com/kl3inIT/second-bite/server/internal/audit"
 	"github.com/kl3inIT/second-bite/server/internal/order/internal/db"
 	"github.com/kl3inIT/second-bite/server/internal/platform"
 )
@@ -153,4 +155,73 @@ func (s *Service) OfferOutcomes(ctx context.Context, since, until time.Time, sel
 	}
 
 	return outcomes, nil
+}
+
+// CustomersFilter is a report's days and store whose orders an admin
+// downloads with their customers (#261).
+type CustomersFilter struct {
+	// Since and Until are the first and the last day in Vietnam, both
+	// included, as midnight UTC of their dates.
+	Since, Until time.Time
+	// SellerID keeps one seller's orders; all when nil.
+	SellerID *uuid.UUID
+	// Clock keeps the orders whose window starts in that part of the day.
+	Clock platform.Clock
+}
+
+// OrdersWithCustomers answers to an admin every order not cancelled whose
+// window starts on the days of f, with its lines, the earliest window first,
+// read as fromRow reads them; and records in the audit, in the same
+// transaction, that the admin read them, since they name their customers
+// (#261). When the record fails, nothing is answered.
+func (s *Service) OrdersWithCustomers(ctx context.Context, f CustomersFilter) ([]Order, error) {
+	if _, err := platform.RequireAdmin(ctx); err != nil {
+		return nil, err
+	}
+
+	params := db.OrdersOfDaysParams{
+		Since: time.Date(f.Since.Year(), f.Since.Month(), f.Since.Day(), 0, 0, 0, 0, vietnam),
+		Until: time.Date(f.Until.Year(), f.Until.Month(), f.Until.Day()+1, 0, 0, 0, 0, vietnam),
+	}
+
+	params.TimeFrom, params.TimeUntil = f.Clock.Bounds()
+	if f.SellerID != nil {
+		params.SellerID = uuid.NullUUID{UUID: *f.SellerID, Valid: true}
+	}
+
+	var orders []Order
+
+	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
+		q := s.queries.WithTx(tx)
+
+		rows, err := q.OrdersOfDays(ctx, params)
+		if err != nil {
+			return fmt.Errorf("listing the orders of the days: %w", err)
+		}
+
+		orders = make([]Order, 0, len(rows))
+		for _, r := range rows {
+			orders = append(orders, s.fromRow(db.GetOrderRow(r)))
+		}
+
+		if err := s.withLines(ctx, q, orders); err != nil {
+			return err
+		}
+
+		since, until := f.Since.Format(time.DateOnly), f.Until.Format(time.DateOnly)
+		exported := audit.CustomersExported{Since: since, Until: until, Orders: len(orders)}
+
+		if f.SellerID != nil {
+			exported.SellerID = f.SellerID.String()
+		}
+
+		resource := audit.Resource{Type: audit.ResourceReport, ID: since + ".." + until, Label: since + " – " + until}
+
+		return s.trail.Record(ctx, tx, resource, exported)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }

@@ -1354,6 +1354,7 @@
         "promotionCreate": "Tạo chương trình khuyến mãi",
         "promotionChange": "Sửa chương trình khuyến mãi",
         "sellerMarkPayout": "Đã chuyển tiền bù",
+        "reportExportCustomers": "Tải báo cáo theo ca có khách",
         "orderSettingsChange": "Sửa giới hạn đặt món"
       },
       "resource": {
@@ -1363,7 +1364,8 @@
         "email_settings": "Cài đặt email",
         "order": "Đơn hàng",
         "promotion": "Chương trình khuyến mãi",
-        "order_settings": "Giới hạn đặt món"
+        "order_settings": "Giới hạn đặt món",
+        "report": "Báo cáo"
       },
       "commandLine": "Dòng lệnh",
       "deletedAccount": "Tài khoản đã xoá",
@@ -1382,6 +1384,7 @@
         "ownerChanged": "Chủ cũ → nhân viên, chủ mới nhận quán",
         "promotionCreated": "Tạo “{name}”",
         "payoutMarked": "Tuần từ {week}: {amount}",
+        "customersExported": "{orders, plural, other {# đơn}} kèm tên và số điện thoại khách",
         "yes": "có",
         "no": "không"
       },
@@ -2131,6 +2134,8 @@
         "xlsxHint": "Tổng quan, số theo ngày và cửa hàng, và các phần phân tích, mỗi phần một trang tính",
         "csv": "CSV",
         "csvHint": "Số theo ngày và theo cửa hàng",
+        "shifts": "Theo ca (gửi nhà tài trợ)",
+        "shiftsHint": "Excel theo ngày và ca: suất đăng, đã nhận, phát tại quầy, và từng đơn với tên, số điện thoại khách. Việc tải được ghi vào nhật ký",
         "parts": "Nội dung",
         "part": {
           "kpi": "Ba chỉ số chính",

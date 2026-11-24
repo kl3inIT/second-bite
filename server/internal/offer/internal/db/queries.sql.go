@@ -806,7 +806,7 @@ func (q *Queries) PostDays(ctx context.Context, arg PostDaysParams) ([]PostDaysR
 
 const postsBetween = `-- name: PostsBetween :many
 SELECT id, seller_id, seller_name, name, unit, kind, units, units_left, price_vnd, original_price_vnd, created_at,
-       (state <> 'on_sale' OR window_end <= now())::boolean AS ended
+       window_start, window_end, (state <> 'on_sale' OR window_end <= now())::boolean AS ended
 FROM offer_offers
 WHERE window_start >= $1 AND window_start < $2
   AND ($3::uuid IS NULL OR seller_id = $3::uuid)
@@ -835,11 +835,13 @@ type PostsBetweenRow struct {
 	PriceVnd         int64
 	OriginalPriceVnd int64
 	CreatedAt        time.Time
+	WindowStart      time.Time
+	WindowEnd        time.Time
 	Ended            bool
 }
 
 // The offers whose window starts in [since, until), of the seller given, with what the admin's analysis reads of
-// each: its dish, kind, units, prices, when it was posted and whether it has ended.
+// each: its dish, kind, units, prices, when it was posted, its window and whether it has ended.
 func (q *Queries) PostsBetween(ctx context.Context, arg PostsBetweenParams) ([]PostsBetweenRow, error) {
 	rows, err := q.db.Query(ctx, postsBetween,
 		arg.Since,
@@ -867,6 +869,8 @@ func (q *Queries) PostsBetween(ctx context.Context, arg PostsBetweenParams) ([]P
 			&i.PriceVnd,
 			&i.OriginalPriceVnd,
 			&i.CreatedAt,
+			&i.WindowStart,
+			&i.WindowEnd,
 			&i.Ended,
 		); err != nil {
 			return nil, err

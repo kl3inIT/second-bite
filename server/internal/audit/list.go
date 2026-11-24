@@ -70,6 +70,12 @@ type Details struct {
 	// WeekStart and AmountVND are a payout's, when it was marked.
 	WeekStart string `json:"weekStart,omitempty"`
 	AmountVND int64  `json:"amountVnd,omitempty"`
+	// Since, Until, SellerID and Orders are a report's whose customers were
+	// downloaded.
+	Since    string `json:"since,omitempty"`
+	Until    string `json:"until,omitempty"`
+	SellerID string `json:"sellerId,omitempty"`
+	Orders   int    `json:"orders,omitempty"`
 }
 
 // Page is one page of the trail and how many events match in all.

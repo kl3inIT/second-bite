@@ -8,14 +8,14 @@ Owns the trail of what admins did, which admin did what to which store, account 
 | --- | --- | --- |
 | `GET /admin/audit-events?action=&actorId=&since=&until=&q=&page=&size=` | Admin | One page of events, the latest first, with `total`. `action` keeps names of the catalog (repeatable); `actorId` one admin; `since` and `until` bound the time, `until` excluded; `q` matches the admin's or the resource's label, any case, or is the resource's identifier. A page past the end is empty. A filter out of bounds answers `AUDIT_LIST_INVALID` (400). |
 
-Each event answers its `details` as typed fields: `reason`, `source`, `provider`, `changes`, `name`, `weekStart` and `amountVnd`, each present only for the actions that have it. The API's lists of actions are the catalog's, which a test keeps the same.
+Each event answers its `details` as typed fields: `reason`, `source`, `provider`, `changes`, `name`, `weekStart`, `amountVnd`, `since`, `until`, `sellerId` and `orders`, each present only for the actions that have it. The API's lists of actions are the catalog's, which a test keeps the same.
 
 Published to other modules: `Record(ctx, tx, resource, action)`, which writes one event in the transaction of the change it records, and `ForgetAccount(ctx, tx, account)`, which `identity` calls in the transaction that deletes an account.
 
 ## Rules
 
 - Only the actions of the module's catalog are recorded. Each is a Go type of the module, and its fields are the event's details, written as a JSON object. A detail no type declares cannot be written, and none holds a secret or personal data. An action's name is `subject.verb` and never changes meaning.
-- Not recorded: what customers and members do, an admin only reading, signing in and out. Those are the log's.
+- Not recorded: what customers and members do, an admin only reading, signing in and out. Those are the log's. The one read recorded is a download that names customers, the report by shift with every order's name and phone (#261): who took the personal data out of the site. Its event names no customer.
 - An event and its change are kept together or not at all, since both are written in one transaction.
 - The actor is the caller of the request: its account and its address at that moment (`platform.Caller.Label`, read with the session). From the command line there is no actor and no request.
 - Recording also logs `audit.event.recorded` with the action, the resource's type and identifier, and the actor's identifier, never a label. The request's identifier joins the two.
@@ -42,6 +42,7 @@ Published to other modules: `Record(ctx, tx, resource, action)`, which writes on
 | `promotion.create` | `promotion`, its identifier, its name | `name` | `order` |
 | `promotion.change` | `promotion`, its identifier, its name | `changes`: its name, times, budget, limit per phone and whether it is enabled with their values; its sellers and rules by name only | `order` |
 | `seller.mark_payout` | `seller`, its identifier, its name | `weekStart`: the week's Monday; `amountVnd`: the discounts paid back | `order` |
+| `report.export_customers` | `report`, `<since>..<until>`, labelled `<since> – <until>` | `since`, `until`: the days in Vietnam; `sellerId`, when one store was chosen; `orders`: how many orders the file lists with their customers (#261). Recorded in the transaction that reads the orders, before the file is written: no file without its event | `order` |
 
 ## Data
 

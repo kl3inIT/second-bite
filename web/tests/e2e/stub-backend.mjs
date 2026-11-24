@@ -2204,6 +2204,16 @@ function auditLog() {
         resourceLabel: "thu.admin@example.com",
         details: { source: "command_line" },
       });
+    } else if (i === 10) {
+      // #261: the report by shift downloaded with its customers.
+      events.push({
+        ...base,
+        action: "report.export_customers",
+        resourceType: "report",
+        resourceId: "2026-10-12..2026-10-14",
+        resourceLabel: "2026-10-12 – 2026-10-14",
+        details: { since: "2026-10-12", until: "2026-10-14", orders: 61 },
+      });
     } else {
       const [action, details] =
         i % 3 === 0
@@ -3493,6 +3503,16 @@ async function adminRoutes(request, response, url) {
       "content-disposition": `attachment; filename=bao-cao-${report.since}-den-${report.until}.xlsx`,
     });
     // The stub sends no real workbook: only its name and type are checked.
+    response.end("PK");
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/reports/shifts") {
+    const report = adminReport(url, adminStoresOf(account));
+    response.writeHead(200, {
+      "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "content-disposition": `attachment; filename=bao-cao-theo-ca-${report.since}-den-${report.until}.xlsx`,
+    });
+    // As the workbook: only its name and type are checked.
     response.end("PK");
     return true;
   }

@@ -78,6 +78,7 @@ export default async function ReportsPage({ searchParams }: PageProps<"/[locale]
           deep={deep}
           exportHref={`/api/admin/reports/export?${new URLSearchParams(query)}`}
           workbookHref={`/api/admin/reports/workbook?${new URLSearchParams(query)}`}
+          shiftsHref={`/api/admin/reports/shifts?${new URLSearchParams(query)}`}
         />
         <StoreFeedbackCard items={feedback.items} />
       </div>

@@ -280,6 +280,27 @@ test.describe("the admin's report", () => {
     );
   });
 
+  // #261: the workbook by shift for the sponsor, with every order's customer, is the server's file too.
+  test("Xuất báo cáo downloads the workbook by shift for the sponsor", async ({ page }) => {
+    await page.goto("/vi/admin/reports");
+    await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();
+    const dialog = page.getByRole("dialog", { name: "Xuất báo cáo" });
+    // The choice is pressed where a person presses it: its icon covers the radio until chosen.
+    await dialog.getByText("Theo ca (gửi nhà tài trợ)", { exact: true }).click();
+    await expect(dialog.getByRole("radio", { name: /^Theo ca \(gửi nhà tài trợ\)/ })).toBeChecked();
+    await expect(dialog).toContainText("tên, số điện thoại khách");
+    await expect(dialog.getByRole("checkbox", { name: "Sản phẩm" })).toBeHidden();
+    await expectNoSeriousA11yViolations(page);
+    const link = dialog.getByRole("link", { name: "Xuất" });
+    await expect(link).toHaveAttribute("href", /^\/api\/admin\/reports\/shifts\?/);
+
+    const download = page.waitForEvent("download");
+    await link.click();
+    expect((await download).suggestedFilename()).toMatch(
+      /^bao-cao-theo-ca-\d{4}-\d{2}-\d{2}-den-\d{4}-\d{2}-\d{2}\.xlsx$/,
+    );
+  });
+
   test("Xuất báo cáo opens the print page with the parts ticked", async ({ page }) => {
     await page.goto("/vi/admin/reports");
     await (await hydrated(page.getByRole("button", { name: "Xuất báo cáo" }))).click();

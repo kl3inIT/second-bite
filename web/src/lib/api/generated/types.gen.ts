@@ -355,6 +355,10 @@ export type AuditDetailsBody = {
      */
     name?: string;
     /**
+     * How many orders it listed with their customers
+     */
+    orders?: number;
+    /**
      * Who delivers email after the change
      */
     provider?: 'smtp' | 'brevo';
@@ -363,9 +367,21 @@ export type AuditDetailsBody = {
      */
     reason?: string;
     /**
+     * The store it was kept to, when one was chosen
+     */
+    sellerId?: string;
+    /**
+     * The first day, in Vietnam, of a report whose customers were downloaded
+     */
+    since?: string;
+    /**
      * Where a change of admins came from
      */
     source?: 'admin' | 'command_line';
+    /**
+     * Its last day, included
+     */
+    until?: string;
     /**
      * The Monday of a week of discounts marked paid
      */
@@ -373,7 +389,7 @@ export type AuditDetailsBody = {
 };
 
 export type AuditEventBody = {
-    action: 'offer_settings.change' | 'order_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout';
+    action: 'offer_settings.change' | 'order_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout' | 'report.export_customers';
     actorId?: string;
     actorLabel?: string;
     details: AuditDetailsBody;
@@ -381,10 +397,10 @@ export type AuditEventBody = {
     occurredAt: string;
     resourceId: string;
     /**
-     * The store's name, the account's address or the order's number at the time; absent once that account is deleted
+     * The store's name, the account's address, the order's number or the report's days at the time; absent once that account is deleted
      */
     resourceLabel?: string;
-    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'order_settings' | 'email_settings' | 'promotion';
+    resourceType: 'account' | 'seller' | 'order' | 'offer_settings' | 'order_settings' | 'email_settings' | 'promotion' | 'report';
 };
 
 export type AuditEventsOutputBody = {
@@ -2316,7 +2332,7 @@ export type ListAuditEventsData = {
         /**
          * Keep these actions; every action when absent
          */
-        action?: Array<'offer_settings.change' | 'order_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout'> | null;
+        action?: Array<'offer_settings.change' | 'order_settings.change' | 'email_settings.change' | 'admin.grant' | 'admin.revoke' | 'seller.approve' | 'seller.reject' | 'seller.block' | 'seller.unblock' | 'seller.delete' | 'seller.restore' | 'seller.change_owner' | 'review.hide' | 'review.show' | 'promotion.create' | 'promotion.change' | 'seller.mark_payout' | 'report.export_customers'> | null;
         /**
          * Keep one admin's actions
          */
@@ -3063,6 +3079,50 @@ export type ExportReportError = ExportReportErrors[keyof ExportReportErrors];
 export type ExportReportResponses = {
     /**
      * The report as CSV
+     */
+    200: unknown;
+};
+
+export type ExportShiftWorkbookData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD; six days before until when empty
+         */
+        since?: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included; today when empty
+         */
+        until?: string;
+        /**
+         * Keep one store's numbers; the views are then its page's and its dishes'
+         */
+        sellerId?: string;
+        /**
+         * Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil
+         */
+        timeFrom?: string;
+        /**
+         * Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's
+         */
+        timeUntil?: string;
+    };
+    url: '/admin/reports/shifts';
+};
+
+export type ExportShiftWorkbookErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ExportShiftWorkbookError = ExportShiftWorkbookErrors[keyof ExportShiftWorkbookErrors];
+
+export type ExportShiftWorkbookResponses = {
+    /**
+     * The workbook
      */
     200: unknown;
 };

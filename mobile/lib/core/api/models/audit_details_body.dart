@@ -23,14 +23,26 @@ abstract class AuditDetailsBody with _$AuditDetailsBody {
     /// The name of a promotion set up
     String? name,
 
+    /// How many orders it listed with their customers
+    int? orders,
+
     /// Who delivers email after the change
     AuditDetailsBodyProvider? provider,
 
     /// What the owner was told, for a rejection or a block; the admin's reason, for a hidden review
     String? reason,
 
+    /// The store it was kept to, when one was chosen
+    String? sellerId,
+
+    /// The first day, in Vietnam, of a report whose customers were downloaded
+    DateTime? since,
+
     /// Where a change of admins came from
     AuditDetailsBodySource? source,
+
+    /// Its last day, included
+    DateTime? until,
 
     /// The Monday of a week of discounts marked paid
     String? weekStart,

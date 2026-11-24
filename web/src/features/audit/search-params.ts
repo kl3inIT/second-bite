@@ -30,6 +30,7 @@ export const auditActions = [
   "promotion.create",
   "promotion.change",
   "seller.mark_payout",
+  "report.export_customers",
 ] as const satisfies readonly AuditAction[];
 
 /** Each action's name among the messages, which cannot hold its dot. */
@@ -51,6 +52,7 @@ export const actionMessage = {
   "promotion.create": "promotionCreate",
   "promotion.change": "promotionChange",
   "seller.mark_payout": "sellerMarkPayout",
+  "report.export_customers": "reportExportCustomers",
 } as const satisfies Record<AuditAction, string>;
 
 /** The log's page size: the rows of Figma AD-CD5. */

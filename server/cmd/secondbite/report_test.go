@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/xuri/excelize/v2"
 )
 
 // reportAdminEmail is the admin who reads the report, granted with the others
@@ -95,6 +98,7 @@ func checkReport(t *testing.T, svc service) {
 	checkReportNewUsers(t, svc, admin)
 	checkReportExport(t, svc, admin, sellerID)
 	checkReportAnalysis(t, svc, admin, sellerID)
+	checkShiftWorkbook(t, svc, admin, sellerID, map[string]http.Header{"a customer": customer, "the store's owner": owner})
 	checkOfferUnits(t, svc, admin, sellerID)
 	checkReportRangeRefused(t, svc, admin)
 }
@@ -201,5 +205,89 @@ func checkReportRangeRefused(t *testing.T, svc service, admin http.Header) {
 			problem(t, http.StatusBadRequest); p.Code != "REPORT_RANGE_INVALID" {
 			t.Errorf("%s: %q", name, p.Code)
 		}
+	}
+}
+
+// checkShiftWorkbook downloads the store's day by shift with its customers
+// (#261): only an admin may, each download is recorded in the audit without
+// the customers, and the workbook opens with "Tổng hợp" first and a sheet for
+// the day. Of the 5 croissants, 2 were collected on the app and the 3 no order
+// holds were handed out at the counter.
+func checkShiftWorkbook(t *testing.T, svc service, admin http.Header, sellerID string, others map[string]http.Header) {
+	t.Helper()
+
+	today := time.Now().In(time.FixedZone("Asia/Ho_Chi_Minh", 7*60*60))
+	url := svc.base + "/admin/reports/shifts?sellerId=" + sellerID + "&since=" + today.Format(time.DateOnly) +
+		"&until=" + today.Format(time.DateOnly)
+
+	checkShiftWorkbookRefused(t, svc, url, others)
+
+	book := send(t, http.MethodGet, url, admin, nil)
+	if book.status != http.StatusOK ||
+		book.header.Get("Content-Type") != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+		book.header.Get("Content-Disposition") != "attachment; filename=bao-cao-theo-ca-"+today.Format(time.DateOnly)+
+			"-den-"+today.Format(time.DateOnly)+".xlsx" {
+		t.Fatalf("the workbook by shift: %d %v %s", book.status, book.header, book.body)
+	}
+
+	if n := countRows(t, svc, `SELECT count(*) FROM audit_events
+		WHERE request_id = $1 AND action = 'report.export_customers' AND resource_type = 'report'
+		AND resource_id = $2 AND actor_label = $3 AND details->>'sellerId' = $4 AND (details->>'orders')::int = 1
+		AND details::text NOT LIKE '%@%'`,
+		book.header.Get("X-Request-Id"), today.Format(time.DateOnly)+".."+today.Format(time.DateOnly), reportAdminEmail,
+		sellerID); n != 1 {
+		t.Errorf("%d audit events of the download, want 1 with its days, store and orders", n)
+	}
+
+	checkShiftWorkbookRows(t, book.body, today)
+}
+
+// checkShiftWorkbookRefused: a customer and a store's owner are refused, and
+// their requests leave no audit event.
+func checkShiftWorkbookRefused(t *testing.T, svc service, url string, others map[string]http.Header) {
+	t.Helper()
+
+	for who, header := range others {
+		refused := send(t, http.MethodGet, url, header, nil)
+		if p := refused.problem(t, http.StatusForbidden); p.Code != codeAdminRequired {
+			t.Errorf("%s: %q", who, p.Code)
+		}
+
+		if n := countRows(t, svc, "SELECT count(*) FROM audit_events WHERE request_id = $1",
+			refused.header.Get("X-Request-Id")); n != 0 {
+			t.Errorf("%s's refused download left %d audit events", who, n)
+		}
+	}
+}
+
+// checkShiftWorkbookRows opens the workbook: "Tổng hợp" and the day's sheet,
+// the day's figures and the order with its customer.
+func checkShiftWorkbookRows(t *testing.T, body []byte, today time.Time) {
+	t.Helper()
+
+	f, err := excelize.OpenReader(bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close() //nolint:errcheck // read from memory
+
+	if got := f.GetSheetList(); !slices.Equal(got, []string{"Tổng hợp", "Ngày " + today.Format("02-01")}) {
+		t.Fatalf("sheets %q", got)
+	}
+
+	rows, err := f.GetRows("Tổng hợp")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	whole := []string{today.Format("02-01-2006"), "Cả ngày", "", "1", "5", "5", "2", "3", "0"}
+	if !slices.ContainsFunc(rows, func(row []string) bool { return slices.Equal(row, whole) }) {
+		t.Errorf("no row %q in %q", whole, rows)
+	}
+
+	if !slices.ContainsFunc(rows, func(row []string) bool {
+		return len(row) > 8 && row[4] == "Bếp Báo Cáo" && row[7] == "Croissant" && row[8] == "2"
+	}) {
+		t.Errorf("the order is not listed with its customer: %q", rows)
 	}
 }

@@ -1354,6 +1354,7 @@
         "promotionCreate": "Promotion set up",
         "promotionChange": "Promotion changed",
         "sellerMarkPayout": "Payback marked paid",
+        "reportExportCustomers": "Report by shift with customers downloaded",
         "orderSettingsChange": "Change ordering limits"
       },
       "resource": {
@@ -1363,7 +1364,8 @@
         "email_settings": "Email settings",
         "order": "Order",
         "promotion": "Promotion",
-        "order_settings": "Ordering limits"
+        "order_settings": "Ordering limits",
+        "report": "Report"
       },
       "commandLine": "Command line",
       "deletedAccount": "Deleted account",
@@ -1382,6 +1384,7 @@
         "ownerChanged": "Previous owner → staff; the new owner takes the store",
         "promotionCreated": "Set up “{name}”",
         "payoutMarked": "Week from {week}: {amount}",
+        "customersExported": "{orders, plural, one {# order} other {# orders}} with customers' names and phones",
         "yes": "yes",
         "no": "no"
       },
@@ -2131,6 +2134,8 @@
         "xlsxHint": "A summary, the numbers by day and store, and the analysis, a sheet each",
         "csv": "CSV",
         "csvHint": "Numbers by day and by store",
+        "shifts": "By shift (for the sponsor)",
+        "shiftsHint": "Excel by day and shift: portions posted, collected, handed out at the counter, and each order with its customer's name and phone. The download is logged",
         "parts": "Contents",
         "part": {
           "kpi": "The three main numbers",

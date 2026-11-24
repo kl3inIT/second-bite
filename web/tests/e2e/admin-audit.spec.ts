@@ -33,6 +33,9 @@ test.describe("the admins' log", () => {
     await expect(table.getByText("Giảm tối thiểu: 20% → 30%")).toBeVisible();
     await expect(table.getByText("Mật khẩu SMTP: đã đổi")).toBeVisible();
     await expect(table.getByRole("cell", { name: "Dòng lệnh", exact: true })).toBeVisible();
+    // #261: who downloaded customers' names and phones, and how many orders, never the customers.
+    await expect(table.getByText("Tải báo cáo theo ca có khách")).toBeVisible();
+    await expect(table.getByText("61 đơn kèm tên và số điện thoại khách")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });
 

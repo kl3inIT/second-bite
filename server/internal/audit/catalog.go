@@ -10,7 +10,9 @@ const (
 	ResourceEmailSettings = "email_settings"
 	ResourcePromotion     = "promotion"
 	ResourceOrderSettings = "order_settings"
-	SingletonID           = "current"
+	// ResourceReport is a report's days, identified as since..until.
+	ResourceReport = "report"
+	SingletonID    = "current"
 )
 
 // Change is one setting changed, named as the API names it, with its value
@@ -160,6 +162,18 @@ type PayoutMarked struct {
 
 func (PayoutMarked) action() string { return "seller.mark_payout" }
 
+// CustomersExported is a report downloaded with its orders' customers, their
+// names and phones (#261): its days in Vietnam, the store when one was chosen
+// and how many orders it listed. The event names no customer.
+type CustomersExported struct {
+	Since    string `json:"since"`
+	Until    string `json:"until"`
+	SellerID string `json:"sellerId,omitempty"`
+	Orders   int    `json:"orders"`
+}
+
+func (CustomersExported) action() string { return "report.export_customers" }
+
 // catalog is every action above; a type added there is added here, which
 // gives the names admins filter by.
 var catalog = []Action{
@@ -180,6 +194,7 @@ var catalog = []Action{
 	PromotionCreated{},
 	PromotionChanged{},
 	PayoutMarked{},
+	CustomersExported{},
 }
 
 // ActionNames are the names of the catalog, as events record them.

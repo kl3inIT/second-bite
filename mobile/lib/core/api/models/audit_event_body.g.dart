@@ -55,6 +55,7 @@ const _$AuditEventBodyActionEnumMap = {
   AuditEventBodyAction.undefined14: 'promotion.create',
   AuditEventBodyAction.undefined15: 'promotion.change',
   AuditEventBodyAction.undefined16: 'seller.mark_payout',
+  AuditEventBodyAction.undefined17: 'report.export_customers',
   AuditEventBodyAction.$unknown: r'$unknown',
 };
 
@@ -66,5 +67,6 @@ const _$AuditEventBodyResourceTypeEnumMap = {
   AuditEventBodyResourceType.orderSettings: 'order_settings',
   AuditEventBodyResourceType.emailSettings: 'email_settings',
   AuditEventBodyResourceType.promotion: 'promotion',
+  AuditEventBodyResourceType.report: 'report',
   AuditEventBodyResourceType.$unknown: r'$unknown',
 };

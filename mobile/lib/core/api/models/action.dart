@@ -74,6 +74,10 @@ enum Action {
   @JsonValue('seller.mark_payout')
   undefined16('seller.mark_payout'),
 
+  /// Incorrect name has been replaced. Original name: `report.export_customers`.
+  @JsonValue('report.export_customers')
+  undefined17('report.export_customers'),
+
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null);
 

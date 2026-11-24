@@ -1,6 +1,12 @@
 "use client";
 
-import { DownloadIcon, FileSpreadsheetIcon, FileTextIcon, SheetIcon } from "lucide-react";
+import {
+  CalendarClockIcon,
+  DownloadIcon,
+  FileSpreadsheetIcon,
+  FileTextIcon,
+  SheetIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 
@@ -23,12 +29,13 @@ import { Link } from "@/i18n/navigation";
 
 import { reportParts, serializeReportPrint, type ReportPart } from "./search-params";
 
-type Format = "pdf" | "xlsx" | "csv";
+type Format = "pdf" | "xlsx" | "shifts" | "csv";
 
 /**
- * "Xuất báo cáo" (report-products-export increment): a dialog that chooses a PDF, an Excel workbook or the CSV
- * for the report's days and store. The PDF is the print page with the parts ticked, which the browser saves as a
- * PDF; the workbook and the CSV are the server's files. Each is a link, so it works as soon as it is drawn.
+ * "Xuất báo cáo" (report-products-export increment): a dialog that chooses a PDF, an Excel workbook, the workbook by
+ * shift for the sponsor with each order's customer (#261) or the CSV for the report's days and store. The PDF is the
+ * print page with the parts ticked, which the browser saves as a PDF; the others are the server's files. Each is a
+ * link, so it works as soon as it is drawn.
  */
 export function ExportDialog({
   range,
@@ -36,6 +43,7 @@ export function ExportDialog({
   filter,
   csvHref,
   workbookHref,
+  shiftsHref,
 }: {
   range: string;
   storeName: string | undefined;
@@ -48,6 +56,7 @@ export function ExportDialog({
   };
   csvHref: string;
   workbookHref: string;
+  shiftsHref: string;
 }) {
   const t = useTranslations("Admin.reports.exportDialog");
   const [open, setOpen] = useState(false);
@@ -56,6 +65,7 @@ export function ExportDialog({
   const [compare, setCompare] = useState(true);
   const id = useId();
   const printHref = `/admin/reports/print${serializeReportPrint({ ...filter, parts, compare })}`;
+  const fileHref = { xlsx: workbookHref, shifts: shiftsHref, csv: csvHref };
 
   return (
     <>
@@ -80,7 +90,7 @@ export function ExportDialog({
                 value={format}
                 onValueChange={(value) => setFormat(value as Format)}
                 aria-labelledby={`${id}-format`}
-                className="sm:grid-cols-3"
+                className="sm:grid-cols-2"
               >
                 <ChoiceOption
                   value="pdf"
@@ -93,6 +103,12 @@ export function ExportDialog({
                   icon={SheetIcon}
                   title={t("xlsx")}
                   hint={t("xlsxHint")}
+                />
+                <ChoiceOption
+                  value="shifts"
+                  icon={CalendarClockIcon}
+                  title={t("shifts")}
+                  hint={t("shiftsHint")}
                 />
                 <ChoiceOption
                   value="csv"
@@ -148,7 +164,7 @@ export function ExportDialog({
             {format !== "pdf" ? (
               // A plain download: the server answers the file and its name, under the session's cookie.
               <a
-                href={format === "csv" ? csvHref : workbookHref}
+                href={fileHref[format]}
                 download
                 className={buttonVariants({ size: "lg" })}
                 onClick={() => setOpen(false)}

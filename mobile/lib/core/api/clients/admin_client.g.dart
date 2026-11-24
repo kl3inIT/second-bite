@@ -912,6 +912,38 @@ class _AdminClient implements AdminClient {
   }
 
   @override
+  Future<void> exportShiftWorkbook({
+    String? since,
+    String? until,
+    String? sellerId,
+    String? timeFrom,
+    String? timeUntil,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'since': since,
+      r'until': until,
+      r'sellerId': sellerId,
+      r'timeFrom': timeFrom,
+      r'timeUntil': timeUntil,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<void>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/admin/reports/shifts',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    await _dio.fetch<void>(_options);
+  }
+
+  @override
   Future<void> exportReportWorkbook({
     String? since,
     String? until,

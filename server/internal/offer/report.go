@@ -88,6 +88,8 @@ type Post struct {
 	// PriceVND and OriginalPriceVND give its discount; 0 is food given away.
 	PriceVND, OriginalPriceVND int64
 	PostedAt                   time.Time
+	// WindowStart and WindowEnd are when it is collected.
+	WindowStart, WindowEnd time.Time
 	// Ended is true once it is closed, withdrawn or its window is over.
 	Ended bool
 }
@@ -112,7 +114,7 @@ func (s *Service) PostsBetween(ctx context.Context, since, until time.Time, sell
 		posts[i] = Post{
 			ID: r.ID, SellerID: r.SellerID, SellerName: r.SellerName, Name: r.Name, Unit: r.Unit, Kind: Kind(r.Kind),
 			Units: int(r.Units), UnitsLeft: int(r.UnitsLeft), PriceVND: r.PriceVnd, OriginalPriceVND: r.OriginalPriceVnd,
-			PostedAt: r.CreatedAt, Ended: r.Ended,
+			PostedAt: r.CreatedAt, WindowStart: r.WindowStart, WindowEnd: r.WindowEnd, Ended: r.Ended,
 		}
 	}
 

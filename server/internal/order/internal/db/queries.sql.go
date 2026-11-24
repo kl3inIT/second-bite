@@ -2272,6 +2272,120 @@ func (q *Queries) OrdersForAdmins(ctx context.Context, arg OrdersForAdminsParams
 	return items, nil
 }
 
+const ordersOfDays = `-- name: OrdersOfDays :many
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd, collected_by
+FROM order_orders
+WHERE window_start >= $1 AND window_start < $2 AND state <> 'cancelled'
+  AND ($3::uuid IS NULL OR seller_id = $3::uuid)
+  AND ($4::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= $4::text::time)
+  AND ($5::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < $5::text::time)
+ORDER BY window_start, number
+`
+
+type OrdersOfDaysParams struct {
+	Since     time.Time
+	Until     time.Time
+	SellerID  uuid.NullUUID
+	TimeFrom  pgtype.Text
+	TimeUntil pgtype.Text
+}
+
+type OrdersOfDaysRow struct {
+	ID            uuid.UUID
+	Number        pgtype.Int8
+	CustomerID    uuid.NullUUID
+	CustomerName  string
+	CustomerPhone string
+	SellerID      uuid.UUID
+	CheckoutID    uuid.UUID
+	SellerName    string
+	Latitude      float64
+	Longitude     float64
+	Address       string
+	State         string
+	WindowStart   time.Time
+	WindowEnd     time.Time
+	TotalVnd      int64
+	Access        string
+	CancelReason  string
+	RefuseReason  pgtype.Text
+	RefuseNote    string
+	CreatedAt     time.Time
+	ReadyAt       *time.Time
+	CollectedAt   *time.Time
+	CancelledAt   *time.Time
+	RefusedAt     *time.Time
+	PromotionID   uuid.NullUUID
+	PromotionName string
+	PromotionRule string
+	PromotionNew  bool
+	DiscountVnd   int64
+	CollectedBy   pgtype.Text
+}
+
+// Every order not cancelled whose window starts in [since, until), and in the part of the day given, of the seller given,
+// for the admin's report by shift with its customers (#261); the earliest window first. GetOrder's columns, so the rows
+// convert to its row, read as fromRow reads them.
+func (q *Queries) OrdersOfDays(ctx context.Context, arg OrdersOfDaysParams) ([]OrdersOfDaysRow, error) {
+	rows, err := q.db.Query(ctx, ordersOfDays,
+		arg.Since,
+		arg.Until,
+		arg.SellerID,
+		arg.TimeFrom,
+		arg.TimeUntil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrdersOfDaysRow
+	for rows.Next() {
+		var i OrdersOfDaysRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Number,
+			&i.CustomerID,
+			&i.CustomerName,
+			&i.CustomerPhone,
+			&i.SellerID,
+			&i.CheckoutID,
+			&i.SellerName,
+			&i.Latitude,
+			&i.Longitude,
+			&i.Address,
+			&i.State,
+			&i.WindowStart,
+			&i.WindowEnd,
+			&i.TotalVnd,
+			&i.Access,
+			&i.CancelReason,
+			&i.RefuseReason,
+			&i.RefuseNote,
+			&i.CreatedAt,
+			&i.ReadyAt,
+			&i.CollectedAt,
+			&i.CancelledAt,
+			&i.RefusedAt,
+			&i.PromotionID,
+			&i.PromotionName,
+			&i.PromotionRule,
+			&i.PromotionNew,
+			&i.DiscountVnd,
+			&i.CollectedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const outcomesOfOffers = `-- name: OutcomesOfOffers :one
 WITH lines AS (
     SELECT l.order_id, l.units,

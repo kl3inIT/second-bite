@@ -402,6 +402,28 @@ abstract class AdminClient {
     @Query('timeUntil') String? timeUntil,
   });
 
+  /// The report by day and shift with every order's customer, as an Excel workbook for the sponsor.
+  ///
+  /// The same days and store as getReport (#261), in Vietnamese: "Tổng hợp", then a sheet per day "Ngày DD-MM". A shift is the afternoon's when its window starts before 17:00 in Vietnam, else the evening's. Per shift, store and dish: the portions posted, collected (ordered on the app and collected, plus those handed out at the counter: posted and held by no order on the app not cancelled) and not taken (of orders on the app that expired or were refused); and every order on the app with its customer's name and phone. Cancelled orders are left out. The download is recorded in the audit as report.export_customers, without the customers.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD; six days before until when empty.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included; today when empty.
+  ///
+  /// [sellerId] - Keep one store's numbers; the views are then its page's and its dishes'.
+  ///
+  /// [timeFrom] - Keep what starts at or after this time of each day in Vietnam, HH:MM; with timeUntil.
+  ///
+  /// [timeUntil] - Keep what starts before this time of each day, HH:MM or 24:00; new users stay the whole day's.
+  @GET('/admin/reports/shifts')
+  Future<void> exportShiftWorkbook({
+    @Query('since') String? since,
+    @Query('until') String? until,
+    @Query('sellerId') String? sellerId,
+    @Query('timeFrom') String? timeFrom,
+    @Query('timeUntil') String? timeUntil,
+  });
+
   /// The report and its analysis as an Excel workbook.
   ///
   /// The same days and store as getReport, in Vietnamese: a summary, the CSV's rows, then a sheet per part of the analysis (kinds, discounts, dishes, orders not collected, weekday and hour). Figures are numbers.

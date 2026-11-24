@@ -800,3 +800,18 @@ WHERE customer_phone = @phone
 -- The orders a phone number holds at a seller, still to collect.
 SELECT count(*) FROM order_orders
 WHERE seller_id = @seller_id AND customer_phone = @phone AND state IN ('confirmed', 'ready') AND window_end > now();
+
+-- name: OrdersOfDays :many
+-- Every order not cancelled whose window starts in [since, until), and in the part of the day given, of the seller given,
+-- for the admin's report by shift with its customers (#261); the earliest window first. GetOrder's columns, so the rows
+-- convert to its row, read as fromRow reads them.
+SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
+       longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
+       created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
+       promotion_new, discount_vnd, collected_by
+FROM order_orders
+WHERE window_start >= @since AND window_start < @until AND state <> 'cancelled'
+  AND (sqlc.narg(seller_id)::uuid IS NULL OR seller_id = sqlc.narg(seller_id)::uuid)
+  AND (sqlc.narg(time_from)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time >= sqlc.narg(time_from)::text::time)
+  AND (sqlc.narg(time_until)::text IS NULL OR (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::time < sqlc.narg(time_until)::text::time)
+ORDER BY window_start, number;

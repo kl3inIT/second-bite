@@ -143,7 +143,7 @@ func share(part, whole int) any {
 
 func summaryRows(r Report, oneStore bool) [][]any {
 	c := r.Totals
-	scope := "Tất cả cửa hàng"
+	scope := wordAllStores
 
 	if oneStore && len(r.Stores) == 1 {
 		scope = r.Stores[0].Name
@@ -156,7 +156,7 @@ func summaryRows(r Report, oneStore bool) [][]any {
 
 	rows := [][]any{
 		{"Báo cáo Second Bite", r.Since.Format(time.DateOnly) + " đến " + r.Until.Format(time.DateOnly)},
-		{"Cửa hàng", scope},
+		{wordStore, scope},
 		{"Khung giờ nhận", hours},
 		{"Người truy cập", c.People},
 		{"Lượt mở trang", c.Views},

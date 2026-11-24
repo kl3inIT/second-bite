@@ -17,4 +17,5 @@ Requirements of [docs/specs/audit.md](../specs/audit.md) and the checks that hol
 | A change of the offer settings keeps each field's value before and after | `TestOffer` › the settings bound every post (`checkSettingsAudited`, `internal/offer/offer_test.go`) |
 | A change of the email settings keeps values, but a secret and the SMTP user by name only | `TestSettingsSaved` (`internal/notification/settings_db_test.go`) |
 | Every admin change through the API records exactly one event carrying its request's identifier, or none where its entry says why; an operation missing from the table fails | `TestService` › every admin change is audited (`cmd/secondbite/admin_test.go`) |
+| Downloading the report by shift records `report.export_customers` with its days, store and orders, none for a refused request | `TestService` › the report counts a store's views, posts and orders (`checkShiftWorkbook`, `cmd/secondbite/report_test.go`) |
 | The modules recording events reach `audit` only through its root package, along the edges ARCHITECTURE.md lists | `TestModuleBoundaries` (`internal/boundaries_test.go`) |
