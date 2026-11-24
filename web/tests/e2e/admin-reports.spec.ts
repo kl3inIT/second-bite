@@ -31,7 +31,7 @@ test.describe("the admin's report", () => {
     if (isMobile)
       await (await hydrated(page.getByRole("button", { name: "Menu quản trị" }))).click();
     const menu = isMobile ? page.getByRole("dialog", { name: "Menu quản trị" }) : page;
-    await (await hydrated(menu.getByRole("link", { name: "Báo cáo" }))).click();
+    await (await hydrated(menu.getByRole("link", { name: "Báo cáo", exact: true }))).click();
     await expect(page).toHaveURL(/\/vi\/admin\/reports$/);
     if (isMobile) await page.keyboard.press("Escape");
 

@@ -3056,6 +3056,117 @@ const reportStoreNumbers = [
   { views: 7, people: 4, offers: 1, unitsPosted: 5 },
 ];
 
+// GET /admin/shift-reports (SEC-209): three orders on every day, at 07:00, 14:00 and 14:30 in Vietnam, cut into the
+// shifts asked as the server cuts them; the two stores post 10 portions in the morning and 12 in the afternoon.
+const shiftStubOrders = [
+  {
+    number: 20001,
+    store: "La Paris",
+    customer: "Nguyễn Văn An",
+    phone: "0912345678",
+    dishes: "Bánh mì ×2",
+    units: 2,
+    at: "07:00",
+    status: "collected",
+  },
+  {
+    number: 20002,
+    store: "Cô Ba",
+    customer: "Trần Thị Bình",
+    phone: "0987654321",
+    dishes: "Cơm chiên",
+    units: 1,
+    at: "14:00",
+    status: "collected",
+  },
+  {
+    number: 20003,
+    store: "Cô Ba",
+    customer: "Lê Văn Cường",
+    phone: "0901112223",
+    dishes: "Phở bò",
+    units: 3,
+    at: "14:30",
+    status: "expired",
+  },
+];
+
+function adminShiftReport(url) {
+  const since = url.searchParams.get("since");
+  const until = url.searchParams.get("until");
+  const asked = url.searchParams.getAll("shift");
+  const shifts = (
+    asked.length > 0 ? asked : ["06:00-12:00,Ca sáng", "12:00-18:00,Ca chiều", "18:00-24:00,Ca tối"]
+  ).map((value) => {
+    const comma = value.indexOf(",");
+    const [from, to] = value.slice(0, comma).split("-");
+    return { name: value.slice(comma + 1), from, until: to };
+  });
+  const summaryOf = (orders, posted) => ({
+    stores: new Set([...orders.map((o) => o.store), ...(posted > 0 ? ["La Paris"] : [])]).size,
+    unitsPosted: posted,
+    orders: orders.length,
+    unitsCollected: orders.filter((o) => o.status === "collected").reduce((n, o) => n + o.units, 0),
+    unitsNotCollected: orders
+      .filter((o) => o.status === "expired")
+      .reduce((n, o) => n + o.units, 0),
+  });
+  const days = [];
+  for (
+    let at = Date.parse(`${since}T00:00:00Z`);
+    at <= Date.parse(`${until}T00:00:00Z`);
+    at += 86_400_000
+  ) {
+    const day = new Date(at).toISOString().slice(0, 10);
+    const orders = shiftStubOrders.map((o) => ({
+      number: o.number,
+      store: o.store,
+      customer: o.customer,
+      phone: o.phone,
+      dishes: o.dishes,
+      units: o.units,
+      orderedAt: `${day}T${String(Number(o.at.slice(0, 2)) - 1).padStart(2, "0")}:${o.at.slice(3)}:00+07:00`,
+      windowStart: `${day}T${o.at}:00+07:00`,
+      windowEnd: `${day}T${String(Number(o.at.slice(0, 2)) + 2).padStart(2, "0")}:${o.at.slice(3)}:00+07:00`,
+      status: o.status,
+      at: o.at,
+    }));
+    days.push({
+      day,
+      summary: summaryOf(orders, 22),
+      shifts: shifts.map((s) => {
+        const held = orders.filter((o) => o.at >= s.from && o.at < s.until);
+        const posted =
+          s.from <= "07:00" && "07:00" < s.until
+            ? 10
+            : s.from <= "14:00" && "14:00" < s.until
+              ? 12
+              : 0;
+        return {
+          name: s.name,
+          from: s.from,
+          until: s.until,
+          summary: summaryOf(held, posted),
+          orders: held.map(({ at: _at, ...order }) => order),
+        };
+      }),
+    });
+  }
+  const all = days.flatMap((d) => d.summary);
+  return {
+    since,
+    until,
+    totals: {
+      stores: 2,
+      unitsPosted: all.reduce((n, s) => n + s.unitsPosted, 0),
+      orders: all.reduce((n, s) => n + s.orders, 0),
+      unitsCollected: all.reduce((n, s) => n + s.unitsCollected, 0),
+      unitsNotCollected: all.reduce((n, s) => n + s.unitsNotCollected, 0),
+    },
+    days: days.map(({ day, summary, shifts: blocks }) => ({ day, summary, shifts: blocks })),
+  };
+}
+
 // GET /admin/reports/analysis (report-products-export): fixed numbers on the stub's first store's dishes, the
 // same whatever days or store are asked.
 function adminReportAnalysis(url, stores) {
@@ -3480,6 +3591,19 @@ async function adminRoutes(request, response, url) {
   }
   if (request.method === "GET" && url.pathname === "/admin/reports") {
     json(response, 200, adminReport(url, adminStoresOf(account)));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/shift-reports") {
+    json(response, 200, adminShiftReport(url));
+    return true;
+  }
+  if (request.method === "GET" && url.pathname === "/admin/shift-reports/export") {
+    response.writeHead(200, {
+      "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "content-disposition": `attachment; filename=bao-cao-theo-ca-${url.searchParams.get("since")}-den-${url.searchParams.get("until")}.xlsx`,
+    });
+    // The stub sends no real workbook: only its name and type are checked.
+    response.end("PK");
     return true;
   }
   if (request.method === "GET" && url.pathname === "/admin/reports/analysis") {

@@ -41,6 +41,7 @@ import '../models/role.dart';
 import '../models/save_email_settings_input_body.dart';
 import '../models/seller_body.dart';
 import '../models/send_test_email_input_body.dart';
+import '../models/shift_report_output_body.dart';
 import '../models/sort.dart';
 import '../models/sort2.dart';
 import '../models/status.dart';
@@ -546,5 +547,43 @@ abstract class AdminClient {
   @POST('/admin/sellers/{sellerId}/restore')
   Future<SellerBody> restoreSeller({
     @Path('sellerId') required String sellerId,
+  });
+
+  /// The orders and their buyers by day and shift, with each shift's and each day's numbers.
+  ///
+  /// Days and hours are Vietnam's; an order and a post belong to the shift holding the start of its window, and one outside every shift is counted in its day alone. At most 31 days, none after today.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included, today at the latest.
+  ///
+  /// [sellerId] - Keep one store's orders and posts.
+  ///
+  /// [shift] - A shift, HH:MM-HH:MM,Name, from 00:00 to 24:00; the parameter repeats, one to six, in order and not overlapping. Ca sáng 06:00–12:00, Ca chiều 12:00–18:00 and Ca tối 18:00–24:00 when absent.
+  @GET('/admin/shift-reports')
+  Future<ShiftReportOutputBody> getShiftReport({
+    @Query('since') required String since,
+    @Query('until') required String until,
+    @Query('sellerId') String? sellerId,
+    @Query('shift') List<String>? shift,
+  });
+
+  /// The shift report as an Excel workbook: a summary sheet and a sheet per day.
+  ///
+  /// The same numbers as getShiftReport, in Vietnamese: the summary of the range, then for each day its summary and a table per shift of its orders with their buyers. Figures are numbers, names, phones and times text, never formulas.
+  ///
+  /// [since] - The first day in Vietnam, YYYY-MM-DD.
+  ///
+  /// [until] - The last day in Vietnam, YYYY-MM-DD, included, today at the latest.
+  ///
+  /// [sellerId] - Keep one store's orders and posts.
+  ///
+  /// [shift] - A shift, HH:MM-HH:MM,Name, from 00:00 to 24:00; the parameter repeats, one to six, in order and not overlapping. Ca sáng 06:00–12:00, Ca chiều 12:00–18:00 and Ca tối 18:00–24:00 when absent.
+  @GET('/admin/shift-reports/export')
+  Future<void> exportShiftReport({
+    @Query('since') required String since,
+    @Query('until') required String until,
+    @Query('sellerId') String? sellerId,
+    @Query('shift') List<String>? shift,
   });
 }

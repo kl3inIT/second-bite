@@ -45,6 +45,7 @@ Task status lives in Linear (team Second-bite, issues `SEC-<n>`); this page summ
 - [SEC-38 — Sign in with Apple](increments/active/sec-38-sign-in-with-apple/design.md): the server and the iOS app, off until the Apple Developer account exists (SEC-14); merged 9 November 2026.
 - [A customer confirms they collected their order](increments/active/customer-confirms-collection/design.md): "Đã nhận món" on the customer's order page within the window, collected as the store's "Đã giao" would, with who confirmed it shown to the store and admins; for the Tasco Mall pilot, in review.
 - [Free offers](increments/active/free-offers/design.md): a store posts food given away at 0 đồng, shown as Miễn phí, reserved and handed over as any order; for the Tasco Mall pilot of 22 November 2026, in review.
+- [SEC-209 — The admin shift report](increments/active/sec-209-admin-shift-report/design.md): a tab per day, each with its summary, three shifts the admin names and sets the hours of, every order with its buyer, and an Excel workbook of the same; in review.
 - SEC-9 — Seller and customer surveys, three weeks from 16 October 2026.
 
 ## Candidates

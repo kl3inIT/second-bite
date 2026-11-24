@@ -1303,7 +1303,8 @@
       "accounts": "Accounts",
       "reviews": "Reviews",
       "reports": "Reports",
-      "promotions": "Discounts"
+      "promotions": "Discounts",
+      "shiftReports": "Shift report"
     },
     "notFound": {
       "crumb": "Not found",
@@ -2302,6 +2303,72 @@
         "impact": "- Impact: {kg} kg of food rescued, customers saved {saved}",
         "change": " ({change})",
         "compared": "The figures in brackets are the change on {days, plural, =1 {the day before} other {the # days before}}."
+      }
+    },
+    "shiftReports": {
+      "title": "Shift report",
+      "days": "Days",
+      "lastThree": "Last 3 days",
+      "store": "Store",
+      "anyStore": "All",
+      "export": "Export Excel",
+      "tabs": "Choose a day",
+      "capped": "At most {days} days at a time; earlier days are not shown.",
+      "presets": {
+        "label": "Quick ranges",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "week": "7 days",
+        "month": "30 days"
+      },
+      "summary": {
+        "title": "Whole day summary",
+        "note": "{orders} orders that day",
+        "shift": "Shift",
+        "hours": "Hours",
+        "stores": "Stores",
+        "posted": "Portions posted",
+        "collected": "Collected",
+        "notCollected": "Not collected",
+        "wholeDay": "Whole day"
+      },
+      "shift": {
+        "title": "{name} ({from}–{until})",
+        "note": "{stores} stores · {posted} portions posted · {collected} collected · {notCollected} not collected",
+        "empty": "No orders in this shift"
+      },
+      "orders": {
+        "caption": "Orders of {shift}",
+        "number": "Order",
+        "store": "Store",
+        "customer": "Customer",
+        "phone": "Phone",
+        "dishes": "Dishes",
+        "units": "Qty",
+        "orderedAt": "Ordered",
+        "window": "Pickup window",
+        "status": "Status"
+      },
+      "settings": {
+        "open": "Shift settings",
+        "title": "Shift settings",
+        "description": "Name each shift and set its hours. An order or a post belongs to the shift its pickup window starts in.",
+        "name": "Shift name",
+        "from": "From",
+        "until": "To",
+        "remove": "Remove shift {number}",
+        "add": "Add a shift",
+        "newName": "Shift {number}",
+        "reset": "Back to default",
+        "cancel": "Cancel",
+        "apply": "Apply",
+        "problem": {
+          "name": "A name of 1 to 40 characters",
+          "hour": "Hours as HH:MM, from 00:00 to 24:00",
+          "order": "The end must be after the start",
+          "overlap": "This shift starts before the one above ends",
+          "count": "From 1 to {max} shifts"
+        }
       }
     },
     "promotions": {
