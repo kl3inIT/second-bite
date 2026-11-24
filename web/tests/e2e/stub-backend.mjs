@@ -2067,10 +2067,13 @@ async function ordersApi(request, response, url) {
     return true;
   }
   // The customer's "Đã nhận món": within the window, while the order is open; one collected already is answered
-  // as it is, as the server does.
+  // as it is, as the server does. Once the window has ended the server reads the order expired, so it is refused.
   if (request.method === "POST" && orderMatch?.[2] === "/collect") {
     if (order.status !== "collected") {
-      if (order.status !== "confirmed" && order.status !== "ready") {
+      if (
+        (order.status !== "confirmed" && order.status !== "ready") ||
+        Date.parse(order.windowEnd) <= Date.now()
+      ) {
         problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
         return true;
       }
