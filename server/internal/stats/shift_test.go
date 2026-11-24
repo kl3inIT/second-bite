@@ -65,7 +65,10 @@ func TestShiftHolds(t *testing.T) {
 		when time.Time
 		want bool
 	}{
-		{at(11, 59), false}, {at(12, 0), true}, {at(17, 59), true}, {at(18, 0), false},
+		{at(11, 59), false},
+		{at(12, 0), true},
+		{at(17, 59), true},
+		{at(18, 0), false},
 		{at(12, 0).UTC(), true}, // 05:00 UTC is noon in Vietnam
 	} {
 		if got := noon.holds(c.when); got != c.want {
