@@ -9,6 +9,8 @@ const FIELDS = [
   "username",
   "password",
   "confirm",
+  "currentPassword",
+  "newPassword",
   "email",
   "code",
   "smtpPassword",
@@ -38,6 +40,21 @@ async function beforeHydration(page: Page) {
     }
   });
   return { release, documents, sent };
+}
+
+/**
+ * Holds the requests the router makes for the next page (React Server Components, asked for with an `RSC` header),
+ * so a form that leaves the page once it is sent stays on the screen until `release`, as on a slow line, where the
+ * next page once took seconds to come and a second press in that time was sent again.
+ */
+async function holdTheNextPage(page: Page) {
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => (release = resolve));
+  await page.route("**/*", async (route) => {
+    if (route.request().headers()["rsc"] === "1") await released;
+    await route.fallback();
+  });
+  return release;
 }
 
 /** Signs in through the API with the stub's code; the cookie lands in the browser's jar. */
@@ -177,6 +194,44 @@ test.describe("a form with a secret pressed before the page has hydrated", () =>
     expect(sent.filter((request) => request.endsWith("/api/admin/email-settings"))).toHaveLength(1);
   });
 
+  test("changing the password", async ({ page }) => {
+    const made = await page.request.post("/api/auth/accounts", {
+      data: {
+        username: `doi.som.${Date.now().toString(36)}`,
+        password: "an old password",
+        session: "cookie",
+      },
+    });
+    expect(made.status()).toBe(201);
+    const { release, documents, sent } = await beforeHydration(page);
+    const put = page.waitForRequest(
+      (request) =>
+        request.method() === "PUT" && request.url().endsWith("/api/accounts/me/password"),
+    );
+    await page.goto("/vi/account/settings", { waitUntil: "domcontentloaded" });
+
+    const button = page.getByRole("button", { name: "Đổi mật khẩu" });
+    await page.getByLabel("Mật khẩu hiện tại").fill("an old password");
+    await page.getByLabel("Mật khẩu mới", { exact: true }).fill("a new early password");
+    await page.getByLabel("Nhập lại mật khẩu mới").fill("a new early password");
+    expect(await isHydrated(button)).toBe(false);
+    await button.click();
+    await button.click();
+    release();
+    expectNothingInTheAddress(page, documents, "an old password");
+    expectNothingInTheAddress(page, documents, "a new early password");
+
+    expect((await put).postDataJSON()).toEqual({
+      currentPassword: "an old password",
+      newPassword: "a new early password",
+    });
+    await expect(page.getByRole("status")).toContainText("Đã đổi mật khẩu");
+    await page.waitForLoadState("networkidle");
+    expect(sent).toEqual(["PUT /api/accounts/me/password"]);
+    expectNothingInTheAddress(page, documents, "an old password");
+    expectNothingInTheAddress(page, documents, "a new early password");
+  });
+
   test("asking for the code that deletes an account", async ({ page }, testInfo) => {
     await signIn(page, `xoa.early.${testInfo.project.name}.${Date.now().toString(36)}@example.com`);
     const { release, sent } = await beforeHydration(page);
@@ -214,5 +269,118 @@ test.describe("a form with a secret pressed before the page has hydrated", () =>
     await expect(await hydrated(button)).toBeDisabled();
     await page.waitForLoadState("networkidle");
     expect(sent).toEqual([]);
+  });
+});
+
+// A form that leaves the page once it is sent (signing in, making an account, deleting it) is sent once whenever the
+// presses come: one kept from before the page hydrated, one right after React replayed it, and one while the next
+// page is still on its way after the server said yes. On a slow phone that last wait took seconds, the button came
+// back, and a second press made a second session.
+test.describe("a form that leaves the page pressed again on its way out", () => {
+  test("signing in with a password", async ({ page }) => {
+    const { release, sent } = await beforeHydration(page);
+    const releaseTheNextPage = await holdTheNextPage(page);
+    await page.goto("/vi/sign-in?returnTo=%2F%3Fkind%3Dbakery", { waitUntil: "domcontentloaded" });
+
+    // The button keeps its place while it says the form is being sent.
+    const button = page.getByRole("button", { name: /^(Đăng nhập|Đang đăng nhập…)$/ });
+    await page.getByLabel("Tên đăng nhập").fill("lan.anh");
+    await page.getByLabel("Mật khẩu").fill("correct horse");
+    const answered = page.waitForResponse((response) =>
+      response.url().endsWith("/api/auth/password-sessions"),
+    );
+    await button.click();
+    release();
+    await (await hydrated(button)).click({ force: true });
+    expect((await answered).status()).toBe(201);
+    await expect(button).toBeDisabled();
+    await button.click({ force: true });
+    releaseTheNextPage();
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    await expect(page.getByRole("button", { name: "Tài khoản lan.anh" })).toBeVisible();
+    expect(sent).toEqual(["POST /api/auth/password-sessions"]);
+  });
+
+  test("making an account", async ({ page }) => {
+    const username = `som.ra.${Date.now().toString(36)}`;
+    const { release, sent } = await beforeHydration(page);
+    const releaseTheNextPage = await holdTheNextPage(page);
+    await page.goto("/vi/register?returnTo=%2F%3Fkind%3Dbakery", { waitUntil: "domcontentloaded" });
+
+    const button = page.getByRole("button", { name: /^(Tạo tài khoản|Đang tạo tài khoản…)$/ });
+    await page.getByLabel("Tên đăng nhập").fill(username);
+    await page.getByLabel("Mật khẩu", { exact: true }).fill("an early password");
+    await page.getByLabel("Nhập lại mật khẩu").fill("an early password");
+    const answered = page.waitForResponse((response) =>
+      response.url().endsWith("/api/auth/accounts"),
+    );
+    await button.click();
+    release();
+    await (await hydrated(button)).click({ force: true });
+    expect((await answered).status()).toBe(201);
+    await expect(button).toBeDisabled();
+    await button.click({ force: true });
+    releaseTheNextPage();
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    await expect(page.getByRole("button", { name: `Tài khoản ${username}` })).toBeVisible();
+    expect(sent).toEqual(["POST /api/auth/accounts"]);
+  });
+
+  test("signing in with an emailed code", async ({ page }, testInfo) => {
+    const { release, sent } = await beforeHydration(page);
+    const releaseTheNextPage = await holdTheNextPage(page);
+    await page.goto("/vi/sign-in/email?returnTo=%2F%3Fkind%3Dbakery", {
+      waitUntil: "domcontentloaded",
+    });
+    await page.getByLabel("Email").fill(`roi.${testInfo.project.name}@example.com`);
+    await page.getByRole("button", { name: "Gửi mã" }).click();
+    release();
+
+    // The code sends itself once its sixth digit is typed; the button is pressed as well, and again.
+    const button = page.getByRole("button", { name: /^(Xác nhận|Đang xác nhận…)$/ });
+    const answered = page.waitForResponse((response) =>
+      response.url().endsWith("/api/auth/sessions"),
+    );
+    await page.getByLabel("Mã đăng nhập 6 số").fill("123456");
+    await button.click({ force: true });
+    expect((await answered).status()).toBe(201);
+    await expect(button).toBeDisabled();
+    await button.click({ force: true });
+    releaseTheNextPage();
+
+    await expect(page).toHaveURL(/\/vi\?kind=bakery$/);
+    expect(sent).toEqual(["POST /api/auth/sign-in-codes", "POST /api/auth/sessions"]);
+  });
+
+  test("deleting an account with its password", async ({ page }) => {
+    const made = await page.request.post("/api/auth/accounts", {
+      data: {
+        username: `xoa.ra.${Date.now().toString(36)}`,
+        password: "a long password",
+        session: "cookie",
+      },
+    });
+    expect(made.status()).toBe(201);
+    const { release, sent } = await beforeHydration(page);
+    const releaseTheNextPage = await holdTheNextPage(page);
+    await page.goto("/vi/delete-account", { waitUntil: "domcontentloaded" });
+
+    const button = page.getByRole("button", { name: /^(Xoá vĩnh viễn tài khoản|Đang xoá…)$/ });
+    await page.getByLabel("Mật khẩu").fill("a long password");
+    const answered = page.waitForResponse((response) =>
+      response.url().endsWith("/api/accounts/me/password-deletion"),
+    );
+    await button.click();
+    release();
+    await (await hydrated(button)).click({ force: true });
+    expect((await answered).ok()).toBe(true);
+    await expect(button).toBeDisabled();
+    await button.click({ force: true });
+    releaseTheNextPage();
+
+    await expect(page.getByRole("heading", { name: "Đã xoá tài khoản" })).toBeVisible();
+    expect(sent).toEqual(["POST /api/accounts/me/password-deletion"]);
   });
 });

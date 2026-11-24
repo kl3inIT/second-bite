@@ -13,7 +13,8 @@ x-logging: &logging
 
 services:
   postgres:
-    # The image the tests and local development use (compose.yaml), pinned by digest.
+    # The deployed environments' database image, pinned by digest. It stays behind compose.yaml's (the tests and
+    # local development) on purpose: it moves only in a planned upgrade, which also runs ALTER EXTENSION postgis UPDATE.
     image: postgis/postgis:18-3.6@sha256:ea49d706470cfe1215c4f1e074fcab66d5af52f80adaf90d5a9beace71cd5ce8
     restart: unless-stopped
     logging: *logging

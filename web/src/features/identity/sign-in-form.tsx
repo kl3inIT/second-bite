@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { z } from "zod";
 
-import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -173,12 +173,14 @@ function CodeStep({
         await signIn({
           body: { challengeId: step.challengeId, code: value.code, session: "cookie" },
         });
-        onSignedIn();
       } catch (error) {
         formApi.setFieldValue("code", "");
         setGone(codeIsGone(error instanceof ApiError ? error.code : undefined));
         refuse(formApi, error, codeRefusals);
+        return;
       }
+      onSignedIn();
+      return leavingThePage();
     },
   });
 
@@ -225,7 +227,7 @@ function CodeStep({
                 <CodeField
                   label={t("codeLabel")}
                   disabled={submitting || resending}
-                  onComplete={() => void form.handleSubmit()}
+                  onComplete={submitAction(form)}
                 >
                   <FieldDescription>{t("notArrived")}</FieldDescription>
                   <ResendCode

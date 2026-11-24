@@ -86,7 +86,7 @@ Infrastructure the team runs itself in Docker Compose is preferred over managed 
 
 | Component | Joins when | Until then |
 | --- | --- | --- |
-| PostgreSQL with PostGIS (`postgis/postgis:18-3.6`) | The backend foundation | — |
+| PostgreSQL with PostGIS (`postgis/postgis:18-3.7` in the tests and local development, `compose.yaml`; the deployed environments stay on `18-3.6`, pinned in `infrastructure/deployment/compose.base.yaml`, until a planned upgrade) | The backend foundation | — |
 | pgvector, in an image built from the PostGIS one | Search by meaning (SEC-20) | Full text with `unaccent` and `pg_trgm` |
 | An S3-compatible store | When configured; files are kept in PostgreSQL by default (SEC-11) | VersityGW under the `s3` profile of `compose.yaml` in development |
 | Redis | Realtime fan-out across several instances, rate limits PostgreSQL cannot carry, or a cache justified by a measured slow read | Jobs in River, counts and sessions in PostgreSQL, in-process fan-out on one instance, `LISTEN/NOTIFY` across instances |

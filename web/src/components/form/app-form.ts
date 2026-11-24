@@ -50,9 +50,26 @@ export const useAppForm: typeof appForm.useAppForm = (options) => {
  * send is under way, or `blocked` says the form would refuse it now. React replays every press made before the
  * page hydrated, one after another and with the props of the first render, so the second press of a double tap
  * meets the first one in flight and does nothing, and a press the form no longer takes is not sent.
+ *
+ * The send is not handed to React as the action's promise: a form that leaves the page keeps it pending for good
+ * (`leavingThePage`), and React would hold every transition started meanwhile, the router's included, until it
+ * settled.
  */
 export function submitAction(formApi: AnyFormApi, blocked?: () => boolean) {
-  return () => (formApi.state.isSubmitting || blocked?.() ? undefined : formApi.handleSubmit());
+  return () => {
+    if (formApi.state.isSubmitting || blocked?.()) return;
+    void formApi.handleSubmit();
+  };
+}
+
+/**
+ * What the `onSubmit` of a form that leaves the page once it is sent returns after starting the navigation: a promise
+ * that never settles, so the form stays sent, its button disabled and saying so, until the next page replaces it.
+ * The router takes a while to bring that page on a slow line, and a button that came back meanwhile sent the form
+ * again (a second session). Next.js keeps a server action's form pending through its `redirect` the same way.
+ */
+export function leavingThePage(): Promise<never> {
+  return new Promise(() => {});
 }
 
 /** A refused submission's errors: the failure no field can say, and the messages on its fields. */

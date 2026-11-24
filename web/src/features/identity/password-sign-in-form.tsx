@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { z } from "zod";
 
-import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
@@ -61,6 +61,7 @@ export function PasswordSignInForm({
         return;
       }
       signedIn();
+      return leavingThePage();
     },
   });
 

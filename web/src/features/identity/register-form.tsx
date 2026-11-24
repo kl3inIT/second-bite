@@ -4,7 +4,7 @@ import { revalidateLogic } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { z } from "zod";
 
-import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -62,6 +62,7 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
       }
       router.replace(returnTo);
       router.refresh();
+      return leavingThePage();
     },
   });
 

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { z } from "zod";
 
-import { refuse, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm } from "@/components/form/app-form";
 import { FieldGroup } from "@/components/ui/field";
 import { changeMyPassword } from "@/lib/api/generated";
 
@@ -16,7 +16,9 @@ const PASSWORD_LENGTH = { min: 8, max: 128 } as const;
 // Changing the password of an account made with a username (SEC-208): the password it has now is the only proof, as
 // the account has no address to email a code to. The server's words for a refusal go under the field they concern,
 // and its limit on wrong tries (shared with signing in) shows in the form's error. The account stays signed in here
-// and ends its other sessions; the form clears itself and says so once the password is changed.
+// and ends its other sessions; the form clears itself and says so once the password is changed. It holds passwords, so
+// it submits through `submitAction` (docs/guidelines/web.md › Forms): a press before the page hydrates is kept and
+// sent once, never as a GET with the passwords in the address.
 export function ChangePasswordForm() {
   const t = useTranslations("ChangePassword");
   const [done, setDone] = useState(false);
@@ -59,14 +61,7 @@ export function ChangePasswordForm() {
   });
 
   return (
-    <form
-      id={form.formId}
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
+    <form id={form.formId} noValidate action={submitAction(form)}>
       <FieldGroup>
         <form.AppField name="currentPassword">
           {(field) => (
