@@ -1303,7 +1303,8 @@
       "accounts": "Tài khoản",
       "reviews": "Đánh giá",
       "reports": "Báo cáo",
-      "promotions": "Giảm giá"
+      "promotions": "Giảm giá",
+      "shiftReports": "Báo cáo theo ca"
     },
     "notFound": {
       "crumb": "Không tìm thấy",
@@ -2302,6 +2303,72 @@
         "impact": "- Tác động: {kg} kg thực phẩm được cứu, khách tiết kiệm {saved}",
         "change": " ({change})",
         "compared": "Số trong ngoặc là chênh lệch so với {days, plural, =1 {hôm trước} other {# ngày trước đó}}."
+      }
+    },
+    "shiftReports": {
+      "title": "Báo cáo theo ca",
+      "days": "Khoảng ngày",
+      "lastThree": "3 ngày gần nhất",
+      "store": "Cửa hàng",
+      "anyStore": "Tất cả",
+      "export": "Xuất Excel",
+      "tabs": "Chọn ngày",
+      "capped": "Tối đa {days} ngày một lần xem; các ngày sớm hơn không hiện.",
+      "presets": {
+        "label": "Chọn nhanh",
+        "today": "Hôm nay",
+        "yesterday": "Hôm qua",
+        "week": "7 ngày",
+        "month": "30 ngày"
+      },
+      "summary": {
+        "title": "Tổng hợp cả ngày",
+        "note": "{orders} đơn trong ngày",
+        "shift": "Ca",
+        "hours": "Giờ",
+        "stores": "Số gian hàng",
+        "posted": "Số suất đăng",
+        "collected": "Đã nhận",
+        "notCollected": "Không nhận",
+        "wholeDay": "Cả ngày"
+      },
+      "shift": {
+        "title": "{name} ({from}–{until})",
+        "note": "{stores} gian hàng · {posted} suất đăng · {collected} đã nhận · {notCollected} không nhận",
+        "empty": "Không có đơn nào trong ca này"
+      },
+      "orders": {
+        "caption": "Đơn của {shift}",
+        "number": "Mã đơn",
+        "store": "Gian hàng",
+        "customer": "Khách hàng",
+        "phone": "Số điện thoại",
+        "dishes": "Món đặt",
+        "units": "SL",
+        "orderedAt": "Giờ đặt",
+        "window": "Khung nhận",
+        "status": "Trạng thái"
+      },
+      "settings": {
+        "open": "Cài đặt ca",
+        "title": "Cài đặt ca",
+        "description": "Đặt tên và giờ cho từng ca. Mỗi đơn và mỗi bài đăng thuộc ca có giờ bắt đầu khung nhận nằm trong đó.",
+        "name": "Tên ca",
+        "from": "Từ",
+        "until": "Đến",
+        "remove": "Xoá ca {number}",
+        "add": "Thêm ca",
+        "newName": "Ca {number}",
+        "reset": "Về mặc định",
+        "cancel": "Huỷ",
+        "apply": "Áp dụng",
+        "problem": {
+          "name": "Tên ca dài 1 đến 40 ký tự",
+          "hour": "Giờ dạng HH:MM, từ 00:00 đến 24:00",
+          "order": "Giờ kết thúc phải sau giờ bắt đầu",
+          "overlap": "Ca này bắt đầu trước khi ca trước kết thúc",
+          "count": "Có từ 1 đến {max} ca"
+        }
       }
     },
     "promotions": {

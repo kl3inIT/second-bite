@@ -1,5 +1,6 @@
 import {
   ChartColumnIcon,
+  ClipboardListIcon,
   HistoryIcon,
   MailIcon,
   PackageIcon,
@@ -22,6 +23,7 @@ export type AdminNavItem = {
     | "reviews"
     | "accounts"
     | "reports"
+    | "shiftReports"
     | "audit"
     | "settings";
   href:
@@ -32,6 +34,7 @@ export type AdminNavItem = {
     | "/admin/reviews"
     | "/admin/accounts"
     | "/admin/reports"
+    | "/admin/shift-reports"
     | "/admin/audit"
     | "/admin/settings";
   icon: LucideIcon;
@@ -64,6 +67,7 @@ export const adminNav: AdminNavGroup[] = [
   {
     items: [
       { key: "reports", href: "/admin/reports", icon: ChartColumnIcon },
+      { key: "shiftReports", href: "/admin/shift-reports", icon: ClipboardListIcon },
       { key: "audit", href: "/admin/audit", icon: HistoryIcon },
       { key: "settings", href: "/admin/settings", icon: SettingsIcon },
     ],
