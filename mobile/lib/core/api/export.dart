@@ -192,6 +192,7 @@ export 'models/offer_body_kind.dart';
 export 'models/offer_body_status.dart';
 export 'models/offer_change_body_kind.dart';
 export 'models/offer_details_body_kind.dart';
+export 'models/order_body_collected_by.dart';
 export 'models/order_body_refuse_reason.dart';
 export 'models/order_body_status.dart';
 export 'models/password_sign_in_input_body_session.dart';

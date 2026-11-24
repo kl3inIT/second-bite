@@ -317,6 +317,9 @@ class _OrderPage extends ConsumerWidget {
       OrderTicket(order: order, together: view.together),
       if (order.status == OrderBodyStatus.ready)
         OrderHowToCollect(order: order),
+      // Within the window the customer may confirm they hold the food.
+      if (windowPhaseOf(order, now) == WindowPhase.open)
+        CollectOrder(order: order),
       _card(OrderSummary(order: order)),
       OrderDirections(order: order),
       ChatEntry(order: order),

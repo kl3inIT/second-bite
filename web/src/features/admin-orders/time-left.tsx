@@ -12,6 +12,7 @@ import type { OrderBody } from "@/lib/api/generated";
  */
 export function TimeLeft({ order }: { order: OrderBody }) {
   const t = useTranslations("Admin.orders.detail.left");
+  const by = useTranslations("Admin.orders");
   const format = useFormatter();
   const now = useNow({ updateInterval: 30_000 });
   const time = (at: string) => format.dateTime(new Date(at), "time");
@@ -22,6 +23,7 @@ export function TimeLeft({ order }: { order: OrderBody }) {
   if (order.status === "collected" && order.collectedAt) {
     figure = t("collected");
     note = t("collectedAt", { time: time(order.collectedAt) });
+    if (order.collectedBy) note += ` · ${by(`collectedBy.${order.collectedBy}`)}`;
   } else if (order.status === "cancelled" && order.cancelledAt) {
     figure = t("cancelled");
     note = t("endedAt", { time: time(order.cancelledAt) });

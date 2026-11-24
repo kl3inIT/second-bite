@@ -38,6 +38,9 @@ type Counts struct {
 	// Held counts every order of the day; Collected, Cancelled, Refused and
 	// Expired how they ended.
 	Held, UnitsHeld, Collected, UnitsCollected, Cancelled, Refused, Expired int
+	// CollectedByCustomer counts the collected orders whose customer confirmed
+	// the collection, the store not having handed them over first.
+	CollectedByCustomer int
 	// CollectedVND is what the collected orders came to at the counter.
 	CollectedVND int64
 	// NewAccounts and NewCustomers are the site's, whatever store is chosen,
@@ -74,6 +77,7 @@ func (c *Counts) addTrade(o Counts) {
 	c.UnitsHeld += o.UnitsHeld
 	c.Collected += o.Collected
 	c.UnitsCollected += o.UnitsCollected
+	c.CollectedByCustomer += o.CollectedByCustomer
 	c.Cancelled += o.Cancelled
 	c.Refused += o.Refused
 	c.Expired += o.Expired
@@ -286,7 +290,8 @@ func (s *Service) storeDays(ctx context.Context, f ReportFilter) (map[storeDay]*
 	for _, o := range orders {
 		cell(o.Day, o.SellerID).addTrade(Counts{
 			Held: o.Held, UnitsHeld: o.UnitsHeld, Collected: o.Collected, UnitsCollected: o.UnitsCollected,
-			Cancelled: o.Cancelled, Refused: o.Refused, Expired: o.Expired, CollectedVND: o.CollectedVND,
+			CollectedByCustomer: o.CollectedByCustomer,
+			Cancelled:           o.Cancelled, Refused: o.Refused, Expired: o.Expired, CollectedVND: o.CollectedVND,
 			OriginalVND: o.OriginalVND, DiscountVND: o.DiscountVND, DiscountOrders: o.DiscountOrders,
 		})
 	}

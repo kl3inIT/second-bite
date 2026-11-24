@@ -28,7 +28,7 @@ WHERE customer_id IS NOT DISTINCT FROM sqlc.narg(customer_id)::uuid AND idempote
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders WHERE id = @id;
 
 -- name: LockOrder :one
@@ -36,7 +36,7 @@ FROM order_orders WHERE id = @id;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders WHERE id = @id FOR UPDATE;
 
 -- name: LockOrderShared :one
@@ -45,7 +45,7 @@ FROM order_orders WHERE id = @id FOR UPDATE;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders WHERE id = @id FOR SHARE;
 
 -- name: LinesOf :many
@@ -60,7 +60,7 @@ ORDER BY order_id, name, offer_id;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders
 WHERE customer_id = @customer_id
   AND (sqlc.narg(checkout_id)::uuid IS NULL OR checkout_id = sqlc.narg(checkout_id))
@@ -76,7 +76,7 @@ LIMIT @max_rows OFFSET @skip_rows;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders
 WHERE seller_id = @seller_id AND window_start >= @day_start AND window_start < @day_end
 ORDER BY window_start, number
@@ -92,7 +92,7 @@ LIMIT 500;
 SELECT id, number, customer_id, customer_name, customer_phone, seller_id, checkout_id, seller_name, latitude,
        longitude, address, state, window_start, window_end, total_vnd, access, cancel_reason, refuse_reason, refuse_note,
        created_at, ready_at, collected_at, cancelled_at, refused_at, promotion_id, promotion_name, promotion_rule,
-       promotion_new, discount_vnd
+       promotion_new, discount_vnd, collected_by
 FROM order_orders
 WHERE (cardinality(@statuses::text[]) = 0
        OR (CASE WHEN state IN ('confirmed', 'ready') AND window_end <= now() THEN 'expired' ELSE state END)
@@ -141,7 +141,8 @@ WHERE true
 UPDATE order_orders SET state = 'ready', ready_at = now() WHERE id = @id;
 
 -- name: MarkCollected :exec
-UPDATE order_orders SET state = 'collected', collected_at = now() WHERE id = @id;
+-- collected_by is who confirmed it: 'seller' or 'customer'.
+UPDATE order_orders SET state = 'collected', collected_at = now(), collected_by = @collected_by WHERE id = @id;
 
 -- name: MarkCancelled :exec
 UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason = @cancel_reason WHERE id = @id;
@@ -149,7 +150,8 @@ UPDATE order_orders SET state = 'cancelled', cancelled_at = now(), cancel_reason
 -- name: MarkReopened :exec
 -- Takes a hand-over or a refusal back: the order is open again.
 UPDATE order_orders
-SET state = 'confirmed', ready_at = NULL, collected_at = NULL, refused_at = NULL, refuse_reason = NULL, refuse_note = ''
+SET state = 'confirmed', ready_at = NULL, collected_at = NULL, collected_by = NULL, refused_at = NULL, refuse_reason = NULL,
+    refuse_note = ''
 WHERE id = @id;
 
 -- name: MarkRefused :exec
@@ -407,7 +409,8 @@ RETURNING id, created_at, window_start;
 -- name: OrderDays :many
 -- The orders per collection day in Vietnam and seller, by how they ended, for the admin's report (SEC-80). An order
 -- confirmed or ready whose window is over counts as expired, as every read of an order reads it. For the orders
--- collected, also what their dishes cost at the original price and the discounts Second Bite paid back.
+-- collected, also how many their customers confirmed, what their dishes cost at the original price and the discounts
+-- Second Bite paid back.
 WITH placed AS (
     SELECT o.*, (SELECT sum(units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS units,
            (SELECT sum(l.original_price_vnd * l.units) FROM order_lines l WHERE l.order_id = o.id)::bigint AS original_vnd
@@ -421,6 +424,7 @@ SELECT (window_start AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day, seller_id,
        count(*) AS held,
        sum(units)::bigint AS units_held,
        count(*) FILTER (WHERE state = 'collected') AS collected,
+       count(*) FILTER (WHERE state = 'collected' AND collected_by = 'customer') AS collected_by_customer,
        coalesce(sum(units) FILTER (WHERE state = 'collected'), 0)::bigint AS units_collected,
        coalesce(sum(total_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS collected_vnd,
        coalesce(sum(original_vnd) FILTER (WHERE state = 'collected'), 0)::bigint AS original_vnd,

@@ -72,9 +72,20 @@ abstract class OrdersClient {
     @Header('Order-Access') String? orderAccess,
   });
 
+  /// Confirm you collected your order.
+  ///
+  /// By its customer, signed in or sending its access, within the window while the order is confirmed or ready: it is collected as when the seller's people hand it over, and its review opens. An order already collected, by either, is answered as it is.
+  ///
+  /// [orderAccess] - The order's access, for its customer who did not sign in.
+  @POST('/orders/{orderId}/collect')
+  Future<OrderBody> collectOrder({
+    @Path('orderId') required String orderId,
+    @Header('Order-Access') String? orderAccess,
+  });
+
   /// Hand an order over.
   ///
-  /// Within the window, once staff have matched the collector to the order by its QR code or by the name and phone number on it.
+  /// Within the window, once staff have matched the collector to the order by its QR code or by the name and phone number on it. An order already collected, handed over or confirmed by its customer, is answered as it is.
   @POST('/orders/{orderId}/hand-over')
   Future<OrderBody> handOverOrder({@Path('orderId') required String orderId});
 

@@ -1081,8 +1081,10 @@ function sellerOrdersFor(seller) {
               "túi",
               1,
               57000,
+              // Its customer confirmed they collected it; the store had not pressed "Đã giao".
               {
                 collectedAt: new Date().toISOString(),
+                collectedBy: "customer",
               },
             ),
             order(5, "cancelled", "Võ Lan", "0900123456", "Xôi thập cẩm", "hộp", 1, 30000, {
@@ -1097,6 +1099,7 @@ function sellerOrdersFor(seller) {
             [
               order(7, "collected", "", "", "Cơm sườn nướng", "suất", 1, 30000, {
                 collectedAt: new Date().toISOString(),
+                collectedBy: "seller",
               }),
             ]
           : [],
@@ -1131,9 +1134,12 @@ async function staffOrderAction(request, response, mine, id, action) {
     order.status = "confirmed";
     delete order.readyAt;
     delete order.collectedAt;
+    delete order.collectedBy;
     delete order.refusedAt;
     delete order.refuseReason;
     delete order.refuseNote;
+  } else if (action === "hand-over" && order.status === "collected") {
+    // Collected already, by staff or confirmed by its customer: answered as it is.
   } else if (!open) {
     problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
     return;
@@ -1143,6 +1149,7 @@ async function staffOrderAction(request, response, mine, id, action) {
   } else if (action === "hand-over") {
     order.status = "collected";
     order.collectedAt = new Date().toISOString();
+    order.collectedBy = "seller";
   } else {
     const { reason, note } = await readBody(request);
     if (!REFUSALS.includes(reason)) {
@@ -1915,6 +1922,18 @@ async function ordersApi(request, response, url) {
     }
     return true;
   }
+  // A test opens an order's window now, as time passing would: the samples' windows are in the evening.
+  const opening = /^\/__stub\/orders\/([\w-]+)\/open-window$/.exec(url.pathname);
+  if (request.method === "POST" && opening) {
+    const found = orders.find((each) => each.id === opening[1]);
+    if (!found) problem(response, 404, "ORDER_NOT_FOUND");
+    else {
+      found.windowStart = new Date(Date.now() - 30 * 60_000).toISOString();
+      found.windowEnd = new Date(Date.now() + 90 * 60_000).toISOString();
+      json(response, 200, shown(found));
+    }
+    return true;
+  }
   if (!url.pathname.startsWith("/orders")) return false;
   const account = accounts.get(tokenOf(request));
 
@@ -2025,14 +2044,17 @@ async function ordersApi(request, response, url) {
     if (staffMatch[2] === "ready") {
       handled.status = "ready";
       handled.readyAt = new Date().toISOString();
-    } else {
+    } else if (handled.status !== "collected") {
       handled.status = "collected";
       handled.collectedAt = new Date().toISOString();
+      handled.collectedBy = "seller";
     }
     json(response, 200, shown(handled));
     return true;
   }
-  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/review|\/problem)?$/.exec(url.pathname);
+  const orderMatch = /^\/orders\/([\w-]+)(\/cancel|\/collect|\/review|\/problem)?$/.exec(
+    url.pathname,
+  );
   const order = orderMatch
     ? orders.find((found) => found.id === orderMatch[1] && placedBy(request, account, found))
     : undefined;
@@ -2041,6 +2063,25 @@ async function ordersApi(request, response, url) {
     return true;
   }
   if (request.method === "GET" && orderMatch && !orderMatch[2]) {
+    json(response, 200, shown(order));
+    return true;
+  }
+  // The customer's "Đã nhận món": within the window, while the order is open; one collected already is answered
+  // as it is, as the server does.
+  if (request.method === "POST" && orderMatch?.[2] === "/collect") {
+    if (order.status !== "collected") {
+      if (order.status !== "confirmed" && order.status !== "ready") {
+        problem(response, 409, "ORDER_TRANSITION_NOT_ALLOWED");
+        return true;
+      }
+      if (Date.now() < Date.parse(order.windowStart)) {
+        problem(response, 409, "ORDER_OUTSIDE_WINDOW");
+        return true;
+      }
+      order.status = "collected";
+      order.collectedAt = new Date().toISOString();
+      order.collectedBy = "customer";
+    }
     json(response, 200, shown(order));
     return true;
   }
@@ -2649,7 +2690,9 @@ function adminOrdersOf(stores) {
       windowEnd: at(-back + 38 - i),
       createdAt: at(-back - 120 - i),
       ...(status === "ready" || status === "collected" ? { readyAt: at(-back - 10 - i) } : {}),
-      ...(status === "collected" ? { collectedAt: at(-back - i) } : {}),
+      ...(status === "collected"
+        ? { collectedAt: at(-back - i), collectedBy: i < 6 ? "customer" : "seller" }
+        : {}),
       ...(status === "cancelled" ? { cancelledAt: at(-back - 60 - i) } : {}),
       ...(status === "refused" ? { refusedAt: at(-back - i), refuseReason: "no_show" } : {}),
       checkoutId: `co-admin-${i}`,
@@ -2951,6 +2994,7 @@ const reportCountKeys = [
   "unitsHeld",
   "collected",
   "unitsCollected",
+  "collectedByCustomer",
   "cancelled",
   "refused",
   "expired",
@@ -2983,6 +3027,7 @@ const reportStoreNumbers = [
     unitsHeld: 12,
     collected: 8,
     unitsCollected: 11,
+    collectedByCustomer: 3,
     cancelled: 1,
     collectedVnd: 264000,
     originalVnd: 528000,

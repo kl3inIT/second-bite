@@ -220,6 +220,49 @@ test.describe("ordering from the cart", () => {
     await expectNoSeriousA11yViolations(page);
   });
 
+  // customer-confirms-collection: within the window the customer confirms "Đã nhận món" themselves, for a store that
+  // did not press "Đã giao". One press only asks; "Chưa nhận" leaves the order open, and the confirmation ends it as
+  // a hand-over does, with its rating.
+  test("confirms the order collected after asking once more, then rates it", async ({ page }) => {
+    await addCroissant(page);
+    await page.goto("/vi/cart");
+    await orderAs(page, "Lan", "0900000006");
+    await expect(page).toHaveURL(ORDER_URL);
+    const orderId = page.url().split("/").at(-1);
+    // Before the window opens there is nothing to confirm; the stub then opens it, as time passing would.
+    await expect(page.getByText(/mở sau/).first()).toBeVisible();
+    await expect(page.getByRole("region", { name: "Đã cầm món trên tay?" })).toHaveCount(0);
+    await page.request.post(`/api/__stub/orders/${orderId}/open-window`);
+    await page.reload();
+
+    const card = page.getByRole("region", { name: "Đã cầm món trên tay?" });
+    await expect(card).toBeVisible();
+    await (await hydrated(card.getByRole("button", { name: "Đã nhận món" }))).click();
+    const ask = page.getByRole("alertdialog", { name: /^Xác nhận đã nhận đơn #SB-/ });
+    await expect(ask.getByText(/^Chỉ xác nhận khi 1 phần của La Paris/)).toBeVisible();
+    await expectNoSeriousA11yViolations(page);
+
+    // Not yet: nothing changed.
+    await ask.getByRole("button", { name: "Chưa nhận" }).click();
+    await expect(ask).toBeHidden();
+    await page.reload();
+    await expect(card).toBeVisible();
+    await expect(page.getByText(/^Đã nhận món lúc/)).toHaveCount(0);
+
+    await card.getByRole("button", { name: "Đã nhận món" }).click();
+    await ask.getByRole("button", { name: "Xác nhận đã nhận" }).click();
+
+    await expect(page.getByText(/^Đã nhận món lúc/)).toBeVisible();
+    await expectSteps(page, 3);
+    await expect(page.getByRole("button", { name: "Gửi đánh giá" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Đã cầm món trên tay?" })).toHaveCount(0);
+    await expectNoSeriousA11yViolations(page);
+
+    // The store's "Đã giao" afterwards changes nothing: the order stays its customer's confirmation.
+    const handed = await page.request.post(`/api/orders/${orderId}/hand-over`);
+    expect((await handed.json()).collectedBy).toBe("customer");
+  });
+
   // Figma D5, D6, D6b (SEC-84): a collected order's customer reports what went wrong, once, and waits for the store.
   test("reports a problem with a collected order, then shows it waiting for the store", async ({
     page,

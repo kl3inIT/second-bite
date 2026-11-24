@@ -19,6 +19,9 @@ type DayCounts struct {
 	SellerID                  uuid.UUID
 	Held, UnitsHeld           int
 	Collected, UnitsCollected int
+	// CollectedByCustomer counts the collected orders their customer
+	// confirmed.
+	CollectedByCustomer int
 	// CollectedVND is what the collected orders came to at the counter.
 	CollectedVND int64
 	// OriginalVND is what the collected orders' dishes cost at their original
@@ -52,7 +55,8 @@ func (s *Service) OrderDays(ctx context.Context, since, until time.Time, sellerI
 			Day: r.Day.Time, SellerID: r.SellerID,
 			Held: int(r.Held), UnitsHeld: int(r.UnitsHeld),
 			Collected: int(r.Collected), UnitsCollected: int(r.UnitsCollected), CollectedVND: r.CollectedVnd,
-			OriginalVND: r.OriginalVnd, DiscountVND: r.DiscountVnd, DiscountOrders: int(r.DiscountOrders),
+			CollectedByCustomer: int(r.CollectedByCustomer),
+			OriginalVND:         r.OriginalVnd, DiscountVND: r.DiscountVnd, DiscountOrders: int(r.DiscountOrders),
 			Cancelled: int(r.Cancelled), Refused: int(r.Refused), Expired: int(r.Expired),
 		}
 	}

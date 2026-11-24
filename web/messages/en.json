@@ -537,7 +537,8 @@
       "toldBody": "{date}, {time} · the shop told you",
       "collected": "You collected the food",
       "collectedBody": "{time} · {free, select, yes {collected free} other {paid {total}}}",
-      "collectedRated": "{time} · {free, select, yes {collected free} other {paid {total}}} · you rated {stars, plural, one {# star} other {# stars}}"
+      "collectedRated": "{time} · {free, select, yes {collected free} other {paid {total}}} · you rated {stars, plural, one {# star} other {# stars}}",
+      "collectedByYou": "You confirmed you collected it"
     },
     "cancel": {
       "open": "Cancel order",
@@ -555,6 +556,16 @@
       "change": "Changed your mind?",
       "note": "You can cancel until the seller says the food is ready.",
       "after": "You can cancel until the seller says the food is ready. After that it cannot be cancelled."
+    },
+    "collect": {
+      "open": "I've collected it",
+      "question": "Food in your hands?",
+      "hint": "If the store has not pressed Delivered, confirm it yourself so the order is not counted as a no-show.",
+      "title": "Confirm you collected order #{number}?",
+      "body": "Confirm only once the {units} portions from {seller} are in your hands. The order is then collected and can no longer be cancelled.",
+      "keep": "Not yet",
+      "confirm": "Yes, I collected it",
+      "failed": "Could not confirm. Try again in a few minutes."
     },
     "date": "{day}/{month}",
     "ended": {
@@ -1067,7 +1078,8 @@
       },
       "collect": "Collect from the customer",
       "instead": "instead of {total}",
-      "payback": "The customer got {amount} off ({promotion}). Second Bite pays the store {amount} back at the end of the week."
+      "payback": "The customer got {amount} off ({promotion}). Second Bite pays the store {amount} back at the end of the week.",
+      "collectedByCustomerAt": "The customer confirmed collecting at {time}"
     },
     "track": {
       "label": "The order's steps",
@@ -1075,6 +1087,10 @@
       "preparing": "Preparing",
       "ready": "Ready",
       "collected": "Done"
+    },
+    "collectedBy": {
+      "customer": "Customer confirmed",
+      "seller": "Store handed over"
     }
   },
   "DayFilter": {
@@ -1939,7 +1955,11 @@
         "payVnd": "Paid at the counter"
       },
       "actions": "Actions for order {number}",
-      "view": "View details"
+      "view": "View details",
+      "collectedBy": {
+        "customer": "Customer confirmed",
+        "seller": "Store handed over"
+      }
     },
     "reviews": {
       "title": "Reviews",
@@ -2257,6 +2277,7 @@
         "collected": "Orders collected",
         "perHundred": "{orders} orders per 100 visitors",
         "ofHeld": "{share}% of orders held",
+        "byCustomer": "{count} confirmed by the customer",
         "average": "Per order collected",
         "pay": "Customer paid",
         "payNote": "over {orders, plural, one {# order} other {# orders}} collected",

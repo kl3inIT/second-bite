@@ -97,7 +97,9 @@ export default async function OrderPage({
       key: "collected",
       label: t("orders.detail.event.collected"),
       value: order.collectedAt
-        ? at(order.collectedAt)
+        ? order.collectedBy
+          ? `${at(order.collectedAt)} · ${t(`orders.collectedBy.${order.collectedBy}`)}`
+          : at(order.collectedAt)
         : open
           ? t("orders.detail.notYet")
           : t("orders.detail.never"),

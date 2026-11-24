@@ -25,27 +25,28 @@ type reportInput struct {
 }
 
 type countsBody struct {
-	Views          int   `json:"views"          doc:"Pages opened"`
-	People         int   `json:"people"         doc:"Browsers that opened them, each counted once a day"`
-	HomeViews      int   `json:"homeViews"      doc:"Opens of the home; none for a store"`
-	QRViews        int   `json:"qrViews"        doc:"Opens the poster's code brought (utm_source=qr)"`
-	Offers         int   `json:"offers"         doc:"Offers posted for the day"`
-	UnitsPosted    int   `json:"unitsPosted"`
-	Held           int   `json:"held"           doc:"Orders, however they ended"`
-	UnitsHeld      int   `json:"unitsHeld"`
-	Collected      int   `json:"collected"`
-	UnitsCollected int   `json:"unitsCollected"`
-	Cancelled      int   `json:"cancelled"`
-	Refused        int   `json:"refused"`
-	Expired        int   `json:"expired"        doc:"Orders the customer did not come for"`
-	CollectedVND   int64 `json:"collectedVnd"   doc:"What the collected orders came to at the counter"`
-	NewAccounts    int   `json:"newAccounts"    doc:"Accounts created, the site's whatever store is chosen; none on a store's numbers"`
-	NewCustomers   int   `json:"newCustomers"   doc:"Customers whose first order, by phone number, is collected then; the site's, as newAccounts"`
-	OriginalVND    int64 `json:"originalVnd"    doc:"What the collected orders' dishes cost at their original price"`
-	DiscountVND    int64 `json:"discountVnd"    doc:"The discounts Second Bite paid back on the collected orders"`
-	DiscountOrders int   `json:"discountOrders" doc:"Collected orders that took a discount"`
-	GramsCollected int   `json:"gramsCollected" doc:"Grams of the units collected whose dish gives a weight"`
-	UnitsWeighed   int   `json:"unitsWeighed"   doc:"The units collected whose dish gives a weight"`
+	Views               int   `json:"views"          doc:"Pages opened"`
+	People              int   `json:"people"         doc:"Browsers that opened them, each counted once a day"`
+	HomeViews           int   `json:"homeViews"      doc:"Opens of the home; none for a store"`
+	QRViews             int   `json:"qrViews"        doc:"Opens the poster's code brought (utm_source=qr)"`
+	Offers              int   `json:"offers"         doc:"Offers posted for the day"`
+	UnitsPosted         int   `json:"unitsPosted"`
+	Held                int   `json:"held"           doc:"Orders, however they ended"`
+	UnitsHeld           int   `json:"unitsHeld"`
+	Collected           int   `json:"collected"`
+	UnitsCollected      int   `json:"unitsCollected"`
+	Cancelled           int   `json:"cancelled"`
+	Refused             int   `json:"refused"`
+	Expired             int   `json:"expired"        doc:"Orders the customer did not come for"`
+	CollectedByCustomer int   `json:"collectedByCustomer" doc:"Collected orders whose customer confirmed the collection, the store not having handed them over first"`
+	CollectedVND        int64 `json:"collectedVnd"   doc:"What the collected orders came to at the counter"`
+	NewAccounts         int   `json:"newAccounts"    doc:"Accounts created, the site's whatever store is chosen; none on a store's numbers"`
+	NewCustomers        int   `json:"newCustomers"   doc:"Customers whose first order, by phone number, is collected then; the site's, as newAccounts"`
+	OriginalVND         int64 `json:"originalVnd"    doc:"What the collected orders' dishes cost at their original price"`
+	DiscountVND         int64 `json:"discountVnd"    doc:"The discounts Second Bite paid back on the collected orders"`
+	DiscountOrders      int   `json:"discountOrders" doc:"Collected orders that took a discount"`
+	GramsCollected      int   `json:"gramsCollected" doc:"Grams of the units collected whose dish gives a weight"`
+	UnitsWeighed        int   `json:"unitsWeighed"   doc:"The units collected whose dish gives a weight"`
 }
 
 type reportDayBody struct {

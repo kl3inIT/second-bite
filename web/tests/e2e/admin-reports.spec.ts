@@ -236,6 +236,8 @@ test.describe("the admin's report", () => {
     // 13 orders held for 33 visitors, 10 of them collected, for 334.000đ and 13 portions.
     await expect(analysis.getByText("39 đơn / 100 người")).toBeVisible();
     await expect(analysis.getByText("77% đơn giữ")).toBeVisible();
+    // Three of them their customers confirmed themselves (customer-confirms-collection).
+    await expect(analysis.getByText(/· 3 khách tự xác nhận$/)).toBeVisible();
     await expect(analysis.getByText("33.400đ")).toBeVisible();
     await expect(analysis.getByText("1,3")).toBeVisible();
     // The stub's six reviews, one hidden: the five shown average 3.8 stars.

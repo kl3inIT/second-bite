@@ -4,6 +4,7 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'order_body_collected_by.dart';
 import 'order_body_refuse_reason.dart';
 import 'order_body_status.dart';
 import 'order_line_body.dart';
@@ -61,6 +62,9 @@ abstract class OrderBody with _$OrderBody {
     String? cancelReason,
     DateTime? cancelledAt,
     DateTime? collectedAt,
+
+    /// Who confirmed the collection: the seller's people, who handed it over, or its customer; none until collected
+    OrderBodyCollectedBy? collectedBy,
 
     /// Messages its chat holds, with unreadMessages; none for admins
     int? messageCount,

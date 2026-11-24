@@ -72,6 +72,7 @@ func TestService(t *testing.T) {
 		"a person names their account":                               checkDisplayName,
 		"an order is placed, made ready and handed over":             checkOrderFlow,
 		"a free offer is reserved and handed over at 0 đồng":         checkFreeOffer,
+		"a customer confirms they collected their order":             checkCustomerCollects,
 		"an order's live socket carries its changes":                 checkLiveSocket,
 		"a browser follows an order by Web Push":                     checkPushSubscribe,
 		"a page view is counted without a session":                   checkViewCounted,

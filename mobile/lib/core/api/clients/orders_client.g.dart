@@ -157,6 +157,38 @@ class _OrdersClient implements OrdersClient {
   }
 
   @override
+  Future<OrderBody> collectOrder({
+    required String orderId,
+    String? orderAccess,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{r'Order-Access': orderAccess};
+    _headers.removeWhere((k, v) => v == null);
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<OrderBody>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/orders/${orderId}/collect',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, Object?>>(_options);
+    late OrderBody _value;
+    try {
+      _value = OrderBody.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<OrderBody> handOverOrder({required String orderId}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

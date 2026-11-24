@@ -61,8 +61,8 @@ var (
 		EN: "The order has ended: it was collected, cancelled, refused, or its window is over.",
 	})
 	ErrOutsideWindow = platform.NewFailure("ORDER_OUTSIDE_WINDOW", platform.CategoryConflict, platform.Words{
-		VI: "Chỉ giao đơn trong giờ nhận.",
-		EN: "The order is handed over within its collection window.",
+		VI: "Chỉ giao và nhận đơn trong giờ nhận.",
+		EN: "The order is handed over and collected within its collection window.",
 	})
 	ErrDayInvalid = platform.NewFailure("ORDER_DAY_INVALID", platform.CategoryValidation, platform.Words{
 		VI: "Hãy chọn một ngày có thật, dạng YYYY-MM-DD.",

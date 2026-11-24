@@ -33,6 +33,9 @@ _OrderBody _$OrderBodyFromJson(Map<String, dynamic> json) => _OrderBody(
   collectedAt: json['collectedAt'] == null
       ? null
       : DateTime.parse(json['collectedAt'] as String),
+  collectedBy: json['collectedBy'] == null
+      ? null
+      : OrderBodyCollectedBy.fromJson(json['collectedBy'] as String),
   messageCount: (json['messageCount'] as num?)?.toInt(),
   problem: json['problem'] == null
       ? null
@@ -78,6 +81,7 @@ Map<String, dynamic> _$OrderBodyToJson(_OrderBody instance) =>
       'cancelReason': instance.cancelReason,
       'cancelledAt': instance.cancelledAt?.toIso8601String(),
       'collectedAt': instance.collectedAt?.toIso8601String(),
+      'collectedBy': _$OrderBodyCollectedByEnumMap[instance.collectedBy],
       'messageCount': instance.messageCount,
       'problem': instance.problem,
       'promotion': instance.promotion,
@@ -97,6 +101,12 @@ const _$OrderBodyStatusEnumMap = {
   OrderBodyStatus.refused: 'refused',
   OrderBodyStatus.expired: 'expired',
   OrderBodyStatus.$unknown: r'$unknown',
+};
+
+const _$OrderBodyCollectedByEnumMap = {
+  OrderBodyCollectedBy.seller: 'seller',
+  OrderBodyCollectedBy.customer: 'customer',
+  OrderBodyCollectedBy.$unknown: r'$unknown',
 };
 
 const _$OrderBodyRefuseReasonEnumMap = {
