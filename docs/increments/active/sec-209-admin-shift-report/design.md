@@ -36,7 +36,7 @@ Tracked in Linear as SEC-209. Asked for on 24 November 2026 by the person who ru
 | `GET /admin/shift-reports?since&until&sellerId&shift…` | An admin | The days of the range, each with its summary and its shifts with their orders |
 | `GET /admin/shift-reports/export?…` (the same query) | An admin | The workbook (`application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`), named `bao-cao-theo-ca-<since>-den-<until>.xlsx` |
 
-`since` and `until` are `YYYY-MM-DD`; each `shift` is `HH:MM-HH:MM,Name` and the parameter repeats, in order; without any, the three defaults apply. Failures: `REPORT_RANGE_INVALID` (400, as SEC-80, here with at most 31 days) and `REPORT_SHIFTS_INVALID` (400, new): a count, a name, an hour, an order or an overlap that breaks section 2.
+`since` and `until` are `YYYY-MM-DD`; each `shift` is `HH:MM-HH:MM,Name` and the parameter repeats, in order; without any, the three defaults apply. Failures: `REPORT_SHIFT_RANGE_INVALID` (400, new: a range reversed, ending after today or longer than 31 days) and `REPORT_SHIFTS_INVALID` (400, new): a count, a name, an hour, an order or an overlap that breaks section 2.
 
 The answer: for each day, `day`, `summary` (the whole day), and `shifts[]` of `{name, start, end, summary, orders[]}`; `summary` is `{stores, unitsPosted, unitsCollected, unitsNotCollected, orders}`; an order is `{number, store, customer, phone, dishes, units, orderedAt, windowStart, windowEnd, status}`.
 

@@ -1,4 +1,4 @@
-# SEC-209 — The admin shift report and its Excel export: plan
+| Done, 24 November 2026 || Done, 24 November 2026 || Done, 24 November 2026 || Done, 24 November 2026 || Done, 24 November 2026 || Done, 24 November 2026 || Done, 24 November 2026 |# SEC-209 — The admin shift report and its Excel export: plan
 
 Design: [design.md](design.md). Tracked in Linear as SEC-209.
 
