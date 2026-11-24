@@ -48,9 +48,11 @@ The answer: for each day, `day`, `summary` (the whole day), and `shifts[]` of `{
 
 ## 5. Data
 
-No migration. The offers module answers the posts of a range with their windows (one new query); the orders module answers the orders of a range with their lines (the admin list's query, read whole); the stats module cuts, sums and writes. Nothing new is stored: the buyers' name and phone are read from the orders when asked and never logged.
+No migration and no new query. A shift is the part of the day (`platform.Clock`) that the admins' lists and the report already keep what starts in (the report-products-export increment): `offer.PostDays` answers the posts of each shift with its Clock, and `order.ListForAdmins` answers the orders of the range, read whole page by page and cut by the stats module into days and shifts by the start of their windows in Vietnam, the rule the queries apply. The stats module sums and writes. Nothing new is stored: the buyers' name and phone are read from the orders when asked and never logged.
 
 ## 6. Failure behavior
+
+The workbook is written with `github.com/xuri/excelize/v2`, which the report's workbook already uses.
 
 A range or a shift that breaks the rules is refused before anything is read. A range without orders yields tables that say so and an export with empty tables, not an error. The export is a download, so it does not paginate.
 
