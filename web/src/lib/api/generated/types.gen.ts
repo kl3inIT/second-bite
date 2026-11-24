@@ -1865,6 +1865,93 @@ export type SetSellerPhotoRequest = {
     photoId: string;
 };
 
+export type ShiftBlockBody = {
+    /**
+     * HH:MM
+     */
+    from: string;
+    name: string;
+    /**
+     * By window, then number
+     */
+    orders: Array<ShiftOrderBody>;
+    summary: ShiftSummaryBody;
+    /**
+     * HH:MM, 24:00 ending at midnight
+     */
+    until: string;
+};
+
+export type ShiftDayBody = {
+    day: string;
+    /**
+     * In the order asked
+     */
+    shifts: Array<ShiftBlockBody>;
+    /**
+     * The whole day, whatever the shifts
+     */
+    summary: ShiftSummaryBody;
+};
+
+export type ShiftOrderBody = {
+    /**
+     * The name copied on the order; empty once forgotten
+     */
+    customer: string;
+    /**
+     * The dishes, each with its portions when more than one
+     */
+    dishes: string;
+    number: number;
+    orderedAt: string;
+    /**
+     * The phone copied on the order; empty once forgotten
+     */
+    phone: string;
+    status: 'confirmed' | 'ready' | 'collected' | 'cancelled' | 'refused' | 'expired';
+    store: string;
+    units: number;
+    windowEnd: string;
+    windowStart: string;
+};
+
+export type ShiftReportOutputBody = {
+    /**
+     * Every day of the range, in order
+     */
+    days: Array<ShiftDayBody>;
+    since: string;
+    /**
+     * The whole range
+     */
+    totals: ShiftSummaryBody;
+    until: string;
+};
+
+export type ShiftSummaryBody = {
+    /**
+     * Orders, however they ended
+     */
+    orders: number;
+    /**
+     * Stores with a post or an order
+     */
+    stores: number;
+    /**
+     * Portions handed over
+     */
+    unitsCollected: number;
+    /**
+     * Portions the store refused or whose window ended without a hand-over; an order cancelled by its customer is in neither
+     */
+    unitsNotCollected: number;
+    /**
+     * Portions of the offers posted for it, whatever became of them
+     */
+    unitsPosted: number;
+};
+
 export type SignInInputBody = {
     challengeId: string;
     /**
@@ -3464,6 +3551,88 @@ export type RestoreSellerResponses = {
 };
 
 export type RestoreSellerResponse = RestoreSellerResponses[keyof RestoreSellerResponses];
+
+export type GetShiftReportData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD
+         */
+        since: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included, today at the latest
+         */
+        until: string;
+        /**
+         * Keep one store's orders and posts
+         */
+        sellerId?: string;
+        /**
+         * A shift, HH:MM-HH:MM,Name, from 00:00 to 24:00; the parameter repeats, one to six, in order and not overlapping. Ca sáng 06:00–12:00, Ca chiều 12:00–18:00 and Ca tối 18:00–24:00 when absent
+         */
+        shift?: Array<string> | null;
+    };
+    url: '/admin/shift-reports';
+};
+
+export type GetShiftReportErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type GetShiftReportError = GetShiftReportErrors[keyof GetShiftReportErrors];
+
+export type GetShiftReportResponses = {
+    /**
+     * OK
+     */
+    200: ShiftReportOutputBody;
+};
+
+export type GetShiftReportResponse = GetShiftReportResponses[keyof GetShiftReportResponses];
+
+export type ExportShiftReportData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * The first day in Vietnam, YYYY-MM-DD
+         */
+        since: string;
+        /**
+         * The last day in Vietnam, YYYY-MM-DD, included, today at the latest
+         */
+        until: string;
+        /**
+         * Keep one store's orders and posts
+         */
+        sellerId?: string;
+        /**
+         * A shift, HH:MM-HH:MM,Name, from 00:00 to 24:00; the parameter repeats, one to six, in order and not overlapping. Ca sáng 06:00–12:00, Ca chiều 12:00–18:00 and Ca tối 18:00–24:00 when absent
+         */
+        shift?: Array<string> | null;
+    };
+    url: '/admin/shift-reports/export';
+};
+
+export type ExportShiftReportErrors = {
+    /**
+     * Error
+     */
+    default: Problem;
+};
+
+export type ExportShiftReportError = ExportShiftReportErrors[keyof ExportShiftReportErrors];
+
+export type ExportShiftReportResponses = {
+    /**
+     * The workbook
+     */
+    200: unknown;
+};
 
 export type RegisterWithPasswordData = {
     body: RegisterInputBody;
