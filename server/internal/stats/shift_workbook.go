@@ -2,6 +2,7 @@ package stats
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/xuri/excelize/v2"
@@ -116,7 +117,7 @@ func styleSheet(f *excelize.File, s shiftSheet, title, header int) error {
 
 // lastColumn names the last column a sheet's tables use.
 func lastColumn(s shiftSheet) string {
-	name, _ := excelize.ColumnNumberToName(len(s.widths)) //nolint:errcheck // the widths are few
+	name, _ := excelize.ColumnNumberToName(len(s.widths))
 
 	return name
 }
@@ -124,7 +125,7 @@ func lastColumn(s shiftSheet) string {
 // rangeSheet is the first sheet: a row per day and shift, and the totals.
 func rangeSheet(r ShiftReport) shiftSheet {
 	s := shiftSheet{
-		sheet:  sheet{name: sheetShiftSummary},
+		name:   sheetShiftSummary,
 		widths: []float64{14, 16, 14, 14, 14, 12, 12, 10},
 	}
 
@@ -150,7 +151,7 @@ func rangeSheet(r ShiftReport) shiftSheet {
 // daySheet is a day's sheet: its title, its summary and a table per shift.
 func daySheet(d ShiftDay) shiftSheet {
 	s := shiftSheet{
-		sheet:  sheet{name: "Ngày " + d.Day.Format("02-01")},
+		name:   "Ngày " + d.Day.Format("02-01"),
 		widths: []float64{14, 28, 24, 16, 34, 6, 14, 14, 24},
 	}
 
@@ -236,12 +237,15 @@ func rangeTitle(r ShiftReport) string {
 
 // shiftsLine names the shifts a workbook was cut by, as the admin set them.
 func shiftsLine(shifts []Shift) string {
-	line := "Các ca:"
+	var line strings.Builder
+
+	line.WriteString("Các ca:")
+
 	for _, sh := range shifts {
-		line += fmt.Sprintf(" %s %s;", sh.Name, hours(sh))
+		fmt.Fprintf(&line, " %s %s;", sh.Name, hours(sh))
 	}
 
-	return line
+	return line.String()
 }
 
 // shiftWorkbookName names the file by its days.

@@ -68,7 +68,7 @@ func checkShiftDaySheet(t *testing.T, f *excelize.File) {
 		t.Errorf("the first summary row is %q, want Ca sáng", got)
 	}
 
-	if kind, err := f.GetCellType(sheet, "C6"); err != nil || kind != excelize.CellTypeNumber {
+	if kind, err := f.GetCellType(sheet, "C6"); err != nil || isText(kind) {
 		t.Errorf("the afternoon's stores are %v (%v), want a number", kind, err)
 	}
 
@@ -76,39 +76,61 @@ func checkShiftDaySheet(t *testing.T, f *excelize.File) {
 		t.Errorf("the afternoon's stores read %q, want 1", got)
 	}
 
+	if _, ok := findCell(t, f, sheet, noOrdersInShift); !ok {
+		t.Error("the night, with no order, does not say so")
+	}
+
+	if cell, ok := findCell(t, f, sheet, "0912345678"); !ok || !isText(cellKind(t, f, sheet, cell)) {
+		t.Error("a phone number was written as a number, losing its zero")
+	}
+
+	for _, text := range []string{"=HYPERLINK(\"http://example.com\")", "@Quán"} {
+		cell, ok := findCell(t, f, sheet, text)
+		if !ok {
+			t.Fatalf("%q is not in the sheet", text)
+		}
+
+		formula, err := f.GetCellFormula(sheet, cell)
+		if err != nil || formula != "" || !isText(cellKind(t, f, sheet, cell)) {
+			t.Errorf("%q was written as a formula (%q, %v)", text, formula, err)
+		}
+	}
+}
+
+// findCell names the first cell of the sheet that reads as text.
+func findCell(t *testing.T, f *excelize.File, sheet, text string) (string, bool) {
+	t.Helper()
+
 	rows, err := f.GetRows(sheet)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	var sawNone, sawZero, sawText bool
-
 	for i, row := range rows {
 		for j, v := range row {
-			cell, _ := excelize.CoordinatesToCellName(j+1, i+1) //nolint:errcheck // inside the sheet
-
-			switch {
-			case v == noOrdersInShift:
-				sawNone = true
-			case v == "0912345678":
-				kind, _ := f.GetCellType(sheet, cell) //nolint:errcheck // a cell of the sheet
-				sawZero = kind != excelize.CellTypeNumber
-			case v == "=HYPERLINK(\"http://example.com\")" || v == "@Quán":
-				formula, _ := f.GetCellFormula(sheet, cell) //nolint:errcheck // a cell of the sheet
-				sawText = formula == ""
+			if v != text {
+				continue
 			}
+
+			cell, err := excelize.CoordinatesToCellName(j+1, i+1)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			return cell, true
 		}
 	}
 
-	if !sawNone {
-		t.Error("the night, with no order, does not say so")
+	return "", false
+}
+
+func cellKind(t *testing.T, f *excelize.File, sheet, cell string) excelize.CellType {
+	t.Helper()
+
+	kind, err := f.GetCellType(sheet, cell)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	if !sawZero {
-		t.Error("a phone number was written as a number, losing its zero")
-	}
-
-	if !sawText {
-		t.Error("a name starting with = or @ was written as a formula")
-	}
+	return kind
 }

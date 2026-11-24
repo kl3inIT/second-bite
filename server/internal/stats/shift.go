@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -53,9 +54,9 @@ type Shift struct {
 // DefaultShifts are the three shifts a report has when none is asked.
 func DefaultShifts() []Shift {
 	return []Shift{
-		{Name: "Ca sáng", Clock: platform.Clock{From: "06:00", Until: "12:00"}},
-		{Name: "Ca chiều", Clock: platform.Clock{From: "12:00", Until: "18:00"}},
-		{Name: "Ca tối", Clock: platform.Clock{From: "18:00", Until: "24:00"}},
+		{Name: "Ca sáng", From: "06:00", Until: "12:00"},
+		{Name: "Ca chiều", From: "12:00", Until: "18:00"},
+		{Name: "Ca tối", From: "18:00", Until: "24:00"},
 	}
 }
 
@@ -273,85 +274,97 @@ func (t *tally) summary() ShiftSummary {
 	return t.sum
 }
 
+// cut is a day under construction: its numbers and its shifts'.
+type cut struct {
+	day    ShiftDay
+	whole  *tally
+	shifts []*tally
+}
+
+func newCut(d time.Time, shifts []Shift) *cut {
+	c := &cut{
+		day:    ShiftDay{Day: d, Shifts: make([]ShiftBlock, len(shifts))},
+		whole:  newTally(),
+		shifts: make([]*tally, len(shifts)),
+	}
+
+	for i, sh := range shifts {
+		c.day.Shifts[i] = ShiftBlock{Shift: sh}
+		c.shifts[i] = newTally()
+	}
+
+	return c
+}
+
+// order counts o in its day and in the shift holding its window's start, if
+// any.
+func (c *cut) order(o ShiftOrder) {
+	c.whole.order(o)
+
+	for i, sh := range c.day.Shifts {
+		if sh.holds(o.WindowStart) {
+			c.day.Shifts[i].Orders = append(c.day.Shifts[i].Orders, o)
+			c.shifts[i].order(o)
+
+			return
+		}
+	}
+}
+
+// finish sums the day and orders each shift's orders.
+func (c *cut) finish() ShiftDay {
+	c.day.Summary = c.whole.summary()
+
+	for i := range c.day.Shifts {
+		c.day.Shifts[i].Summary = c.shifts[i].summary()
+		slices.SortFunc(c.day.Shifts[i].Orders, compareShiftOrders)
+	}
+
+	return c.day
+}
+
 // buildShiftReport cuts the orders and the posts into the days and shifts of
 // f. It is pure: the service reads, this decides.
 func buildShiftReport(f ShiftFilter, orders []order.Order, dayPosts []offer.PostDay, shiftPosts [][]offer.PostDay) ShiftReport {
 	r := ShiftReport{Since: f.Since, Until: f.Until, Shifts: f.Shifts}
-	byDay := map[time.Time]*ShiftDay{}
-	dayTally := map[time.Time]*tally{}
-	shiftTally := map[time.Time][]*tally{}
+	cuts := map[time.Time]*cut{}
 
 	for d := f.Since; !d.After(f.Until); d = d.AddDate(0, 0, 1) {
-		day := &ShiftDay{Day: d, Shifts: make([]ShiftBlock, len(f.Shifts))}
-		for i, sh := range f.Shifts {
-			day.Shifts[i] = ShiftBlock{Shift: sh}
-		}
-
-		byDay[d] = day
-		dayTally[d] = newTally()
-		shiftTally[d] = make([]*tally, len(f.Shifts))
-
-		for i := range f.Shifts {
-			shiftTally[d][i] = newTally()
-		}
+		cuts[d] = newCut(d, f.Shifts)
 	}
 
 	for _, p := range dayPosts {
-		if t, ok := dayTally[p.Day]; ok {
-			t.post(p)
+		if c, ok := cuts[p.Day]; ok {
+			c.whole.post(p)
 		}
 	}
 
 	for i, posts := range shiftPosts {
 		for _, p := range posts {
-			if t, ok := shiftTally[p.Day]; ok {
-				t[i].post(p)
+			if c, ok := cuts[p.Day]; ok {
+				c.shifts[i].post(p)
 			}
 		}
 	}
 
 	for _, o := range orders {
-		so := shiftOrderOf(o)
-		d := dayOf(o.WindowStart)
-
-		day, ok := byDay[d]
-		if !ok {
-			continue
-		}
-
-		dayTally[d].order(so)
-
-		for i, sh := range f.Shifts {
-			if sh.holds(o.WindowStart) {
-				day.Shifts[i].Orders = append(day.Shifts[i].Orders, so)
-				shiftTally[d][i].order(so)
-
-				break
-			}
+		if c, ok := cuts[dayOf(o.WindowStart)]; ok {
+			c.order(shiftOrderOf(o))
 		}
 	}
 
 	total := newTally()
 
 	for d := f.Since; !d.After(f.Until); d = d.AddDate(0, 0, 1) {
-		day := byDay[d]
-		day.Summary = dayTally[d].summary()
-
-		for i := range day.Shifts {
-			day.Shifts[i].Summary = shiftTally[d][i].summary()
-			slices.SortFunc(day.Shifts[i].Orders, compareShiftOrders)
-		}
-
-		for s := range dayTally[d].stores {
-			total.stores[s] = struct{}{}
-		}
-
+		c := cuts[d]
+		day := c.finish()
+		maps.Copy(total.stores, c.whole.stores)
 		total.sum.UnitsPosted += day.Summary.UnitsPosted
 		total.sum.Orders += day.Summary.Orders
 		total.sum.UnitsCollected += day.Summary.UnitsCollected
 		total.sum.UnitsNotCollected += day.Summary.UnitsNotCollected
 
-		r.Days = append(r.Days, *day)
+		r.Days = append(r.Days, day)
 	}
 
 	r.Totals = total.summary()

@@ -35,7 +35,7 @@ func TestParseShifts(t *testing.T) {
 		"no dash":             {"06:00,Ca"},
 		"an empty name":       {"06:00-12:00, "},
 		"a long name":         {"06:00-12:00," + strings.Repeat("a", 41)},
-		"a control in name":   {"06:00-12:00,Ca\n"},
+		"a control in name":   {"06:00-12:00,Ca\tb"},
 		"an hour of 25":       {"06:00-25:00,Ca"},
 		"ending before start": {"12:00-06:00,Ca"},
 		"empty span":          {"12:00-12:00,Ca"},
@@ -97,12 +97,10 @@ func shiftOrder(number int64, store uuid.UUID, hour, minute int, status order.St
 	}
 }
 
-// TestBuildShiftReport cuts orders and posts by the start of their windows:
-// the edges fall in the later shift, an order in a gap is in its day alone,
-// and the numbers add the right statuses.
-func TestBuildShiftReport(t *testing.T) {
-	t.Parallel()
-
+// twoShiftDays builds the report of two days from eight orders and the posts
+// of the first: the morning, the afternoon with an order of each ending, the
+// night, and one before every shift.
+func twoShiftDays() ShiftReport {
 	f := ShiftFilter{Since: day, Until: day.AddDate(0, 0, 1), Shifts: DefaultShifts()}
 
 	orders := []order.Order{
@@ -123,7 +121,15 @@ func TestBuildShiftReport(t *testing.T) {
 		{{Day: day, SellerID: pho, Units: 1}},
 	}
 
-	r := buildShiftReport(f, orders, posts, byShift)
+	return buildShiftReport(f, orders, posts, byShift)
+}
+
+// TestBuildShiftReportNumbers adds the right statuses and posts to the day
+// and to each shift, an order in a gap being in its day alone.
+func TestBuildShiftReportNumbers(t *testing.T) {
+	t.Parallel()
+
+	r := twoShiftDays()
 
 	if len(r.Days) != 2 || !r.Days[0].Day.Equal(day) {
 		t.Fatalf("days %v, want the two of the range", r.Days)
@@ -146,19 +152,28 @@ func TestBuildShiftReport(t *testing.T) {
 		}
 	}
 
-	if n := len(d.Shifts[1].Orders); n != 5 || d.Shifts[1].Orders[0].Number != 2 || d.Shifts[1].Orders[4].Number != 6 {
-		t.Errorf("the afternoon lists %d orders by window, first %d; want 5, from 2 to 6", n, d.Shifts[1].Orders[0].Number)
+	if r.Totals.Orders != 8 || r.Totals.Stores != 2 || r.Totals.UnitsPosted != 17 {
+		t.Errorf("totals %+v, want the day's, the second day being empty", r.Totals)
+	}
+}
+
+// TestBuildShiftReportOrders lists a shift's orders by window and writes
+// their dishes; a day without orders has empty shifts.
+func TestBuildShiftReportOrders(t *testing.T) {
+	t.Parallel()
+
+	r := twoShiftDays()
+	afternoon := r.Days[0].Shifts[1].Orders
+
+	if len(afternoon) != 5 || afternoon[0].Number != 2 || afternoon[4].Number != 6 {
+		t.Fatalf("the afternoon lists %d orders by window, want 5 from 2 to 6", len(afternoon))
 	}
 
-	if got := d.Shifts[1].Orders[0].Dishes; got != "Món, Món ×2" {
+	if got := afternoon[0].Dishes; got != "Món, Món ×2" {
 		t.Errorf("dishes written %q, want a ×2 on a line of two portions", got)
 	}
 
 	if len(r.Days[1].Shifts[0].Orders) != 0 || r.Days[1].Summary != (ShiftSummary{}) {
 		t.Error("a day without orders has empty shifts and a summary of zeroes")
-	}
-
-	if r.Totals.Orders != 8 || r.Totals.Stores != 2 || r.Totals.UnitsPosted != 17 {
-		t.Errorf("totals %+v, want the day's, the second day being empty", r.Totals)
 	}
 }
