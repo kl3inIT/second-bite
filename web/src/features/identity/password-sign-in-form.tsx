@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { z } from "zod";
 
-import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm, useLeavingThePage } from "@/components/form/app-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
@@ -30,6 +30,7 @@ export function PasswordSignInForm({
 }) {
   const t = useTranslations("SignIn");
   const router = useRouter();
+  const leavingThePage = useLeavingThePage();
   const [google, startGoogle] = useTransition();
   // The address Google named when it already has an account Google does not speak for ("" when unknown): the
   // emailed code proves it today (SEC-29 › decision 4).
@@ -60,8 +61,7 @@ export function PasswordSignInForm({
         refuse(formApi, error);
         return;
       }
-      signedIn();
-      return leavingThePage();
+      return leavingThePage(returnTo, { refresh: true });
     },
   });
 

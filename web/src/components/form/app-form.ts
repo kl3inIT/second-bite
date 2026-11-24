@@ -2,9 +2,11 @@
 // shows the server's own sentence for a refusal (SEC-28), so `refuse` places `error.detail` where
 // BeyondPilot translates the code.
 import { createFormHook, type AnyFormApi } from "@tanstack/react-form";
-import { useId } from "react";
+import { useLocale } from "next-intl";
+import { useEffect, useId, useRef } from "react";
 
 import type { Failure } from "@/components/failure-alert";
+import { getPathname, useRouter } from "@/i18n/navigation";
 import { ApiError, failureOf } from "@/lib/api/client";
 
 import { focusFirstInvalidSoon } from "./focus-first-invalid";
@@ -62,14 +64,39 @@ export function submitAction(formApi: AnyFormApi, blocked?: () => boolean) {
   };
 }
 
+/** How long the router has to bring the next page before it loads in full: the ten seconds a person waits on a screen
+ * before they take it for stuck (Nielsen's response-time limits). */
+const NEXT_PAGE_WAIT_MS = 10_000;
+
 /**
- * What the `onSubmit` of a form that leaves the page once it is sent returns after starting the navigation: a promise
- * that never settles, so the form stays sent, its button disabled and saying so, until the next page replaces it.
- * The router takes a while to bring that page on a slow line, and a button that came back meanwhile sent the form
- * again (a second session). Next.js keeps a server action's form pending through its `redirect` the same way.
+ * What the `onSubmit` of a form that leaves the page once it is sent returns: `leavingThePage(href)` starts the
+ * navigation (refreshing the router's cache too with `refresh`) and returns a promise that never settles, so the form
+ * stays sent, its button disabled and saying so, until the next page replaces it. The router takes a while to bring
+ * that page on a slow line, and a button that came back meanwhile sent the form again (a second session). Next.js
+ * keeps a server action's form pending through its `redirect` the same way.
+ *
+ * When the router never brings the page, its request lost on a mobile line, the form would stay sent for good. So
+ * after {@link NEXT_PAGE_WAIT_MS} the browser loads the next page in full, as Next.js does itself when the router's
+ * request fails: that sends nothing again, where a button brought back would. The wait ends with the form's page:
+ * once the router shows another page, the one it brought or one the person went to, React hides the page left
+ * (Next.js keeps it, hidden, for going back) or unmounts it, and either runs the cleanup of its effects, which clears
+ * the wait. A page whose effects still run is the one on the screen.
  */
-export function leavingThePage(): Promise<never> {
-  return new Promise(() => {});
+export function useLeavingThePage() {
+  const router = useRouter();
+  const locale = useLocale();
+  const wait = useRef<number>(undefined);
+  useEffect(() => () => window.clearTimeout(wait.current), []);
+  return function leavingThePage(
+    href: Parameters<typeof router.replace>[0],
+    { refresh = false } = {},
+  ): Promise<never> {
+    router.replace(href);
+    if (refresh) router.refresh();
+    const address = getPathname({ href, locale });
+    wait.current = window.setTimeout(() => window.location.assign(address), NEXT_PAGE_WAIT_MS);
+    return new Promise(() => {});
+  };
 }
 
 /** A refused submission's errors: the failure no field can say, and the messages on its fields. */

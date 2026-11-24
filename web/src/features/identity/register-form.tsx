@@ -4,10 +4,10 @@ import { revalidateLogic } from "@tanstack/react-form";
 import { useTranslations } from "next-intl";
 import { z } from "zod";
 
-import { leavingThePage, refuse, submitAction, useAppForm } from "@/components/form/app-form";
+import { refuse, submitAction, useAppForm, useLeavingThePage } from "@/components/form/app-form";
 import { buttonVariants } from "@/components/ui/button";
 import { FieldDescription, FieldGroup } from "@/components/ui/field";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { registerWithPassword } from "@/lib/api/generated";
 
 /**
@@ -27,7 +27,7 @@ const PASSWORD_LENGTH = { min: 8, max: 128 } as const;
 export function RegisterForm({ returnTo }: { returnTo: string }) {
   const t = useTranslations("Register");
   const legal = useTranslations("SignIn");
-  const router = useRouter();
+  const leavingThePage = useLeavingThePage();
 
   const form = useAppForm({
     defaultValues: { username: "", password: "", confirm: "" },
@@ -60,9 +60,7 @@ export function RegisterForm({ returnTo }: { returnTo: string }) {
         });
         return;
       }
-      router.replace(returnTo);
-      router.refresh();
-      return leavingThePage();
+      return leavingThePage(returnTo, { refresh: true });
     },
   });
 
