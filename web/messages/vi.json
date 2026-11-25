@@ -2368,7 +2368,20 @@
           "order": "Giờ kết thúc phải sau giờ bắt đầu",
           "overlap": "Ca này bắt đầu trước khi ca trước kết thúc",
           "count": "Có từ 1 đến {max} ca"
+        },
+        "clock": {
+          "hour": "Giờ",
+          "minute": "Phút",
+          "done": "Xong"
         }
+      },
+      "range": {
+        "tab": "Tổng hợp",
+        "title": "Tổng hợp cả khoảng ngày",
+        "note": "{days} ngày · {orders} đơn",
+        "day": "Ngày",
+        "orders": "Số đơn",
+        "total": "Tổng"
       }
     },
     "promotions": {

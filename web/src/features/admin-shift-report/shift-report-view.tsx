@@ -58,6 +58,9 @@ import {
 
 const anyStore = "all";
 
+/** The first tab: the summary of the whole range, as the workbook's first sheet. */
+const rangeTab = "range";
+
 /** The shifts last chosen, as the address writes them, kept in this browser. */
 const keptShifts = stored("secondbite.admin.shifts", z.array(z.string()), []);
 
@@ -102,8 +105,9 @@ export function ShiftReportView({
     startTransition,
   });
   const [today] = useState(() => vietnamToday());
-  const [day, setDay] = useState<string | null>(null);
-  const shown = report.days.find((d) => d.day === day) ?? report.days.at(-1);
+  const [chosenTab, setTab] = useState(rangeTab);
+  // A tab of a day the new range no longer holds gives way to the summary of the range.
+  const tab = report.days.some((d) => d.day === chosenTab) ? chosenTab : rangeTab;
 
   // The shifts an admin chose last are kept in their browser: an address without any takes them back.
   useEffect(() => {
@@ -201,23 +205,91 @@ export function ShiftReportView({
         </p>
       )}
 
-      {shown && (
-        <Tabs value={shown.day} onValueChange={(next) => setDay(String(next))}>
-          <TabsList variant="line" aria-label={t("tabs")} className="h-auto flex-wrap">
-            {report.days.map((d) => (
-              <TabsTrigger key={d.day} value={d.day} className="min-h-11">
-                {dayLabel(d.day)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <Tabs value={tab} onValueChange={(next) => setTab(String(next))}>
+        <TabsList variant="line" aria-label={t("tabs")} className="h-auto flex-wrap">
+          <TabsTrigger value={rangeTab} className="min-h-11">
+            {t("range.tab")}
+          </TabsTrigger>
           {report.days.map((d) => (
-            <TabsContent key={d.day} value={d.day}>
-              <DayPanel day={d} shifts={shifts} onApply={apply} />
-            </TabsContent>
+            <TabsTrigger key={d.day} value={d.day} className="min-h-11">
+              {dayLabel(d.day)}
+            </TabsTrigger>
           ))}
-        </Tabs>
-      )}
+        </TabsList>
+        <TabsContent value={rangeTab}>
+          <RangePanel report={report} dayLabel={dayLabel} />
+        </TabsContent>
+        {report.days.map((d) => (
+          <TabsContent key={d.day} value={d.day}>
+            <DayPanel day={d} shifts={shifts} onApply={apply} />
+          </TabsContent>
+        ))}
+      </Tabs>
     </section>
+  );
+}
+
+/** The summary of the range: a row per day and shift, the day's own, and the totals (the workbook's "Tổng hợp"). */
+function RangePanel({
+  report,
+  dayLabel,
+}: {
+  report: ShiftReportOutputBody;
+  dayLabel: (iso: string) => string;
+}) {
+  const t = useTranslations("Admin.shiftReports");
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("range.title")}</CardTitle>
+        <CardDescription>
+          {t("range.note", { days: report.days.length, orders: report.totals.orders })}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table aria-label={t("range.title")}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("range.day")}</TableHead>
+              <TableHead>{t("summary.shift")}</TableHead>
+              <TableHead>{t("summary.hours")}</TableHead>
+              <TableHead className="text-right">{t("summary.stores")}</TableHead>
+              <TableHead className="text-right">{t("summary.posted")}</TableHead>
+              <TableHead className="text-right">{t("summary.collected")}</TableHead>
+              <TableHead className="text-right">{t("summary.notCollected")}</TableHead>
+              <TableHead className="text-right">{t("range.orders")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {report.days.flatMap((d) => [
+              ...d.shifts.map((block) => (
+                <SummaryRow
+                  key={`${d.day}-${block.from}-${block.name}`}
+                  lead={dayLabel(d.day)}
+                  name={block.name}
+                  hours={`${block.from}–${block.until}`}
+                  summary={block.summary}
+                />
+              )),
+              <SummaryRow
+                key={`${d.day}-all`}
+                lead={dayLabel(d.day)}
+                name={t("summary.wholeDay")}
+                hours=""
+                summary={d.summary}
+              />,
+            ])}
+            <SummaryRow
+              lead={t("range.total")}
+              name={t("summary.wholeDay")}
+              hours=""
+              summary={report.totals}
+            />
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -279,16 +351,20 @@ function DayPanel({
 }
 
 function SummaryRow({
+  lead,
   name,
   hours,
   summary,
 }: {
+  /** The day, in the range's table; none in a day's own. */
+  lead?: string;
   name: string;
   hours: string;
   summary: ShiftSummaryBody;
 }) {
   return (
     <TableRow>
+      {lead !== undefined && <TableCell>{lead}</TableCell>}
       <TableCell>
         <span className="text-body-sm-strong">{name}</span>
       </TableCell>
@@ -297,6 +373,7 @@ function SummaryRow({
       <TableCell className="text-right">{summary.unitsPosted}</TableCell>
       <TableCell className="text-right">{summary.unitsCollected}</TableCell>
       <TableCell className="text-right">{summary.unitsNotCollected}</TableCell>
+      {lead !== undefined && <TableCell className="text-right">{summary.orders}</TableCell>}
     </TableRow>
   );
 }

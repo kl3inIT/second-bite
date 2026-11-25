@@ -36,8 +36,17 @@ test.describe("the admin's report by shift", () => {
     if (isMobile) await page.keyboard.press("Escape");
 
     await expect(page.getByRole("heading", { level: 1, name: "Báo cáo theo ca" })).toBeVisible();
-    // The last three days, one tab each, the latest open.
-    await expect(page.getByRole("tab")).toHaveCount(3);
+    // The summary of the range first and open, then the last three days, one tab each.
+    await expect(page.getByRole("tab")).toHaveCount(4);
+    await expect(page.getByRole("tab").first()).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("tab").first()).toHaveText("Tổng hợp");
+
+    const range = page.getByRole("table", { name: "Tổng hợp cả khoảng ngày" });
+    // The header, four rows for each of the three days, and the total.
+    await expect(range.getByRole("row")).toHaveCount(14);
+    await expect(range.getByRole("row", { name: /^Tổng/ })).toContainText("66");
+
+    await (await hydrated(page.getByRole("tab").last())).click();
     await expect(page.getByRole("tab").last()).toHaveAttribute("aria-selected", "true");
 
     const summary = page.getByRole("table", { name: "Tổng hợp cả ngày" });
@@ -68,7 +77,7 @@ test.describe("the admin's report by shift", () => {
 
   test("the export is the server's workbook of the same days and shifts", async ({ page }) => {
     await page.goto("/vi/admin/shift-reports?from=2026-11-22&to=2026-11-24");
-    await expect(page.getByRole("tab")).toHaveCount(3);
+    await expect(page.getByRole("tab")).toHaveCount(4);
     const link = page.getByRole("link", { name: "Xuất Excel" });
     await expect(link).toHaveAttribute(
       "href",
@@ -86,16 +95,27 @@ test.describe("the admin's report by shift", () => {
     page,
   }) => {
     await page.goto("/vi/admin/shift-reports?from=2026-11-22&to=2026-11-22");
+    await (await hydrated(page.getByRole("tab", { name: "22/11" }))).click();
     await (await hydrated(page.getByRole("button", { name: "Cài đặt ca" }).first())).click();
+
+    // The hours are chosen on two wheels, as on a phone, never typed.
+    const pickHour = async (field: string, index: number) => {
+      await dialog.getByLabel(field).nth(index).click();
+      await page.getByRole("spinbutton", { name: "Giờ" }).focus();
+      await page.keyboard.press("ArrowUp");
+      await page.getByRole("button", { name: "Xong" }).click();
+    };
 
     const dialog = page.getByRole("dialog", { name: "Cài đặt ca" });
     await expect(dialog.getByLabel("Tên ca")).toHaveCount(3);
-    await dialog.getByLabel("Đến").first().fill("13:00");
+    await expect(dialog.getByRole("textbox", { name: "Đến" })).toHaveCount(0);
+    await pickHour("Đến", 0);
+    await expect(dialog.getByLabel("Đến").first()).toHaveText("13:00");
     await dialog.getByRole("button", { name: "Áp dụng" }).click();
     await expect(dialog.getByText("Ca này bắt đầu trước khi ca trước kết thúc")).toBeVisible();
 
     await dialog.getByLabel("Tên ca").first().fill("Ca sớm");
-    await dialog.getByLabel("Từ").nth(1).fill("13:00");
+    await pickHour("Từ", 1);
     await dialog.getByRole("button", { name: "Áp dụng" }).click();
 
     await expect(page).toHaveURL(/shift=/);
@@ -105,6 +125,7 @@ test.describe("the admin's report by shift", () => {
     await expect(page.getByRole("table", { name: "Đơn của Ca chiều" })).toContainText("SB-20002");
 
     await page.reload();
+    await (await hydrated(page.getByRole("tab", { name: "22/11" }))).click();
     await expect(page.getByText("Ca sớm (06:00–13:00)")).toBeVisible();
     await expectNoSeriousA11yViolations(page);
   });

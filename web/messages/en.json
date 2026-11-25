@@ -2368,7 +2368,20 @@
           "order": "The end must be after the start",
           "overlap": "This shift starts before the one above ends",
           "count": "From 1 to {max} shifts"
+        },
+        "clock": {
+          "hour": "Hour",
+          "minute": "Minute",
+          "done": "Done"
         }
+      },
+      "range": {
+        "tab": "Summary",
+        "title": "Summary of the whole range",
+        "note": "{days} days · {orders} orders",
+        "day": "Day",
+        "orders": "Orders",
+        "total": "Total"
       }
     },
     "promotions": {

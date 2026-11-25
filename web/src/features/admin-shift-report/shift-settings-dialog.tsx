@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
+import { ClockField } from "./clock-field";
 import {
   defaultShifts,
   maxShiftName,
@@ -105,33 +106,32 @@ export function ShiftSettingsDialog({
                   />
                 </Cell>
                 <Cell
-                  className="w-24"
+                  className="w-32"
                   id={`${id}-from-${row}`}
                   label={t("from")}
                   message={messageOf(problemOf(row, "from"))}
                 >
-                  <Input
+                  <ClockField
                     id={`${id}-from-${row}`}
+                    label={t("from")}
                     value={shift.from}
-                    inputMode="numeric"
-                    placeholder="06:00"
-                    aria-invalid={problemOf(row, "from") ? true : undefined}
-                    onChange={(event) => change(row, { from: event.target.value })}
+                    invalid={problemOf(row, "from") !== undefined}
+                    onChange={(from) => change(row, { from })}
                   />
                 </Cell>
                 <Cell
-                  className="w-24"
+                  className="w-32"
                   id={`${id}-until-${row}`}
                   label={t("until")}
                   message={messageOf(problemOf(row, "until"))}
                 >
-                  <Input
+                  <ClockField
                     id={`${id}-until-${row}`}
+                    label={t("until")}
                     value={shift.until}
-                    inputMode="numeric"
-                    placeholder="12:00"
-                    aria-invalid={problemOf(row, "until") ? true : undefined}
-                    onChange={(event) => change(row, { until: event.target.value })}
+                    end
+                    invalid={problemOf(row, "until") !== undefined}
+                    onChange={(until) => change(row, { until })}
                   />
                 </Cell>
                 <Button

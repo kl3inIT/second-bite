@@ -4,9 +4,9 @@ Tracked in Linear as SEC-209. Asked for on 24 November 2026 by the person who ru
 
 ## 1. What an admin can do
 
-- Open **Báo cáo theo ca** under People in the admin menu, pick a range of days (1 to 31, today and the past) and, if wanted, one store. The page shows **one tab per day** of the range; nothing is scrolled through to reach another day.
+- Open **Báo cáo theo ca** under People in the admin menu, pick a range of days (1 to 31, today and the past) and, if wanted, one store. The page shows a first tab, **Tổng hợp**, with the summary of the whole range (a row per day and shift, the day's own and the totals, as the workbook's first sheet), then **one tab per day** of the range; nothing is scrolled through to reach another day.
 - In a day's tab, from the top: the **day summary** (per shift and for the whole day: stores, portions posted, portions collected, portions not collected), then **one table per shift** listing every order whose pickup window starts in the shift, with its buyer: number, store, customer, phone, dishes, portions, time ordered, pickup window, status. A shift with no order says it has none.
-- The shifts are three by default: **Ca sáng 06:00–12:00**, **Ca chiều 12:00–18:00**, **Ca tối 18:00–24:00**. A button on each shift opens a form to **rename the shifts and change their hours** (one to six shifts). The choice is kept in the admin's browser and sent with every request; the server keeps nothing about it.
+- The shifts are three by default: **Ca sáng 06:00–12:00**, **Ca chiều 12:00–18:00**, **Ca tối 18:00–24:00**. A button on each shift opens a form to **rename the shifts and change their hours** (one to six shifts); the hours are chosen on two wheels, hours and minutes, as on a phone, never typed, so they cannot be written in a wrong format (a 00:00 that ends a shift reads 24:00). The choice is kept in the admin's browser and sent with every request; the server keeps nothing about it.
 - **Xuất Excel** downloads the range as a workbook: a sheet **Tổng hợp** and one sheet per day, with the same shifts, tables and numbers as the screen.
 
 ## 2. Rules
